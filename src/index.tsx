@@ -7,7 +7,8 @@ import {
   MapPin, Phone, Mail, ExternalLink, MessageSquare, LayoutGrid,
   Rocket, Paintbrush, Monitor, Key, Landmark, FileText, Film, Smartphone, RefreshCw,
   Target, TrendingDown, TrendingUp, CheckCircle, Wallet, Activity, BarChart,
-  Lightbulb, Flag, Workflow, Building2, Gavel, Award
+  Lightbulb, Flag, Workflow, Building2, Gavel, Award,
+  AlertCircle, Link, MessageCircle, ShieldAlert, ArrowDownRight, Zap
 } from 'lucide-react';
 
 const apiKey = ""; // Klíč poskytne prostředí
@@ -664,6 +665,103 @@ const App = () => {
                     <p className="text-sm text-white/20 italic font-light">
                       Tento model slouží jako důkazní prvek pro rozvoj a duplikaci REST||ART v dalších regionech.
                     </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* 2.9 NARATIVNÍ SEKCE: CESTA K RECIDIVĚ */}
+            <section className="py-24 px-6 relative bg-[#051111]">
+              <div className="max-w-7xl mx-auto space-y-32">
+                <div className="text-center space-y-6 max-w-3xl mx-auto">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                    Příčina a Následek
+                  </div>
+                  <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase leading-tight">
+                    Kde to <span className="text-red-500 italic font-serif">začíná?</span>
+                  </h2>
+                </div>
+
+                <div className="grid lg:grid-cols-3 gap-12 relative">
+                  {/* Connecting lines for desktop */}
+                  <div className="hidden lg:block absolute top-1/2 left-1/3 w-1/6 h-px bg-gradient-to-r from-red-500/50 to-transparent -translate-y-1/2" />
+                  <div className="hidden lg:block absolute top-1/2 left-2/3 w-1/6 h-px bg-gradient-to-r from-red-500/50 to-transparent -translate-y-1/2" />
+
+                  {/* BOD ZLOMU */}
+                  <div className="glass-panel p-10 rounded-[3rem] border-red-500/10 space-y-8 relative group hover:border-red-500/30 transition-all">
+                    <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><ShieldAlert size={32} /></div>
+                    <div className="space-y-4">
+                      <h3 className="text-2xl font-black tracking-widest text-white uppercase">BOD ZLOMU</h3>
+                      <p className="text-white/40 font-light leading-relaxed">
+                        U mnoha lidí začíná příběh v dětském domově. Bez rodinných vzorců, bez důvěry, bez hranic. Tam se láme charakter.
+                      </p>
+                    </div>
+                    <ul className="space-y-2 text-xs text-red-400/60 font-black uppercase tracking-widest">
+                      <li className="flex items-center gap-2">👉 Přizpůsobení skupině</li>
+                      <li className="flex items-center gap-2">👉 Rezignace</li>
+                      <li className="flex items-center gap-2">👉 Ztráta motivace</li>
+                    </ul>
+                  </div>
+
+                  {/* JAILBREAK (RIZIKO) */}
+                  <div className="glass-panel p-10 rounded-[3rem] border-red-500/10 space-y-8 relative group hover:border-red-500/30 transition-all lg:mt-12">
+                    <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><Gavel size={32} /></div>
+                    <div className="space-y-4">
+                      <h3 className="text-2xl font-black tracking-widest text-white uppercase">JAILBREAK</h3>
+                      <p className="text-white/40 font-light leading-relaxed">
+                        Po výkonu trestu je většina lidí ještě zranitelnější. Bez zázemí a přijetí se vrací do stejného prostředí.
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 text-xs text-red-400 font-bold italic">
+                      "Recidiva není otázka šance. Je to jistota."
+                    </div>
+                  </div>
+
+                  {/* REWORK (RIZIKO) */}
+                  <div className="glass-panel p-10 rounded-[3rem] border-red-500/10 space-y-8 relative group hover:border-red-500/30 transition-all lg:mt-24">
+                    <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><TrendingDown size={32} /></div>
+                    <div className="space-y-4">
+                      <h3 className="text-2xl font-black tracking-widest text-white uppercase">REWORK</h3>
+                      <p className="text-white/40 font-light leading-relaxed">
+                        Naučená bezmoc a zvyk "mít za nic". Neřešení problémů, dokud se nehroutí. Cesta zpět k trestné činnosti.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 text-red-500 animate-pulse">
+                      <AlertCircle size={16} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Kritický řetězec selhání</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PROČ TO NEFUNGUJE */}
+                <div className="grid lg:grid-cols-2 gap-16 items-center pt-20">
+                  <div className="space-y-8">
+                    <h2 className="text-4xl md:text-5xl font-serif italic text-white leading-tight">Proč to <span className="text-red-500">nefunguje?</span></h2>
+                    <p className="text-xl text-white/40 font-light leading-relaxed">
+                      Každý článek systému – ústav, úřad, neziskovka, kurátor, terapeut – funguje sám za sebe. Není tu jeden jazyk. Jeden cíl. Jedna značka odpovědnosti.
+                    </p>
+                    <div className="flex gap-4">
+                      <div className="w-px h-20 bg-gradient-to-b from-red-500 to-transparent" />
+                      <p className="text-sm text-white/30 italic font-light max-w-sm">
+                        Fragmentace systému je největší bariérou skutečné životní změny.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="glass-panel p-12 md:p-16 rounded-[4rem] border-cyan-400/20 bg-cyan-500/[0.02] space-y-10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-12 opacity-5 -rotate-12 pointer-events-none"><Zap size={200} className="text-cyan-400" /></div>
+                    <div className="space-y-6 relative z-10">
+                      <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                        Řešení = REST||ART
+                      </div>
+                      <h3 className="text-3xl font-black text-white tracking-widest uppercase">Sjednocená <br /><span className="text-cyan-400 italic font-serif">odpovědnost</span></h3>
+                      <p className="text-white/60 font-light leading-relaxed">
+                        REST||ART není jen soubor programů. Je to strukturovaná cesta, kde jeden program navazuje na druhý. Systém, který konečně spolu mluví.
+                      </p>
+                    </div>
+                    <div className="p-8 rounded-3xl bg-cyan-500/10 border border-cyan-400/20 italic font-serif text-xl text-cyan-100 leading-relaxed">
+                      "Nečekáme, až lidé spadnou. Ale ani je nenecháme ležet."
+                    </div>
                   </div>
                 </div>
               </div>
