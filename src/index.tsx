@@ -221,29 +221,54 @@ const App = () => {
                   </div>
 
                   <div className="grid gap-6">
-                    {[
-                      { icon: <Phone />, label: 'Telefon', value: '+420 705 217 251', sub: 'Po-Pá: 9:00 - 17:00' },
-                      { icon: <Mail />, label: 'Email', value: 'kozak@d-international.eu', sub: 'Odpovídáme do 24h' },
-                    ].map((item, i) => (
-                      <div key={i} className="glass-panel p-10 rounded-[2.5rem] flex items-center gap-8 border-white/5 hover:border-cyan-400/20 transition-all group">
-                        <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all">
-                          {item.icon}
-                        </div>
+                    <div className="glass-panel p-10 rounded-[2.5rem] space-y-6 border-white/5">
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center"><Landmark size={32} /></div>
                         <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-1 font-black">{item.label}</p>
-                          <p className="text-2xl font-bold text-white/90 group-hover:text-cyan-400 transition-colors">{item.value}</p>
-                          <p className="text-xs text-white/20 mt-1 font-light">{item.sub}</p>
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-1 font-black">Firma</p>
+                          <p className="text-2xl font-bold text-white/90">DAVID KOZÁK INTERNATIONAL S.R.O.</p>
                         </div>
                       </div>
-                    ))}
+                      <div className="grid md:grid-cols-2 gap-6 pt-4 border-t border-white/5 text-sm text-white/40 font-light">
+                        <div className="space-y-1">
+                          <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Sídlo</p>
+                          <p>Drážďanská 517/52<br />400 07 Ústí nad Labem</p>
+                        </div>
+                        <div className="space-y-1 text-right">
+                          <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Identifikace</p>
+                          <p>IČO: 23143614<br />DIČ: CZ23143614</p>
+                        </div>
+                        <div className="md:col-span-2 pt-2 italic text-[10px] leading-relaxed">
+                          Zapsaná v obchodním rejstříku vedeném Krajským soudem v Ústí nad Labem, oddíl C, vložka 53832
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {[
+                        { icon: <Phone />, label: 'Telefon', value: '+420 705 217 251', sub: 'Po-Pá: 9:00 - 17:00' },
+                        { icon: <Mail />, label: 'Email', value: 'info@david-kozak.com', sub: 'Odpovídáme do 24h' },
+                      ].map((item, i) => (
+                        <div key={i} className="glass-panel p-10 rounded-[2.5rem] flex items-center gap-8 border-white/5 hover:border-cyan-400/20 transition-all group">
+                          <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all">
+                            {item.icon}
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-1 font-black">{item.label}</p>
+                            <p className="text-xl font-bold text-white/90 group-hover:text-cyan-400 transition-colors">{item.value}</p>
+                            <p className="text-xs text-white/20 mt-1 font-light">{item.sub}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                     
-                    <a href="https://international.david-kozak.com" target="_blank" className="glass-panel p-10 rounded-[2.5rem] flex items-center gap-8 border-white/5 hover:border-cyan-400/20 transition-all group">
+                    <a href="https://www.david-kozak.com" target="_blank" className="glass-panel p-10 rounded-[2.5rem] flex items-center gap-8 border-white/5 hover:border-cyan-400/20 transition-all group">
                       <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all">
                         <Globe />
                       </div>
                       <div className="flex-grow">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-1 font-black">Firma</p>
-                        <p className="text-2xl font-bold text-white/90 group-hover:text-cyan-400 transition-colors">international.david-kozak.com</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-1 font-black">Web</p>
+                        <p className="text-2xl font-bold text-white/90 group-hover:text-cyan-400 transition-colors">www.david-kozak.com</p>
                       </div>
                       <ExternalLink size={20} className="text-white/10 group-hover:text-cyan-400 transition-all" />
                     </a>
@@ -716,9 +741,14 @@ const App = () => {
                 <div className="text-5xl font-black tracking-tighter text-glow-cyan leading-none">REST<span className="text-white/10 mx-1">||</span>ART</div>
                 <p className="text-[10px] text-white/30 uppercase tracking-[0.5em] font-black">Iniciativa David Kozák International</p>
               </div>
-              <p className="text-white/20 text-sm font-light max-w-sm leading-relaxed">
-                Budujeme systémovou podporu pro udržitelný návrat do společnosti a důstojný život pro každého.
-              </p>
+              <div className="space-y-2">
+                <p className="text-white/40 text-sm font-bold">DAVID KOZÁK INTERNATIONAL S.R.O.</p>
+                <p className="text-white/20 text-[10px] leading-relaxed max-w-sm font-light">
+                  Drážďanská 517/52, 400 07 Ústí nad Labem<br />
+                  IČO: 23143614 | DIČ: CZ23143614<br />
+                  Spisová značka: C 53832 u Krajského soudu v Ústí nad Labem
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-col items-center md:items-end gap-10 relative z-10">
