@@ -50,11 +50,11 @@ const App = () => {
   }, [currentPage]);
 
   // --- Gemini API Logic ---
-  const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 5) => {
+  const fetchWithRetry = async (url: string, fetchOptions: RequestInit, maxRetries = 5) => {
     let delay = 1000;
     for (let i = 0; i < maxRetries; i++) {
       try {
-        const response = await fetch(url, options);
+        const response = await fetch(url, fetchOptions);
         if (response.ok) return await response.json();
         if (response.status !== 429 && response.status < 500) break;
       } catch (e) { if (i === maxRetries - 1) throw e; }
@@ -90,7 +90,11 @@ const App = () => {
     const pcmBuffer = Uint8Array.from(atob(base64Pcm), c => c.charCodeAt(0));
     const wavHeader = new ArrayBuffer(44);
     const view = new DataView(wavHeader);
-    const writeString = (offset: number, string: string) => { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); };
+    const writeString = (offset: number, str: string) => { 
+      for (let i = 0; i < str.length; i++) {
+        view.setUint8(offset + i, str.charCodeAt(i));
+      }
+    };
     writeString(0, 'RIFF'); view.setUint32(4, 32 + pcmBuffer.length, true); writeString(8, 'WAVE'); writeString(12, 'fmt ');
     view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
     view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true); writeString(36, 'data');
@@ -171,7 +175,7 @@ const App = () => {
                     
                     <div className="flex justify-between items-start mb-10 relative z-10">
                       <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">
-                        {React.cloneElement(p.icon, { size: 28 } as React.SVGProps<SVGSVGElement>)}
+                        {React.cloneElement(p.icon as React.ReactElement<{ size?: number }>, { size: 28 })}
                       </div>
                       <div className="flex flex-col items-end">
                         <span className="text-[10px] font-black text-white/10 uppercase tracking-widest mb-2">Project 0{idx + 1}</span>
@@ -417,7 +421,9 @@ const App = () => {
                   <div key={p.id} className="glass-panel p-10 rounded-[3rem] group hover:-translate-y-2 transition-all relative overflow-hidden flex flex-col h-full border-cyan-400/5 hover:border-cyan-400/30">
                     <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="flex justify-between items-start mb-8 relative z-10">
-                      <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">{p.icon}</div>
+                      <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">
+                        {React.cloneElement(p.icon as React.ReactElement<{ size?: number }>, { size: 28 })}
+                      </div>
                       <span className="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">0{idx + 1}</span>
                     </div>
                     <h3 className="text-2xl font-bold mb-4 uppercase tracking-widest leading-tight relative z-10 group-hover:text-cyan-400 transition-colors">{p.title}</h3>
