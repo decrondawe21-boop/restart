@@ -314,8 +314,8 @@ const App = () => {
                   <div className="inline-flex items-center gap-2 text-cyan-400 font-bold text-xs tracking-widest uppercase bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-400/20">
                     David Kozák International, s.r.o.
                   </div>
-                  <h2 className="text-5xl md:text-8xl font-serif text-white leading-tight">
-                    Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-400 italic">každý.</span>
+                  <h2 className="text-5xl md:text-8xl text-white leading-tight">
+                    Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-400 italic font-serif">každý.</span>
                   </h2>
                   <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-light">
                     REST||ART Integrace je kostra nové společnosti. Budujeme udržitelný systém pro ty, které svět přestal vidět.
@@ -344,7 +344,7 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> AI Integrační Asistent
                   </div>
-                  <h3 className="text-4xl md:text-5xl font-serif text-white">Váš plán <span className="text-cyan-400 italic">restartu</span></h3>
+                  <h3 className="text-4xl md:text-5xl text-white">Váš plán <span className="text-cyan-400 italic font-serif">restartu</span></h3>
                   <p className="text-white/40 font-light max-w-2xl mx-auto">Napište nám o své situaci a naše AI vám navrhne první kroky podle pilířů Integrace.</p>
                 </div>
 
@@ -406,8 +406,8 @@ const App = () => {
             <section className="py-24 px-6 max-w-7xl mx-auto">
               <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-16">
                 <div className="space-y-4">
-                  <h2 className="text-4xl md:text-6xl font-serif text-white uppercase leading-tight">
-                    Pět pilířů <br /><span className="text-cyan-400 italic">restartu</span>
+                  <h2 className="text-4xl md:text-6xl text-white uppercase leading-tight">
+                    Pět pilířů <br /><span className="text-cyan-400 italic font-serif">restartu</span>
                   </h2>
                   <div className="h-1 w-24 bg-cyan-500 rounded-full" />
                 </div>
@@ -473,15 +473,15 @@ const App = () => {
           <button onClick={() => setIsMenuOpen(false)} className="absolute top-8 right-8 text-cyan-400 p-4 hover:scale-110 transition-transform"><X size={32} /></button>
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 opacity-5 pointer-events-none"><Users size={400} /></div>
           
-          <button onClick={() => setCurrentPage('home')} className="group flex items-center gap-6 text-3xl md:text-5xl font-serif text-white uppercase hover:text-cyan-400 transition-all">
+          <button onClick={() => setCurrentPage('home')} className="group flex items-center gap-6 text-3xl md:text-5xl text-white uppercase hover:text-cyan-400 transition-all">
             <span className="text-sm md:text-lg text-cyan-400 font-black tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">01</span>
             O projektu
           </button>
-          <button onClick={() => setCurrentPage('projects')} className="group flex items-center gap-6 text-3xl md:text-5xl font-serif text-white uppercase hover:text-cyan-400 transition-all">
+          <button onClick={() => setCurrentPage('projects')} className="group flex items-center gap-6 text-3xl md:text-5xl text-white uppercase hover:text-cyan-400 transition-all">
             <span className="text-sm md:text-lg text-cyan-400 font-black tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">02</span>
             Projekty
           </button>
-          <button onClick={() => setCurrentPage('contacts')} className="group flex items-center gap-6 text-3xl md:text-5xl font-serif text-white uppercase hover:text-cyan-400 transition-all">
+          <button onClick={() => setCurrentPage('contacts')} className="group flex items-center gap-6 text-3xl md:text-5xl text-white uppercase hover:text-cyan-400 transition-all">
             <span className="text-sm md:text-lg text-cyan-400 font-black tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">03</span>
             Kontakty
           </button>
