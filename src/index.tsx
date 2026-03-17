@@ -6,7 +6,8 @@ import {
   ChevronRight, Quote, Sparkles, Send, Loader2, Volume2,
   MapPin, Phone, Mail, ExternalLink, MessageSquare, LayoutGrid,
   Rocket, Paintbrush, Monitor, Key, Landmark, FileText, Film, Smartphone, RefreshCw,
-  Target, TrendingDown, TrendingUp, CheckCircle, Wallet, Activity, BarChart
+  Target, TrendingDown, TrendingUp, CheckCircle, Wallet, Activity, BarChart,
+  Lightbulb, Flag, Workflow, Building2, Gavel, Award
 } from 'lucide-react';
 
 const apiKey = ""; // Klíč poskytne prostředí
@@ -547,6 +548,122 @@ const App = () => {
                         </table>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* 2.7 VIZE A STRATEGIE */}
+            <section className="py-24 px-6 relative overflow-hidden">
+              <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
+                <div className="space-y-10">
+                  <div className="space-y-6">
+                    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                      Kapitola 2.1: Cíl Projektu
+                    </div>
+                    <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-glow-cyan uppercase leading-tight">
+                      Vize sociální <br /><span className="text-cyan-400 font-serif italic">reintegrace</span>
+                    </h2>
+                  </div>
+                  
+                  <div className="space-y-8 text-xl text-white/70 font-light leading-relaxed">
+                    <p>
+                      Cílem projektu REST||ART je vytvořit komplexní, propojený systém sociální reintegrace, který přetváří jednotlivce bez budoucnosti ve stabilní součást společnosti.
+                    </p>
+                    <p className="text-lg text-white/40">
+                      Nechceme se pouštět do iluze, že změníme celý systém. Ale chceme změnit způsob, jakým se k jednotlivcům na jeho okraji přistupuje. Zaměřujeme se na dlouhodobé problémy – nezaměstnanost, recidivu, závislosti – a hledáme způsob, jak z nich vytvořit fungující sílu.
+                    </p>
+                  </div>
+
+                  <div className="glass-panel p-8 rounded-[2.5rem] border-cyan-400/10 bg-cyan-500/[0.02] space-y-4">
+                    <div className="flex items-center gap-4 text-cyan-400">
+                      <Workflow size={24} />
+                      <h4 className="font-bold tracking-widest uppercase text-xs">Zastřešující platforma</h4>
+                    </div>
+                    <p className="text-sm text-white/40 font-light leading-relaxed">
+                      REST||ART usiluje o propojení všech aktérů. Chceme vytvořit platformu, pod kterou nebude nutné bojovat o dotace, ale kde bude balík koordinovaně přerozdělen podle skutečné potřeby.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 bg-cyan-500/10 rounded-[4rem] blur-3xl -z-10 animate-pulse" />
+                  <div className="glass-panel p-12 md:p-16 rounded-[4rem] border-white/5 space-y-12">
+                    <div className="space-y-6">
+                      <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center"><Flag size={32} /></div>
+                      <h3 className="text-3xl font-serif italic text-white">Definice úspěchu</h3>
+                      <p className="text-white/50 font-light leading-relaxed italic text-lg">
+                        "Úspěch není grant. Úspěch je člověk, který byl dřív v base nebo na ulici – a dnes má práci, bydlení a je inspirací pro ostatní."
+                      </p>
+                    </div>
+
+                    <div className="space-y-6 pt-8 border-t border-white/5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center text-teal-400"><Award size={20} /></div>
+                        <h4 className="text-sm font-black uppercase tracking-widest text-white/80">Ambasadoři změny</h4>
+                      </div>
+                      <p className="text-sm text-white/30 font-light leading-relaxed">
+                        U osob závislých počítáme s jejich zaměstnáním přímo pod značkou DKI jako ambasadorů, kteří sdílejí svou zkušenost. Podmínkou je potvrzená abstinence a spolupráce se sociálními službami.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* 2.8 PILOTNÍ PLÁN: JIŘICE */}
+            <section className="py-24 px-6 relative bg-[#0D2F2F]/10">
+              <div className="max-w-7xl mx-auto">
+                <div className="grid lg:grid-cols-2 gap-16 items-center">
+                  <div className="order-2 lg:order-1 relative group">
+                    <div className="relative rounded-[3rem] overflow-hidden border-[12px] border-white/5 shadow-2xl transition-all duration-700 group-hover:scale-[1.02]">
+                      <div className="absolute inset-0 bg-cyan-500/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="bg-black/60 p-12 space-y-8 relative z-10">
+                        <div className="flex items-center gap-6">
+                          <div className="w-14 h-14 bg-cyan-500/20 rounded-2xl flex items-center justify-center text-cyan-400"><Building2 size={28} /></div>
+                          <div>
+                            <h4 className="text-xl font-bold text-white uppercase tracking-widest">Věznice Jiřice</h4>
+                            <p className="text-xs text-cyan-400 font-light">Lokace pilotního plánu</p>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-4 text-white/60 text-sm font-light">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Pronájem skladové haly
+                          </div>
+                          <div className="flex items-center gap-4 text-white/60 text-sm font-light">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Zaměstnávání osob ve výkonu trestu
+                          </div>
+                          <div className="flex items-center gap-4 text-white/60 text-sm font-light">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Dohled VSČR + civilní pracovníci
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="order-1 lg:order-2 space-y-8">
+                    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                      Konkrétní Pilotní Plán
+                    </div>
+                    <h2 className="text-5xl md:text-6xl text-white uppercase leading-tight text-glow-cyan">
+                      JAILBREAK <br /><span className="text-cyan-400 font-serif italic">+ REWORK + STREETWISE</span>
+                    </h2>
+                    <p className="text-lg text-white/40 font-light leading-relaxed">
+                      V tomto prostoru lze zaměstnat osoby ve výkonu trestu, ale také civilní pracovníky z řad dlouhodobě nezaměstnaných nebo lidí bez domova. Tím se propojuje několik cílových skupin v jednom provozu.
+                    </p>
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Logistika & Bezpečnost</h5>
+                        <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťují státní složky (ÚP, věznice).</p>
+                      </div>
+                      <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-teal-400">Terénní práce</h5>
+                        <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťuje neziskový sektor.</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-white/20 italic font-light">
+                      Tento model slouží jako důkazní prvek pro rozvoj a duplikaci REST||ART v dalších regionech.
+                    </p>
                   </div>
                 </div>
               </div>
