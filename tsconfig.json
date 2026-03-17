@@ -14,8 +14,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-alpha"
+    "jsx": "react-jsx"
   },
-  "include": ["src", "index.tsx", "main.tsx", "vite.config.ts"],
+  "include": ["src", "index.tsx", "main.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
