@@ -5,7 +5,8 @@ import {
   ShieldCheck, Leaf, Instagram, Facebook, Globe, Users, 
   ChevronRight, Quote, Sparkles, Send, Loader2, Volume2,
   MapPin, Phone, Mail, ExternalLink, MessageSquare, LayoutGrid,
-  Rocket, Paintbrush, Monitor, Key, Landmark, FileText, Film, Smartphone
+  Rocket, Paintbrush, Monitor, Key, Landmark, FileText, Film, Smartphone, RefreshCw,
+  Target, TrendingDown, TrendingUp, CheckCircle, Wallet, Activity, BarChart
 } from 'lucide-react';
 
 const apiKey = ""; // Klíč poskytne prostředí
@@ -23,6 +24,7 @@ interface Pillar {
   description: string;
   icon: React.ReactElement;
   color: string;
+  isMain?: boolean;
 }
 
 const App = () => {
@@ -126,10 +128,11 @@ const App = () => {
 
   // Pillars - Integrated (no external links for Jailbreak/Bod Zlomu as they are here)
   const pillars: Pillar[] = [
-    { id: 'jailbreak', title: 'JAILBREAK', description: 'Pomoc lidem ve výkonu trestu a po něm.', icon: <DoorOpen />, color: 'cyan' },
-    { id: 'rework', title: 'REWORK', description: 'Integrace handicapovaných a nezaměstnaných skrze práci.', icon: <Briefcase />, color: 'teal' },
+    { id: 'jailbreak', title: 'JAILBREAK', description: 'Pomoc lidem ve výkonu trestu a po něm.', icon: <DoorOpen />, color: 'cyan', isMain: true },
+    { id: 'rework', title: 'REWORK', description: 'Integrace handicapovaných a nezaměstnaných skrze práci.', icon: <Briefcase />, color: 'teal', isMain: true },
+    { id: 'streetwise', title: 'STREETWISE', description: 'První kontakt a pomoc lidem na ulici.', icon: <Home />, color: 'cyan', isMain: true },
+    { id: 'reset', title: 'RESET', description: 'Nová životní cesta a restart osobních hodnot.', icon: <RefreshCw />, color: 'emerald' },
     { id: 'bodzlomu', title: 'BOD ZLOMU', description: 'Provázení dětí z dětských domovů do dospělosti.', icon: <Heart />, color: 'emerald' },
-    { id: 'streetwise', title: 'STREETWISE', description: 'První kontakt a pomoc lidem na ulici.', icon: <Home />, color: 'cyan' },
     { id: 'stabilizace', title: 'STABILIZACE', description: 'Udržení životní změny a plná integrace.', icon: <ShieldCheck />, color: 'teal' }
   ];
 
@@ -335,6 +338,195 @@ const App = () => {
               </div>
             </section>
 
+            {/* 2.5 ANOTACE PROJEKTU */}
+            <section className="py-24 px-6 relative overflow-hidden">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+              
+              <div className="max-w-7xl mx-auto">
+                <div className="glass-panel p-12 md:p-20 rounded-[4rem] border-white/5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none -rotate-12">
+                    <LayoutGrid size={300} className="text-cyan-400" />
+                  </div>
+                  
+                  <div className="relative z-10 space-y-12">
+                    <div className="space-y-6">
+                      <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                        Anotace Projektu
+                      </div>
+                      <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-glow-cyan">
+                        REST<span className="text-cyan-400/50 mx-1">||</span>ART INTEGRACE
+                      </h2>
+                    </div>
+
+                    <div className="grid lg:grid-cols-2 gap-16 items-start">
+                      <div className="space-y-8">
+                        <p className="text-xl md:text-2xl text-white/70 font-light leading-relaxed">
+                          Projekt představuje inovativní přístup k řešení dlouhodobé sociální exkluze, nezaměstnanosti a recidivy. Zaměřuje se na osoby po výkonu trestu, osoby bez domova, závislé, mládež z dětských domovů a další znevýhodněné skupiny.
+                        </p>
+                        <p className="text-lg text-white/40 font-light leading-relaxed">
+                          Cílem je jejich opětovné začlenění do společnosti prostřednictvím vzdělávání, pracovní integrace, mentoringu a stabilizace. Program pokrývá všechny fáze životní změny – od krize po plnohodnotné začlenění.
+                        </p>
+                      </div>
+
+                      <div className="space-y-10 bg-white/5 p-10 rounded-[3rem] border border-white/5">
+                        <div className="space-y-4">
+                          <h4 className="text-[10px] uppercase tracking-[0.4em] text-cyan-400 font-black">Investice do budoucnosti</h4>
+                          <p className="text-3xl font-bold text-white leading-tight">14 000 000 Kč</p>
+                          <p className="text-sm text-white/30 font-light leading-relaxed">
+                            Prostředky budou využity na vybavení školících místností, terapeutických prostor, technického zázemí pro pracovní činnost a komunitních prostor.
+                          </p>
+                        </div>
+                        
+                        <div className="h-px bg-white/10 w-full" />
+
+                        <div className="space-y-4">
+                          <h4 className="text-[10px] uppercase tracking-[0.4em] text-teal-400 font-black">Vize a transformace</h4>
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center text-teal-400"><Rocket size={24} /></div>
+                            <p className="text-2xl font-bold text-white">INTEGR!A</p>
+                          </div>
+                          <p className="text-sm text-white/30 font-light leading-relaxed">
+                            Plánovaná transformace značky do samostatného sociálního podniku s cílem dlouhodobé soběstačnosti a udržitelnosti.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* 2.6 DETAILNÍ PROJEKT: REWORK */}
+            <section className="py-24 px-6 relative bg-gradient-to-b from-transparent via-cyan-500/[0.02] to-transparent">
+              <div className="max-w-7xl mx-auto space-y-20">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
+                  <div className="space-y-6">
+                    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                      Detailní Projektový Záměr
+                    </div>
+                    <h2 className="text-5xl md:text-8xl text-white uppercase leading-tight text-glow-cyan">
+                      RE<span className="text-cyan-400 font-serif italic">WORK</span>
+                    </h2>
+                    <div className="grid md:grid-cols-2 gap-4 text-xs text-white/20 uppercase tracking-widest font-black">
+                      <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> David Kozák International s.r.o.</div>
+                      <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> IČO: 23143614</div>
+                      <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> Drážďanská 517/52, 400 07 Ústí nad Labem</div>
+                    </div>
+                  </div>
+                  <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 flex items-center gap-6">
+                    <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-400"><Users size={32} /></div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-white/30 font-black mb-1">Zodpovědná osoba</p>
+                      <p className="text-xl font-bold text-white">David Kozák</p>
+                      <p className="text-xs text-cyan-400 font-light">Majitel projektu</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid lg:grid-cols-3 gap-8">
+                  {[
+                    { icon: <BarChart />, title: "1. VÝCHOZÍ SITUACE", text: "Program REWORK vzniká jako odpověď na zásadní nesoulad mezi počtem uchazečů o zaměstnání a dostupnými pracovními místy. V regionech se pohybuje nad 3–4 uchazeči na 1 VPM." },
+                    { icon: <Target />, title: "2. CÍL PROGRAMU", text: "Příprava osob v evidenci ÚP na úspěšný nástup do stabilního zaměstnání formou diagnostiky, rekvalifikací a dlouhodobého mentoringu." },
+                    { icon: <Users />, title: "3. CÍLOVÁ SKUPINA", text: "Dlouhodobě nezaměstnaní, osoby bez praxe, lidé se zadlužením, po závislostech či s bariérami v oblasti vzdělání a trestní minulosti." },
+                    { icon: <Activity />, title: "4. KLÍČOVÉ AKTIVITY", text: "Individuální plány, rekvalifikační kurzy, simulované pracovní pozice, finanční poradenství a asistence při hledání běžného zaměstnání." },
+                    { icon: <Wallet />, title: "5. ZDROJE A PODPORA", text: "Aktivní využití SÚPM (společensky účelná pracovní místa), příspěvky na zapracování, rekvalifikace z ÚP a doprovodné služby." },
+                    { icon: <CheckCircle />, title: "6. ZÁVĚREČNÉ HODNOCENÍ", text: "Vytváříme model, který umožňuje osobám před přímým nástupem do zaměstnání absolvovat nácvik, zažít úspěch a obnovit dovednosti." }
+                  ].map((card, i) => (
+                    <div key={i} className="glass-panel p-10 rounded-[3rem] space-y-6 hover:bg-cyan-500/5 transition-all group">
+                      <div className="w-14 h-14 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        {card.icon}
+                      </div>
+                      <h3 className="text-lg font-black tracking-widest uppercase text-white group-hover:text-cyan-400 transition-colors">{card.title}</h3>
+                      <p className="text-sm text-white/40 font-light leading-relaxed">{card.text}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Statistiky a tabulky */}
+                <div className="space-y-12">
+                  <div className="flex flex-col md:flex-row gap-8 items-center justify-between">
+                    <h3 className="text-3xl font-serif italic text-white">Analýza trhu & <span className="text-cyan-400">Efektivita</span></h3>
+                    <div className="flex gap-4">
+                      <div className="bg-cyan-500/10 border border-cyan-400/20 px-6 py-3 rounded-2xl">
+                        <span className="text-[10px] text-cyan-400 font-black uppercase tracking-widest block mb-1">Ratio UOZ/VPM</span>
+                        <span className="text-2xl font-black text-white">3.3 - 3.8</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid lg:grid-cols-2 gap-8">
+                    <div className="glass-panel rounded-[3rem] overflow-hidden border-white/5">
+                      <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                        <span className="text-xs font-black uppercase tracking-widest text-white/40">Srovnání Poptávka / Nabídka</span>
+                        <TrendingDown size={16} className="text-cyan-400" />
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/5">
+                              <th className="p-6 font-black">Datum</th>
+                              <th className="p-6 font-black">Uchazeči (UOZ)</th>
+                              <th className="p-6 font-black">Místa (VPM)</th>
+                              <th className="p-6 font-black text-cyan-400">Poměr (na 1 VPM)</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-sm text-white/60">
+                            {[
+                              { date: "31.01.2025", uoz: "320 516", vpm: "83 323", ratio: "3.85" },
+                              { date: "28.02.2025", uoz: "326 223", vpm: "88 062", ratio: "3.70" },
+                              { date: "31.03.2025", uoz: "322 140", vpm: "91 752", ratio: "3.51" },
+                              { date: "30.04.2025", uoz: "318 540", vpm: "95 798", ratio: "3.33" }
+                            ].map((row, i) => (
+                              <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                                <td className="p-6 font-mono text-xs">{row.date}</td>
+                                <td className="p-6 font-bold text-white/80">{row.uoz}</td>
+                                <td className="p-6 font-bold text-white/80">{row.vpm}</td>
+                                <td className="p-6 font-black text-cyan-400">{row.ratio}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="glass-panel rounded-[3rem] overflow-hidden border-white/5">
+                      <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                        <span className="text-xs font-black uppercase tracking-widest text-white/40">Fáze integrace REWORK</span>
+                        <TrendingUp size={16} className="text-teal-400" />
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/5">
+                              <th className="p-6 font-black">Aktivita</th>
+                              <th className="p-6 font-black">Fáze</th>
+                              <th className="p-6 font-black text-teal-400">Nástroj ÚP</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-sm text-white/60">
+                            {[
+                              { act: "Diagnostika & Plán", phase: "1 - Motivace", tool: "Interní / ÚP" },
+                              { act: "Rekvalifikace", phase: "2 - Školení", tool: "ÚP kurz" },
+                              { act: "Asistovaná pozice", phase: "3 - Adaptace", tool: "SÚPM" },
+                              { act: "Mentoring", phase: "3 - Adaptace", tool: "Příspěvek" },
+                              { act: "Dluhové poradenství", phase: "2-4 - Podpora", tool: "Projektový" },
+                              { act: "Zprostředkování", phase: "5 - Volný trh", tool: "Spolupráce" }
+                            ].map((row, i) => (
+                              <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                                <td className="p-6 font-bold text-white/80">{row.act}</td>
+                                <td className="p-6 text-xs">{row.phase}</td>
+                                <td className="p-6 font-black text-teal-400 uppercase text-[10px] tracking-widest">{row.tool}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* 3. GEMINI AI */}
             <section className="py-24 px-6 relative">
               <div className="max-w-4xl mx-auto glass-panel p-12 rounded-[4rem] space-y-8 relative overflow-hidden border-cyan-400/10">
@@ -418,17 +610,20 @@ const App = () => {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {pillars.map((p, idx) => (
-                  <div key={p.id} className="glass-panel p-10 rounded-[3rem] group hover:-translate-y-2 transition-all relative overflow-hidden flex flex-col h-full border-cyan-400/5 hover:border-cyan-400/30">
+                  <div key={p.id} className={`glass-panel p-10 rounded-[3rem] group hover:-translate-y-2 transition-all relative overflow-hidden flex flex-col h-full border-cyan-400/5 hover:border-cyan-400/30 ${p.isMain ? 'ring-1 ring-cyan-500/20' : ''}`}>
                     <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="flex justify-between items-start mb-8 relative z-10">
                       <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">
                         {React.cloneElement(p.icon as React.ReactElement<{ size?: number }>, { size: 28 })}
                       </div>
-                      <span className="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">0{idx + 1}</span>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">0{idx + 1}</span>
+                        {p.isMain && <span className="text-[8px] bg-cyan-500 text-black px-2 py-0.5 rounded-full font-black uppercase mt-2">Hlavní</span>}
+                      </div>
                     </div>
                     <h3 className="text-2xl font-bold mb-4 uppercase tracking-widest leading-tight relative z-10 group-hover:text-cyan-400 transition-colors">{p.title}</h3>
                     <p className="text-white/40 text-base mb-8 font-light leading-relaxed relative z-10 group-hover:text-white/60 transition-colors flex-grow">{p.description}</p>
-                    <div className="h-1 w-12 bg-cyan-400/30 rounded-full group-hover:w-full transition-all duration-700 relative z-10"></div>
+                    <div className={`h-1 w-12 rounded-full group-hover:w-full transition-all duration-700 relative z-10 ${p.isMain ? 'bg-cyan-400' : 'bg-cyan-400/30'}`}></div>
                   </div>
                 ))}
               </div>
