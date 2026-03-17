@@ -10,6 +10,21 @@ import {
 
 const apiKey = ""; // Klíč poskytne prostředí
 
+interface Project {
+  name: string;
+  url: string;
+  desc: string;
+  icon: React.ReactElement;
+}
+
+interface Pillar {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactElement;
+  color: string;
+}
+
 const App = () => {
   const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'projects' | 'contacts'
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,7 +50,7 @@ const App = () => {
   }, [currentPage]);
 
   // --- Gemini API Logic ---
-  const fetchWithRetry = async (url, options, maxRetries = 5) => {
+  const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 5) => {
     let delay = 1000;
     for (let i = 0; i < maxRetries; i++) {
       try {
@@ -71,11 +86,11 @@ const App = () => {
     } catch (err) { setError("Spojení selhalo."); } finally { setIsLoading(false); }
   };
 
-  const pcmToWav = (base64Pcm, sampleRate) => {
+  const pcmToWav = (base64Pcm: string, sampleRate: number) => {
     const pcmBuffer = Uint8Array.from(atob(base64Pcm), c => c.charCodeAt(0));
     const wavHeader = new ArrayBuffer(44);
     const view = new DataView(wavHeader);
-    const writeString = (offset, string) => { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); };
+    const writeString = (offset: number, string: string) => { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); };
     writeString(0, 'RIFF'); view.setUint32(4, 32 + pcmBuffer.length, true); writeString(8, 'WAVE'); writeString(12, 'fmt ');
     view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
     view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true); writeString(36, 'data');
@@ -106,7 +121,7 @@ const App = () => {
   };
 
   // Pillars - Integrated (no external links for Jailbreak/Bod Zlomu as they are here)
-  const pillars = [
+  const pillars: Pillar[] = [
     { id: 'jailbreak', title: 'JAILBREAK', description: 'Pomoc lidem ve výkonu trestu a po něm.', icon: <DoorOpen />, color: 'cyan' },
     { id: 'rework', title: 'REWORK', description: 'Integrace handicapovaných a nezaměstnaných skrze práci.', icon: <Briefcase />, color: 'teal' },
     { id: 'bodzlomu', title: 'BOD ZLOMU', description: 'Provázení dětí z dětských domovů do dospělosti.', icon: <Heart />, color: 'emerald' },
@@ -115,7 +130,7 @@ const App = () => {
   ];
 
   // Projects data from the provided image
-  const kozakProjects = [
+  const kozakProjects: Project[] = [
     { name: "Online program pro správu firem", url: "https://studio.david-kozak.com", desc: "Komplexní nástroj pro řízení projektů, týmu a financí.", icon: <Rocket /> },
     { name: "Online generátor AI obrázků", url: "https://imaginator.david-kozak.com", desc: "Tvořte unikátní digitální umění s pomocí AI.", icon: <Paintbrush /> },
     { name: "Web-prezentační portfolio", url: "https://dk.david-kozak.com", desc: "Galerie autorských webových designů.", icon: <Monitor /> },
@@ -156,7 +171,7 @@ const App = () => {
                     
                     <div className="flex justify-between items-start mb-10 relative z-10">
                       <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">
-                        {React.cloneElement(p.icon as React.ReactElement, { size: 28 })}
+                        {React.cloneElement(p.icon, { size: 28 } as React.SVGProps<SVGSVGElement>)}
                       </div>
                       <div className="flex flex-col items-end">
                         <span className="text-[10px] font-black text-white/10 uppercase tracking-widest mb-2">Project 0{idx + 1}</span>
