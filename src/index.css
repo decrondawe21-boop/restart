@@ -1,13 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 @import "tailwindcss";
 
 @theme {
+  --font-sans: 'Poppins', sans-serif;
   --color-cyan-glow: rgba(0, 242, 234, 0.5);
   --color-cyan-glow-soft: rgba(0, 242, 234, 0.2);
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Poppins', sans-serif;
   @apply bg-[#051111] text-white/90 antialiased selection:bg-cyan-500/30;
 }
 
