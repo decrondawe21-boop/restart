@@ -161,7 +161,7 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     Ecosystem David Kozák
                   </div>
-                  <h2 className="text-6xl md:text-8xl font-serif text-white uppercase text-glow-cyan leading-tight">Vizionář <br /><span className="text-cyan-400 italic font-light">& Design</span></h2>
+                  <h2 className="text-6xl md:text-8xl text-white uppercase text-glow-cyan leading-tight">Vizionář <br /><span className="text-cyan-400 italic font-serif">& Design</span></h2>
                 </div>
                 <a href="https://davidkozak.social" target="_blank" className="group bg-white text-black px-10 py-5 rounded-2xl flex items-center gap-3 hover:bg-cyan-400 transition-all text-xs font-black tracking-widest uppercase shadow-xl shadow-cyan-500/10">
                   Portfolio Majitele <ExternalLink size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -211,7 +211,7 @@ const App = () => {
                     <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                       Jsme tu pro vás
                     </div>
-                    <h2 className="text-6xl md:text-[5.5rem] font-serif text-white uppercase text-glow-cyan leading-[0.9]">Kontaktujte <br /><span className="text-cyan-400 italic">nás</span></h2>
+                    <h2 className="text-6xl md:text-[5.5rem] text-white uppercase text-glow-cyan leading-[0.9]">Kontaktujte <br /><span className="text-cyan-400 italic font-serif">nás</span></h2>
                     <p className="text-xl text-white/40 font-light max-w-md leading-relaxed">
                       Máte dotaz nebo se chcete zapojit? Napište nám nebo zavolejte. Každý kontakt je krokem k lepší budoucnosti.
                     </p>
@@ -314,7 +314,7 @@ const App = () => {
                   <div className="inline-flex items-center gap-2 text-cyan-400 font-bold text-xs tracking-widest uppercase bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-400/20">
                     David Kozák International, s.r.o.
                   </div>
-                  <h2 className="text-5xl md:text-8xl text-white leading-tight">
+                  <h2 className="text-5xl md:text-8xl text-white leading-tight text-glow-cyan">
                     Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-400 italic font-serif">každý.</span>
                   </h2>
                   <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-light">
@@ -344,7 +344,7 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> AI Integrační Asistent
                   </div>
-                  <h3 className="text-4xl md:text-5xl text-white">Váš plán <span className="text-cyan-400 italic font-serif">restartu</span></h3>
+                  <h3 className="text-4xl md:text-5xl text-white text-glow-cyan">Váš plán <span className="text-cyan-400 italic font-serif">restartu</span></h3>
                   <p className="text-white/40 font-light max-w-2xl mx-auto">Napište nám o své situaci a naše AI vám navrhne první kroky podle pilířů Integrace.</p>
                 </div>
 
@@ -406,7 +406,7 @@ const App = () => {
             <section className="py-24 px-6 max-w-7xl mx-auto">
               <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-16">
                 <div className="space-y-4">
-                  <h2 className="text-4xl md:text-6xl text-white uppercase leading-tight">
+                  <h2 className="text-4xl md:text-6xl text-white uppercase leading-tight text-glow-cyan">
                     Pět pilířů <br /><span className="text-cyan-400 italic font-serif">restartu</span>
                   </h2>
                   <div className="h-1 w-24 bg-cyan-500 rounded-full" />
