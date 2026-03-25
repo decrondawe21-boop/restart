@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './index.css';
+import BlogPage, { type BlogPost } from './pages/BlogPage';
+import ContactModal from './components/ContactModal';
 import { 
   Menu, X, ArrowRight, Heart, Briefcase, DoorOpen, Home, 
   ShieldCheck, Leaf, Instagram, Facebook, Globe, Users, 
-  ChevronRight, Quote, Sparkles, Send, Loader2, Volume2,
+  ChevronRight, ChevronUp, Quote, Sparkles, Send, Loader2, Volume2,
   MapPin, Phone, Mail, ExternalLink, MessageSquare, LayoutGrid,
   Rocket, Paintbrush, Monitor, Key, Landmark, FileText, Film, Smartphone, RefreshCw,
   Target, TrendingDown, TrendingUp, CheckCircle, Wallet, Activity, BarChart,
   Lightbulb, Flag, Workflow, Building2, Gavel, Award,
   AlertCircle, Link, MessageCircle, ShieldAlert, ArrowDownRight, Zap,
-  Fingerprint, HeartHandshake, Scale, Eye, HelpCircle
+  Fingerprint, HeartHandshake, Scale, Eye, HelpCircle, Sun, Moon
 } from 'lucide-react';
 
 const apiKey = ""; // Klíč poskytne prostředí
@@ -33,6 +35,18 @@ interface Pillar {
 
 type PageKey =
   | 'home'
+  | 'about'
+  | 'pillars'
+  | 'pillar-jailbreak'
+  | 'pillar-rework'
+  | 'pillar-rework-analyza'
+  | 'pillar-rework-implementace'
+  | 'pillar-streetwise'
+  | 'pillar-reset'
+  | 'pillar-mistozlomu'
+  | 'pillar-stabilizace'
+  | 'stories'
+  | 'news'
   | 'projects'
   | 'blog'
   | 'contacts'
@@ -45,6 +59,18 @@ type PageKey =
 
 const pagePathMap: Record<PageKey, string> = {
   home: '/',
+  about: '/o-nas',
+  pillars: '/pilire',
+  'pillar-jailbreak': '/pilire/jailbreak',
+  'pillar-rework': '/pilire/rework',
+  'pillar-rework-analyza': '/pilire/rework/analyza',
+  'pillar-rework-implementace': '/pilire/rework/implementace',
+  'pillar-streetwise': '/pilire/streetwise',
+  'pillar-reset': '/pilire/reset',
+  'pillar-mistozlomu': '/pilire/misto-zlomu',
+  'pillar-stabilizace': '/pilire/stabilizace',
+  stories: '/pribehy',
+  news: '/novinky',
   projects: '/projekty',
   blog: '/blog',
   contacts: '/kontakty',
@@ -56,13 +82,25 @@ const pagePathMap: Record<PageKey, string> = {
   'zamer-programy': '/investicni-zamer/programy'
 };
 
-const knownPaths = new Set(Object.values(pagePathMap));
+interface MenuNode {
+  key: string;
+  label: string;
+  id?: PageKey | 'contacts-modal';
+  children?: MenuNode[];
+}
 
 const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const savedTheme = window.localStorage.getItem('restart-theme');
+    if (savedTheme === 'light') return false;
+    if (savedTheme === 'dark') return true;
+    return !window.matchMedia('(prefers-color-scheme: light)').matches;
+  });
 
   const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
   const resolvedPath = normalizedPath === pagePathMap.contacts ? pagePathMap.home : normalizedPath;
@@ -73,19 +111,54 @@ const App = () => {
     navigate(pagePathMap[page]);
   };
 
-  useEffect(() => {
-    if (normalizedPath === pagePathMap.contacts) {
+  const [expandedMenuKeys, setExpandedMenuKeys] = useState<string[]>([]);
+
+  const toggleMenuNode = (key: string) => {
+    setExpandedMenuKeys((prev) => (prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key]));
+  };
+
+  const isNodeActive = (node: MenuNode): boolean => {
+    if (node.id && node.id !== 'contacts-modal' && node.id === currentPage) return true;
+    return node.children?.some((child) => isNodeActive(child)) ?? false;
+  };
+
+  const findMenuPath = (nodes: MenuNode[], target: PageKey, acc: string[] = []): string[] | null => {
+    for (const node of nodes) {
+      const nextAcc = [...acc, node.key];
+      if (node.id === target) return nextAcc;
+      if (node.children) {
+        const found = findMenuPath(node.children, target, nextAcc);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const handleMenuNavigation = (id: PageKey | 'contacts-modal') => {
+    if (id === 'contacts-modal') {
       setIsContactModalOpen(true);
-      navigate(pagePathMap.home, { replace: true });
+      setIsMenuOpen(false);
       return;
     }
+    goToPage(id);
+    setIsMenuOpen(false);
+  };
 
-    if (normalizedPath !== '/' && !knownPaths.has(normalizedPath)) {
-      navigate(pagePathMap.home, { replace: true });
-    }
-  }, [normalizedPath, navigate]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('restart-theme', isDark ? 'dark' : 'light');
+    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+  }, [isDark]);
 
   const [scrolled, setScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const homeStatItems = [
+    { target: 127, suffix: '+', label: 'Klientů v integračním procesu' },
+    { target: 6, suffix: '', label: 'Aktivních programů REST||ART' },
+    { target: 78, suffix: '%', label: 'Úspěšnost stabilizace' }
+  ];
+  const [animatedStats, setAnimatedStats] = useState<number[]>(homeStatItems.map(() => 0));
   
   // Gemini AI state
   const [userInput, setUserInput] = useState("");
@@ -95,10 +168,36 @@ const App = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+      setShowScrollTop(window.scrollY > 600);
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      setScrollProgress(height > 0 ? (winScroll / height) * 100 : 0);
+    };
     window.addEventListener('scroll', handleScroll);
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (currentPage !== 'home') return;
+
+    let frame = 0;
+    let start: number | null = null;
+    const duration = 1200;
+    setAnimatedStats(homeStatItems.map(() => 0));
+
+    const animate = (timestamp: number) => {
+      if (start === null) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      setAnimatedStats(homeStatItems.map((item) => Math.floor(item.target * progress)));
+      if (progress < 1) frame = requestAnimationFrame(animate);
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [currentPage]);
 
   // Scroll na začátek při změně stránky
   useEffect(() => {
@@ -107,13 +206,15 @@ const App = () => {
   }, [currentPage]);
 
   useEffect(() => {
-    if (!isContactModalOpen) return;
+    if (!isContactModalOpen && !isMenuOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsContactModalOpen(false);
+      if (event.key !== 'Escape') return;
+      if (isContactModalOpen) setIsContactModalOpen(false);
+      if (isMenuOpen) setIsMenuOpen(false);
     };
 
     window.addEventListener('keydown', handleEscape);
@@ -121,7 +222,7 @@ const App = () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [isContactModalOpen]);
+  }, [isContactModalOpen, isMenuOpen]);
 
   // --- Gemini API Logic ---
   const fetchWithRetry = async (url: string, fetchOptions: RequestInit, maxRetries = 5) => {
@@ -221,17 +322,83 @@ const App = () => {
     { name: "Aplikace firemní", url: "https://appka.david-kozak.com", desc: "Vlastní firemní aplikace pro mobilní zařízení.", icon: <Smartphone /> }
   ];
 
-  const navItems: Array<{ id: PageKey | 'contacts-modal'; label: string }> = [
-    { id: 'home', label: 'O projektu' },
-    { id: 'zamer-uvod', label: 'Investiční záměr: Úvod' },
-    { id: 'zamer-cile', label: 'Hlavní cíle investice' },
-    { id: 'zamer-rozpocet', label: 'Výše investice' },
-    { id: 'zamer-prinos', label: 'Návratnost a přínos' },
-    { id: 'zamer-harmonogram', label: 'Harmonogram' },
-    { id: 'zamer-programy', label: 'Přehled programů OPZ+' },
-    { id: 'blog', label: 'Blog / Novinky' },
-    { id: 'projects', label: 'Projekty' },
-    { id: 'contacts-modal', label: 'Kontakty (mini okno)' }
+  const navTree: MenuNode[] = [
+    { key: 'home', label: 'Domů', id: 'home' },
+    {
+      key: 'about-root',
+      label: 'O nás',
+      id: 'about',
+      children: [
+        { key: 'about-stories', label: 'Příběhy', id: 'stories' },
+        { key: 'about-news', label: 'Novinky a aktuality', id: 'news' },
+        { key: 'about-blog', label: 'Blog / Archiv', id: 'blog' },
+        { key: 'about-contacts', label: 'Kontakty (mini okno)', id: 'contacts-modal' }
+      ]
+    },
+    {
+      key: 'pillars-root',
+      label: 'Pilíře',
+      id: 'pillars',
+      children: [
+        { key: 'pillar-jailbreak', label: 'JAILBREAK', id: 'pillar-jailbreak' },
+        {
+          key: 'pillar-rework',
+          label: 'REWORK',
+          id: 'pillar-rework',
+          children: [
+            { key: 'pillar-rework-analyza', label: 'Analýza trhu', id: 'pillar-rework-analyza' },
+            { key: 'pillar-rework-implementace', label: 'Implementace', id: 'pillar-rework-implementace' }
+          ]
+        },
+        { key: 'pillar-streetwise', label: 'STREETWISE', id: 'pillar-streetwise' },
+        { key: 'pillar-reset', label: 'RESET', id: 'pillar-reset' },
+        { key: 'pillar-mistozlomu', label: 'MÍSTO ZLOMU', id: 'pillar-mistozlomu' },
+        { key: 'pillar-stabilizace', label: 'STABILIZACE', id: 'pillar-stabilizace' }
+      ]
+    },
+    { key: 'projects', label: 'Projekty', id: 'projects' },
+    {
+      key: 'invest-root',
+      label: 'Investiční záměr',
+      id: 'zamer-uvod',
+      children: [
+        { key: 'zamer-cile', label: 'Hlavní cíle investice', id: 'zamer-cile' },
+        { key: 'zamer-rozpocet', label: 'Výše investice', id: 'zamer-rozpocet' },
+        { key: 'zamer-prinos', label: 'Návratnost a přínos', id: 'zamer-prinos' },
+        { key: 'zamer-harmonogram', label: 'Harmonogram', id: 'zamer-harmonogram' },
+        { key: 'zamer-programy', label: 'Přehled programů OPZ+', id: 'zamer-programy' }
+      ]
+    }
+  ];
+
+  useEffect(() => {
+    const activePathKeys = findMenuPath(navTree, currentPage);
+    if (!activePathKeys) return;
+    setExpandedMenuKeys((prev) => [...new Set([...prev, ...activePathKeys])]);
+  }, [currentPage]);
+
+  const routablePages: PageKey[] = [
+    'home',
+    'about',
+    'pillars',
+    'pillar-jailbreak',
+    'pillar-rework',
+    'pillar-rework-analyza',
+    'pillar-rework-implementace',
+    'pillar-streetwise',
+    'pillar-reset',
+    'pillar-mistozlomu',
+    'pillar-stabilizace',
+    'stories',
+    'news',
+    'projects',
+    'blog',
+    'zamer-uvod',
+    'zamer-cile',
+    'zamer-rozpocet',
+    'zamer-prinos',
+    'zamer-harmonogram',
+    'zamer-programy'
   ];
 
   const investmentGoals = [
@@ -322,7 +489,7 @@ const App = () => {
     }
   ];
 
-  const blogPosts = [
+  const blogPosts: BlogPost[] = [
     {
       title: "Spuštění pilotní fáze REST||ART INTEGRACE",
       date: "září 2025",
@@ -343,8 +510,680 @@ const App = () => {
     }
   ];
 
-  const renderContent = () => {
-    switch(currentPage) {
+  const storyHighlights = [
+    {
+      name: "Martin K.",
+      pillar: "JAILBREAK",
+      quote: "REST||ART mi dal práci a hlavně víru v sebe. Dnes vedu normální život.",
+      outcome: "Pracuje jako svářeč",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=900"
+    },
+    {
+      name: "Tereza M.",
+      pillar: "MÍSTO ZLOMU",
+      quote: "Tady mi pomohli najít první bydlení i odvahu studovat vysokou školu.",
+      outcome: "Studuje VŠ a pracuje",
+      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=900"
+    },
+    {
+      name: "Jakub R.",
+      pillar: "STREETWISE",
+      quote: "Po dvou letech na ulici jsem konečně našel cestu zpět. Díky za trpělivost.",
+      outcome: "Azylové bydlení, program REWORK",
+      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=900"
+    }
+  ];
+
+  const pillarRoadmap = [
+    { id: 'jailbreak', stat: '78% úspěšnost', focus: 'Práce s lidmi po VTOS, asistence a bezpečný návrat do společnosti.' },
+    { id: 'rework', stat: '120+ pracovních vstupů', focus: 'Rekvalifikace, přímé napojení na zaměstnavatele a stabilizace práce.' },
+    { id: 'streetwise', stat: 'Terén 7 dní v týdnu', focus: 'Street outreach, krizová podpora, budování důvěry a základní stabilizace.' },
+    { id: 'reset', stat: 'Program 3-6 měsíců', focus: 'Restart osobních cílů, motivace a návrat k dennímu režimu.' },
+    { id: 'bodzlomu', stat: 'Mládež 17-26 let', focus: 'Podpora mladých při přechodu z ústavní péče do samostatného života.' },
+    { id: 'stabilizace', stat: '6+ měsíců follow-up', focus: 'Dlouhodobé udržení změny, bydlení, zdraví a komunitní opora.' }
+  ];
+
+  const pillarPageMap: Record<string, PageKey> = {
+    jailbreak: 'pillar-jailbreak',
+    rework: 'pillar-rework',
+    streetwise: 'pillar-streetwise',
+    reset: 'pillar-reset',
+    bodzlomu: 'pillar-mistozlomu',
+    stabilizace: 'pillar-stabilizace'
+  };
+
+  const reworkMarketRows = [
+    { date: '31.01.2025', uoz: '320 516', vpm: '83 323', ratio: '3.85' },
+    { date: '28.02.2025', uoz: '326 223', vpm: '88 062', ratio: '3.70' },
+    { date: '31.03.2025', uoz: '322 140', vpm: '91 752', ratio: '3.51' },
+    { date: '30.04.2025', uoz: '318 540', vpm: '95 798', ratio: '3.33' }
+  ];
+
+  const reworkIntegrationRows = [
+    { act: 'Diagnostika & Plán', phase: '1 - Motivace', tool: 'Interní / ÚP' },
+    { act: 'Rekvalifikace', phase: '2 - Školení', tool: 'ÚP kurz' },
+    { act: 'Asistovaná pozice', phase: '3 - Adaptace', tool: 'SÚPM' },
+    { act: 'Mentoring', phase: '3 - Adaptace', tool: 'Příspěvek' },
+    { act: 'Dluhové poradenství', phase: '2-4 - Podpora', tool: 'Projektový' },
+    { act: 'Zprostředkování', phase: '5 - Volný trh', tool: 'Spolupráce' }
+  ];
+
+  const implementationPhases = [
+    { step: 'FÁZE 1', title: 'Identifikace a oslovení', desc: 'Mapování a vstupní kontakt s cílovou skupinou.' },
+    { step: 'FÁZE 2', title: 'První intervence', desc: 'Mentoring, smluvní rámec a počáteční podpora.' },
+    { step: 'FÁZE 3', title: 'Pracovní aktivace', desc: 'Rekvalifikace, trénink a spolupráce s ÚP.' },
+    { step: 'FÁZE 4', title: 'Stabilizace a opora', desc: 'Ubytování, návazné služby a terénní tým.' },
+    { step: 'FÁZE 5', title: 'Udržení a autonomie', desc: 'Přechod do civilní sítě a posílení samostatnosti.' }
+  ];
+
+  const implementationMilestones = [
+    { time: '09/2025', title: 'Zahájení & Příprava', desc: 'Formální spuštění projektu a příprava infrastruktury.' },
+    { time: '11/2025', title: 'Investiční fáze', desc: 'Pořízení vybavení, rekonstrukce a školící zázemí.' },
+    { time: '01/2026', title: 'Pilotní spuštění', desc: 'Prvních 10 účastníků v mentoringovém systému.' },
+    { time: '04/2026', title: 'Provoz Jiřice', desc: 'Zahájení práce v Jiřicích (VTOS + civil).' },
+    { time: '08/2026', title: 'Škálování', desc: 'Navýšení kapacity na 50 účastníků ročně.' },
+    { time: '12/2026', title: 'Vyhodnocení', desc: 'Kompletace první fáze a transformace v INTEGR!A.' }
+  ];
+
+  const renderSimplePillarPage = (config: {
+    badge: string;
+    title: string;
+    accent: string;
+    target: string;
+    activities: string;
+    goal: string;
+    duration: string;
+    icon: React.ReactElement;
+  }) => (
+    <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+      <div className="max-w-7xl mx-auto space-y-12">
+        <div className="space-y-4 border-b border-white/10 pb-10">
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+            {config.badge}
+          </div>
+          <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+            {config.title} <br />
+            <span className="text-cyan-300 headline-thin">{config.accent}</span>
+          </h2>
+        </div>
+
+        <div className="grid lg:grid-cols-[auto,1fr] gap-8">
+          <div className="glass-panel p-8 rounded-[2.5rem] border-white/10 h-fit">
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+              {React.cloneElement(config.icon as React.ReactElement<{ size?: number }>, { size: 30 })}
+            </div>
+          </div>
+          <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-white/10 space-y-6">
+            <div className="space-y-4 text-white/60 font-light">
+              <p><span className="text-white font-semibold">Cílová skupina:</span> {config.target}</p>
+              <p><span className="text-white font-semibold">Klíčové aktivity:</span> {config.activities}</p>
+              <p><span className="text-white font-semibold">Cíl:</span> {config.goal}</p>
+              <p><span className="text-white font-semibold">Délka:</span> {config.duration}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderContent = (page: PageKey) => {
+    switch(page) {
+      case 'home':
+        return (
+          <>
+            <header className="relative w-full h-[65vh] md:h-[75vh] flex items-center justify-center overflow-hidden rounded-b-[45%] md:rounded-b-[65%] shadow-[0_20px_50px_rgba(0,242,234,0.15)] bg-[#051111]">
+              <div className="absolute inset-0 z-0">
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover opacity-80"
+                >
+                  <source src="/videos/Logo_Reveal_REST_ART_Integrace.mp4" type="video/mp4" />
+                </video>
+                <div className="absolute inset-0 bg-black/70 pointer-events-none" />
+              </div>
+
+              <div className="relative z-20 text-center space-y-4">
+                <h1 className="text-5xl md:text-[8rem] font-serif text-white font-black tracking-tighter text-glow-cyan animate-pulse">
+                  REST<span className="text-cyan-400/50 italic">||</span>ART
+                </h1>
+                <p className="text-cyan-300/60 font-light tracking-[0.5em] uppercase text-xs md:text-xl">Integrace Společnosti</p>
+              </div>
+            </header>
+
+            <section className="relative py-24 px-6">
+              <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+                <div className="space-y-8 animate-in slide-in-from-left duration-1000">
+                  <div className="inline-flex items-center gap-2 text-cyan-400 font-bold text-xs tracking-widest uppercase bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-400/20">
+                    David Kozák International, s.r.o.
+                  </div>
+                  <h2 className="text-4xl md:text-7xl text-white leading-tight text-glow-cyan">
+                    Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-300 headline-thin">každý.</span>
+                  </h2>
+                  <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-light">
+                    Přecházíme na čisté vícestránkové uspořádání. Každá oblast má vlastní stránku, vlastní navigaci a jasný kontext.
+                  </p>
+                  <div className="flex flex-wrap gap-4 pt-4">
+                    <button onClick={() => goToPage('pillars')} className="bg-cyan-500 text-black px-10 py-5 rounded-2xl font-black text-lg hover:shadow-cyan-500/30 shadow-xl transition-all">PŘEJÍT NA PILÍŘE</button>
+                    <button onClick={() => goToPage('news')} className="glass-panel text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/5 transition-all">NOVINKY</button>
+                  </div>
+                </div>
+                <div className="relative group lg:-mt-40">
+                  <div className="relative rounded-[3.5rem] overflow-hidden shadow-2xl transform rotate-3 group-hover:rotate-0 transition-all duration-700 border-[16px] border-white/5 bg-white/5">
+                    <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200" alt="Integrace" className="hero-desat w-full h-[600px] object-cover opacity-60 group-hover:opacity-100 transition-all duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-transparent opacity-80" />
+                    <div className="absolute bottom-10 left-10 text-white italic text-2xl font-serif drop-shadow-lg">"Každý příběh má právo pokračovat."</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="py-12 px-6 max-w-7xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-6">
+                {homeStatItems.map((item, idx) => (
+                  <div key={item.label} className="glass-panel p-8 rounded-3xl text-center group hover:-translate-y-1 transition-all duration-500 border-white/10">
+                    <p className="text-5xl md:text-6xl font-black text-glow-cyan leading-none mb-4">
+                      {animatedStats[idx]}{item.suffix}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/35 font-black">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="py-16 px-6">
+              <div className="max-w-7xl mx-auto">
+                <div className="space-y-4 mb-10">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Rozdělení obsahu</p>
+                  <h3 className="text-4xl md:text-6xl text-white uppercase leading-none">
+                    Nové stránky <span className="text-cyan-300 headline-thin">podle tématu</span>
+                  </h3>
+                </div>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[
+                    { id: 'about' as PageKey, title: 'O nás', text: 'Mise, tým, fungování integračního centra.', icon: <Users size={20} /> },
+                    { id: 'pillars' as PageKey, title: 'Pilíře', text: 'Přehled všech programů a detailní podstránky.', icon: <LayoutGrid size={20} /> },
+                    { id: 'pillar-rework' as PageKey, title: 'REWORK', text: 'Samostatná stránka programu + analýza + implementace.', icon: <Briefcase size={20} /> },
+                    { id: 'stories' as PageKey, title: 'Příběhy', text: 'Skutečné příběhy a průběžné výsledky restartu.', icon: <Quote size={20} /> },
+                    { id: 'news' as PageKey, title: 'Novinky', text: 'Aktuality a průběžné milníky projektu.', icon: <FileText size={20} /> },
+                    { id: 'zamer-uvod' as PageKey, title: 'Investiční záměr', text: 'Kompletní podklady OPZ+ v samostatných stránkách.', icon: <BarChart size={20} /> }
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => goToPage(item.id)}
+                      className="glass-panel p-8 rounded-[2.5rem] border-white/10 hover:border-cyan-400/30 transition-all text-left group"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-5">
+                        {item.icon}
+                      </div>
+                      <h4 className="text-2xl font-black text-white uppercase tracking-widest group-hover:text-cyan-400 transition-colors">{item.title}</h4>
+                      <p className="text-sm text-white/45 font-light leading-relaxed mt-3">{item.text}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="py-24 px-6 relative">
+              <div className="max-w-4xl mx-auto glass-panel p-12 rounded-[4rem] space-y-8 relative overflow-hidden border-cyan-400/10">
+                <div className="absolute top-0 right-0 p-12 opacity-5 -rotate-12 pointer-events-none animate-pulse-glow"><Sparkles size={250} className="text-cyan-400" /></div>
+
+                <div className="space-y-4 text-center">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> AI Integrační Asistent
+                  </div>
+                  <h3 className="text-4xl md:text-5xl text-white text-glow-cyan">Váš plán <span className="text-cyan-300 headline-thin">restartu</span></h3>
+                  <p className="text-white/40 font-light max-w-2xl mx-auto">Napište nám o své situaci a naše AI vám navrhne první kroky podle pilířů Integrace.</p>
+                </div>
+
+                <div className="space-y-6 relative z-10">
+                  <div className="relative group">
+                    <textarea
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      placeholder="Popište svou situaci... (např. 'Právě jsem vyšel z výkonu trestu a nemám kde bydlet')"
+                      className="w-full h-48 bg-black/40 border border-white/10 rounded-[2.5rem] p-8 text-white focus:border-cyan-400 outline-none transition-all placeholder:text-white/10 resize-none text-lg font-light leading-relaxed"
+                    />
+                    <div className="absolute bottom-6 right-6 flex gap-3">
+                      <button
+                        onClick={generateRestartPath}
+                        disabled={isLoading || !userInput.trim()}
+                        className="bg-cyan-500 text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-cyan-500/20 hover:bg-cyan-400 transition-all disabled:opacity-30 disabled:grayscale flex items-center gap-3"
+                      >
+                        {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+                        {isLoading ? 'Analyzuji...' : 'Analyzovat příběh'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {aiResponse && (
+                    <div className="bg-cyan-500/5 border border-cyan-400/20 rounded-[3rem] p-10 md:p-14 text-white/80 font-light leading-relaxed animate-in slide-in-from-bottom-8 duration-700 relative group">
+                      <div className="flex justify-between items-center mb-8 border-b border-cyan-400/10 pb-6">
+                        <div className="flex items-center gap-3 text-cyan-400">
+                          <Sparkles size={18} />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Navržený plán integrace</span>
+                        </div>
+                        <button
+                          onClick={speakPath}
+                          disabled={isSpeaking}
+                          className={`p-4 rounded-2xl transition-all ${isSpeaking ? 'bg-cyan-500 text-black animate-pulse' : 'bg-white/5 text-white/40 hover:text-cyan-400 hover:bg-white/10'}`}
+                        >
+                          <Volume2 size={20} />
+                        </button>
+                      </div>
+                      <div className="prose prose-invert max-w-none">
+                        <p className="italic font-serif text-xl md:text-2xl text-white/90 leading-relaxed">
+                          "{aiResponse}"
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+          </>
+        );
+      case 'pillar-jailbreak': {
+        const program = opzPrograms.find((item) => item.name === 'JAILBREAK');
+        if (!program) return null;
+        return renderSimplePillarPage({
+          badge: 'Pilíř 1 | JAILBREAK',
+          title: 'JAILBREAK',
+          accent: 'reintegrace po VTOS',
+          target: program.target,
+          activities: program.activities,
+          goal: program.goal,
+          duration: program.duration,
+          icon: <DoorOpen />
+        });
+      }
+      case 'pillar-streetwise': {
+        const program = opzPrograms.find((item) => item.name === 'STREETWISE');
+        if (!program) return null;
+        return renderSimplePillarPage({
+          badge: 'Pilíř 3 | STREETWISE',
+          title: 'STREETWISE',
+          accent: 'terénní intervence',
+          target: program.target,
+          activities: program.activities,
+          goal: program.goal,
+          duration: program.duration,
+          icon: <Home />
+        });
+      }
+      case 'pillar-reset': {
+        const program = opzPrograms.find((item) => item.name === 'RESET');
+        if (!program) return null;
+        return renderSimplePillarPage({
+          badge: 'Pilíř 4 | RESET',
+          title: 'RESET',
+          accent: 'nový začátek',
+          target: program.target,
+          activities: program.activities,
+          goal: program.goal,
+          duration: program.duration,
+          icon: <RefreshCw />
+        });
+      }
+      case 'pillar-mistozlomu': {
+        const program = opzPrograms.find((item) => item.name === 'MÍSTO ZLOMU');
+        if (!program) return null;
+        return renderSimplePillarPage({
+          badge: 'Pilíř 5 | MÍSTO ZLOMU',
+          title: 'MÍSTO ZLOMU',
+          accent: 'přechod mládeže',
+          target: program.target,
+          activities: program.activities,
+          goal: program.goal,
+          duration: program.duration,
+          icon: <Heart />
+        });
+      }
+      case 'pillar-stabilizace': {
+        const program = opzPrograms.find((item) => item.name === 'STABILIZACE');
+        if (!program) return null;
+        return renderSimplePillarPage({
+          badge: 'Pilíř 6 | STABILIZACE',
+          title: 'STABILIZACE',
+          accent: 'dlouhodobá opora',
+          target: program.target,
+          activities: program.activities,
+          goal: program.goal,
+          duration: program.duration,
+          icon: <ShieldCheck />
+        });
+      }
+      case 'pillar-rework':
+        return (
+          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="max-w-7xl mx-auto space-y-12">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 border-b border-white/10 pb-10">
+                <div className="space-y-5">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                    Pilíř 2 | REWORK
+                  </div>
+                  <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                    RE<span className="text-cyan-300 headline-thin">WORK</span>
+                  </h2>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4 text-xs text-white/20 uppercase tracking-widest font-black">
+                  <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> David Kozák International s.r.o.</div>
+                  <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> IČO: 23143614</div>
+                  <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> Drážďanská 51/52, 400 07 Ústí nad Labem</div>
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-3 gap-8">
+                {[
+                  { icon: <BarChart />, title: '1. VÝCHOZÍ SITUACE', text: 'Program REWORK vzniká jako odpověď na zásadní nesoulad mezi počtem uchazečů o zaměstnání a dostupnými pracovními místy.' },
+                  { icon: <Target />, title: '2. CÍL PROGRAMU', text: 'Příprava osob v evidenci ÚP na úspěšný nástup do stabilního zaměstnání formou diagnostiky, rekvalifikací a mentoringu.' },
+                  { icon: <Users />, title: '3. CÍLOVÁ SKUPINA', text: 'Dlouhodobě nezaměstnaní, osoby bez praxe, lidé se zadlužením, po závislostech či s bariérami vzdělání.' },
+                  { icon: <Activity />, title: '4. KLÍČOVÉ AKTIVITY', text: 'Individuální plány, rekvalifikační kurzy, simulované pracovní pozice, finanční poradenství a asistence.' },
+                  { icon: <Wallet />, title: '5. ZDROJE A PODPORA', text: 'SÚPM, příspěvky na zapracování, rekvalifikace ÚP a navazující doprovodné služby.' },
+                  { icon: <CheckCircle />, title: '6. ZÁVĚREČNÉ HODNOCENÍ', text: 'Model umožňuje bezpečný pracovní nácvik, obnovení dovedností a následný přechod na otevřený trh práce.' }
+                ].map((card, i) => (
+                  <div key={i} className="glass-panel p-10 rounded-[3rem] space-y-6 hover:bg-cyan-500/5 transition-all group border-white/10">
+                    <div className="w-14 h-14 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      {card.icon}
+                    </div>
+                    <h3 className="text-lg font-black tracking-widest uppercase text-white group-hover:text-cyan-400 transition-colors">{card.title}</h3>
+                    <p className="text-sm text-white/40 font-light leading-relaxed">{card.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-cyan-400/20 bg-cyan-500/[0.02] space-y-8">
+                <h3 className="text-3xl text-white font-black uppercase tracking-[1.5px]">REWORK <span className="text-cyan-300 headline-thin">submenu</span></h3>
+                <p className="text-white/45 font-light max-w-3xl">
+                  Program REWORK má samostatnou 3. úroveň navigace. V menu najdete podstránky Analýza trhu a Implementace.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <button onClick={() => goToPage('pillar-rework-analyza')} className="bg-cyan-500 text-black px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-cyan-400 transition-all">
+                    Otevřít Analýzu
+                  </button>
+                  <button onClick={() => goToPage('pillar-rework-implementace')} className="glass-panel px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs text-white hover:bg-white/10 transition-all">
+                    Otevřít Implementaci
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'pillar-rework-analyza':
+        return (
+          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="max-w-7xl mx-auto space-y-12">
+              <div className="space-y-4 border-b border-white/10 pb-10">
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                  Pilíře / REWORK / Analýza
+                </div>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Analýza trhu <br /><span className="text-cyan-300 headline-thin">REWORK</span>
+                </h2>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-8">
+                <div className="glass-panel rounded-[3rem] overflow-hidden border-white/10">
+                  <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                    <span className="text-xs font-black uppercase tracking-widest text-white/40">Srovnání Poptávka / Nabídka</span>
+                    <TrendingDown size={16} className="text-cyan-400" />
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/5">
+                          <th className="p-6 font-black">Datum</th>
+                          <th className="p-6 font-black">Uchazeči (UOZ)</th>
+                          <th className="p-6 font-black">Místa (VPM)</th>
+                          <th className="p-6 font-black text-cyan-400">Poměr</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-sm text-white/60">
+                        {reworkMarketRows.map((row) => (
+                          <tr key={row.date} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td className="p-6 font-mono text-xs">{row.date}</td>
+                            <td className="p-6 font-bold text-white/80">{row.uoz}</td>
+                            <td className="p-6 font-bold text-white/80">{row.vpm}</td>
+                            <td className="p-6 font-black text-cyan-400">{row.ratio}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="glass-panel rounded-[3rem] overflow-hidden border-white/10">
+                  <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                    <span className="text-xs font-black uppercase tracking-widest text-white/40">Fáze integrace REWORK</span>
+                    <TrendingUp size={16} className="text-teal-400" />
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/5">
+                          <th className="p-6 font-black">Aktivita</th>
+                          <th className="p-6 font-black">Fáze</th>
+                          <th className="p-6 font-black text-teal-400">Nástroj ÚP</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-sm text-white/60">
+                        {reworkIntegrationRows.map((row) => (
+                          <tr key={row.act} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td className="p-6 font-bold text-white/80">{row.act}</td>
+                            <td className="p-6 text-xs">{row.phase}</td>
+                            <td className="p-6 font-black text-teal-400 uppercase text-[10px] tracking-widest">{row.tool}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-cyan-500/10 border border-cyan-400/20 p-8 rounded-3xl w-fit">
+                <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1">Ratio UOZ / VPM</p>
+                <p className="text-4xl font-black text-white">3.3 - 3.8</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'pillar-rework-implementace':
+        return (
+          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+            <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-teal-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="max-w-7xl mx-auto space-y-14">
+              <div className="space-y-4 border-b border-white/10 pb-10">
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-teal-500/10 border border-teal-400/20 text-teal-300 text-[10px] tracking-[0.3em] font-black uppercase">
+                  Pilíře / REWORK / Implementace
+                </div>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Implementační <br /><span className="text-teal-300 headline-thin">plán</span>
+                </h2>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  {implementationPhases.map((phase) => (
+                    <div key={phase.step} className="glass-panel p-6 rounded-2xl flex items-center gap-6 border-white/10 hover:border-cyan-400/20 transition-all group">
+                      <div className="text-xs font-black text-cyan-400/40 group-hover:text-cyan-400 transition-colors w-12">{phase.step}</div>
+                      <div className="h-8 w-px bg-white/10" />
+                      <div>
+                        <h4 className="text-sm font-bold text-white uppercase tracking-widest">{phase.title}</h4>
+                        <p className="text-xs text-white/30 font-light">{phase.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="relative space-y-8 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-white/5">
+                  {implementationMilestones.map((milestone) => (
+                    <div key={milestone.time} className="relative pl-12 group">
+                      <div className="absolute left-3 top-2 w-2 h-2 rounded-full bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)] group-hover:scale-150 transition-transform" />
+                      <div className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-1">{milestone.time}</div>
+                      <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">{milestone.title}</h4>
+                      <p className="text-xs text-white/30 font-light leading-relaxed">{milestone.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4 pt-4">
+                {[
+                  { label: 'Počet osob', value: 'KPI 01', icon: <Users size={16} /> },
+                  { label: 'Zaměstnanost', value: 'KPI 02', icon: <Briefcase size={16} /> },
+                  { label: 'Mentoring', value: 'KPI 03', icon: <Heart size={16} /> },
+                  { label: 'Stabilní bydlení', value: 'KPI 04', icon: <Home size={16} /> },
+                  { label: 'Snížení recidivy', value: 'KPI 05', icon: <ShieldCheck size={16} /> },
+                  { label: 'Absence drog', value: 'KPI 06', icon: <Activity size={16} /> }
+                ].map((kpi) => (
+                  <div key={kpi.value} className="glass-panel p-6 rounded-2xl text-center space-y-3 hover:bg-cyan-500/5 transition-all border-white/10">
+                    <div className="text-cyan-400 mx-auto w-fit">{kpi.icon}</div>
+                    <div className="text-[10px] font-black text-white/20 uppercase tracking-widest">{kpi.value}</div>
+                    <div className="text-xs font-bold text-white/80 leading-tight">{kpi.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      case 'about':
+        return (
+          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+            <div className="absolute top-10 left-0 w-[500px] h-[500px] bg-teal-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="max-w-7xl mx-auto space-y-14">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-white/10 pb-12">
+                <div className="space-y-5">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                    O nás
+                  </div>
+                  <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                    REST<span className="text-cyan-400/60">||</span>ART <br />
+                    <span className="text-cyan-300 headline-thin">Integrace</span>
+                  </h2>
+                </div>
+                <p className="text-white/40 font-light max-w-md">
+                  Propojujeme sociální práci, pracovní integraci a lidský přístup do jednoho funkčního systému.
+                </p>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-10">
+                <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-white/10 space-y-6">
+                  <h3 className="text-3xl text-white font-black tracking-[1.5px] uppercase">Naše mise</h3>
+                  <p className="text-white/55 font-light leading-relaxed">
+                    Vytváříme cestu zpět pro lidi po výkonu trestu, bez domova, v závislostech nebo v dlouhodobé nezaměstnanosti.
+                    Cílem je důstojnost, stabilita a samostatnost.
+                  </p>
+                  <p className="text-white/40 font-light leading-relaxed">
+                    Pracujeme mezi institucemi, obcemi, zaměstnavateli a odborníky. Nejsme jen program, jsme integrační infrastruktura.
+                  </p>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {[
+                    { icon: <Users size={24} />, title: 'Komunitní přístup', text: 'Tým s osobní zkušeností i odbornou praxí.' },
+                    { icon: <HeartHandshake size={24} />, title: 'Druhá šance', text: 'Každý klient má individuální plán a mentora.' },
+                    { icon: <Workflow size={24} />, title: 'Napříč sektory', text: 'Koordinace mezi veřejným a soukromým sektorem.' },
+                    { icon: <ShieldCheck size={24} />, title: 'Měřitelný dopad', text: 'Sledujeme stabilizaci, zaměstnání a prevenci recidivy.' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="glass-panel p-8 rounded-[2rem] border-white/10 space-y-4">
+                      <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                        {item.icon}
+                      </div>
+                      <h4 className="text-lg font-bold text-white">{item.title}</h4>
+                      <p className="text-xs text-white/45 font-light leading-relaxed">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'pillars':
+        return (
+          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="max-w-7xl mx-auto space-y-14">
+              <div className="space-y-5 border-b border-white/10 pb-10">
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                  Pilíře
+                </div>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Šest pilířů <span className="text-cyan-300 headline-thin">integrace</span>
+                </h2>
+              </div>
+
+              <div className="space-y-8">
+                {pillars.map((pillar) => {
+                  const detail = pillarRoadmap.find((entry) => entry.id === pillar.id);
+                  const targetPage = pillarPageMap[pillar.id];
+                  return (
+                    <button
+                      key={pillar.id}
+                      onClick={() => {
+                        if (targetPage) goToPage(targetPage);
+                      }}
+                      className="w-full text-left glass-panel p-8 md:p-12 rounded-[3rem] border-white/10 grid lg:grid-cols-[auto,1fr,auto] gap-8 items-center group hover:border-cyan-400/25 transition-all"
+                    >
+                      <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                        {React.cloneElement(pillar.icon as React.ReactElement<{ size?: number }>, { size: 30 })}
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-widest group-hover:text-cyan-400 transition-colors">
+                          {pillar.title}
+                        </h3>
+                        <p className="text-white/45 font-light leading-relaxed">{detail?.focus ?? pillar.description}</p>
+                      </div>
+                      <div className="text-left lg:text-right">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-black mb-1">Výsledek / směr</p>
+                        <p className="text-xl font-bold text-cyan-400">{detail?.stat ?? 'Aktivní'}</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/25 font-black mt-3">Otevřít detail</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      case 'stories':
+        return (
+          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="max-w-7xl mx-auto space-y-14">
+              <div className="space-y-5 border-b border-white/10 pb-10">
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                  Příběhy
+                </div>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Skutečné <span className="text-cyan-300 headline-thin">restarty</span>
+                </h2>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {storyHighlights.map((story) => (
+                  <article key={story.name} className="glass-panel p-8 rounded-[2.5rem] border-white/10 hover:border-cyan-400/25 hover:-translate-y-2 transition-all duration-500 flex flex-col h-full group">
+                    <div className="h-52 rounded-2xl overflow-hidden border border-white/10 mb-6">
+                      <img src={story.image} alt={story.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
+                    </div>
+                    <p className="text-[10px] text-cyan-400 uppercase tracking-[0.25em] font-black mb-2">{story.pillar}</p>
+                    <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-cyan-400 transition-colors">{story.name}</h3>
+                    <p className="text-white/50 font-light italic leading-relaxed mb-6">"{story.quote}"</p>
+                    <div className="mt-auto pt-5 border-t border-white/10">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-white/25 font-black mb-1">Aktuální stav</p>
+                      <p className="text-sm text-cyan-400 font-semibold group-hover:text-cyan-300 transition-colors">{story.outcome}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      case 'news':
+        return <BlogPage posts={blogPosts} />;
       case 'projects':
         return (
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
@@ -358,7 +1197,7 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     Ecosystem David Kozák
                   </div>
-                  <h2 className="text-6xl md:text-8xl text-white uppercase text-glow-cyan leading-tight">Vizionář <br /><span className="text-cyan-400 italic font-serif">& Design</span></h2>
+                  <h2 className="text-4xl md:text-6xl text-white uppercase text-glow-cyan leading-tight">Vizionář <br /><span className="text-cyan-300 headline-thin">& Design</span></h2>
                 </div>
                 <a href="https://davidkozak.social" target="_blank" className="group bg-white text-black px-10 py-5 rounded-2xl flex items-center gap-3 hover:bg-cyan-400 transition-all text-xs font-black tracking-widest uppercase shadow-xl shadow-cyan-500/10">
                   Portfolio Majitele <ExternalLink size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -396,47 +1235,7 @@ const App = () => {
           </div>
         );
       case 'blog':
-        return (
-          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] -z-10" />
-
-            <div className="max-w-7xl mx-auto space-y-12">
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-white/10 pb-12">
-                <div className="space-y-5">
-                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                    Blog REST||ART
-                  </div>
-                  <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">
-                    Novinky <br /><span className="text-cyan-400 italic font-serif">a aktuality</span>
-                  </h2>
-                </div>
-                <p className="text-white/40 font-light max-w-md text-sm">
-                  Pravidelně sdílíme průběh realizace, výsledky programů a klíčové milníky projektu REST||ART INTEGRACE.
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {blogPosts.map((post) => (
-                  <article key={post.title} className="glass-panel p-8 rounded-[2.5rem] border-white/10 hover:border-cyan-400/30 transition-all group">
-                    <div className="flex items-center justify-between mb-6">
-                      <span className="text-[10px] font-black tracking-[0.3em] uppercase text-cyan-400">{post.category}</span>
-                      <span className="text-[10px] text-white/30 uppercase tracking-[0.2em]">{post.date}</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-white leading-tight mb-4 group-hover:text-cyan-400 transition-colors">
-                      {post.title}
-                    </h3>
-                    <p className="text-white/50 font-light leading-relaxed">{post.excerpt}</p>
-                    <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
-                      <span className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">Číst detail</span>
-                      <ArrowRight size={14} className="text-cyan-400 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
+        return <BlogPage posts={blogPosts} />;
       case 'contacts':
         return (
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
@@ -450,7 +1249,7 @@ const App = () => {
                     <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                       Jsme tu pro vás
                     </div>
-                    <h2 className="text-6xl md:text-[5.5rem] text-white uppercase text-glow-cyan leading-[0.9]">Kontaktujte <br /><span className="text-cyan-400 italic font-serif">nás</span></h2>
+                    <h2 className="text-5xl md:text-[4.5rem] text-white uppercase text-glow-cyan leading-[0.9]">Kontaktujte <br /><span className="text-cyan-300 headline-thin">nás</span></h2>
                     <p className="text-xl text-white/40 font-light max-w-md leading-relaxed">
                       Máte dotaz nebo se chcete zapojit? Napište nám nebo zavolejte. Každý kontakt je krokem k lepší budoucnosti.
                     </p>
@@ -468,7 +1267,7 @@ const App = () => {
                       <div className="grid md:grid-cols-2 gap-6 pt-4 border-t border-white/5 text-sm text-white/40 font-light">
                         <div className="space-y-1">
                           <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Sídlo</p>
-                          <p>Růžová 202/6, Krásné Březno<br />400 07 Ústí nad Labem</p>
+                          <p>Drážďanská 51/52<br />400 07 Ústí nad Labem</p>
                         </div>
                         <div className="space-y-1 text-right">
                           <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Identifikace</p>
@@ -515,7 +1314,7 @@ const App = () => {
                   <div className="absolute top-0 right-0 p-12 opacity-5 -rotate-12 pointer-events-none"><MessageSquare size={200} /></div>
                   <div className="relative z-10 space-y-10">
                     <div className="space-y-4">
-                      <h3 className="text-3xl font-serif text-white italic">Napište nám zprávu</h3>
+                      <h3 className="text-3xl text-white font-black uppercase tracking-[1.5px]">Napište nám <span className="text-cyan-300 headline-thin">zprávu</span></h3>
                       <p className="text-white/30 font-light text-sm">Vaše zpráva bude doručena přímo našemu týmu.</p>
                     </div>
                     
@@ -554,9 +1353,9 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     Investiční záměr | červen 2025
                   </div>
-                  <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">
+                  <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
                     REST<span className="text-cyan-400/60">||</span>ART <br />
-                    <span className="text-cyan-400 italic font-serif">Integrace</span>
+                    <span className="text-cyan-300 headline-thin">Integrace</span>
                   </h2>
                   <p className="text-xl text-white/50 font-light max-w-3xl leading-relaxed">
                     Komplexní podpora reintegrace znevýhodněných osob v režimu sociálně odpovědného podnikání.
@@ -595,8 +1394,8 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     II. Hlavní cíle investice
                   </div>
-                  <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">
-                    Co chceme <br /><span className="text-cyan-400 italic font-serif">vybudovat</span>
+                  <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                    Co chceme <br /><span className="text-cyan-300 headline-thin">vybudovat</span>
                   </h2>
                 </div>
                 <p className="text-white/40 font-light max-w-md text-sm">
@@ -627,8 +1426,8 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     III. Výše požadované investice
                   </div>
-                  <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">
-                    Investiční <br /><span className="text-cyan-400 italic font-serif">rozpočet</span>
+                  <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                    Investiční <br /><span className="text-cyan-300 headline-thin">rozpočet</span>
                   </h2>
                 </div>
                 <div className="glass-panel p-8 rounded-[2rem] border-white/10">
@@ -673,8 +1472,8 @@ const App = () => {
                 <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                   IV. Návratnost a přínos
                 </div>
-                <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">
-                  Důvod <span className="text-cyan-400 italic font-serif">investovat</span>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Důvod <span className="text-cyan-300 headline-thin">investovat</span>
                 </h2>
                 <p className="text-white/40 font-light max-w-3xl">
                   Projekt je nastaven jako kombinace sociálního dopadu, ekonomické efektivity a dlouhodobé stabilizace komunit.
@@ -704,8 +1503,8 @@ const App = () => {
                 <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                   V. Harmonogram
                 </div>
-                <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">
-                  Postup <span className="text-cyan-400 italic font-serif">realizace</span>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Postup <span className="text-cyan-300 headline-thin">realizace</span>
                 </h2>
               </div>
 
@@ -735,8 +1534,8 @@ const App = () => {
                 <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                   Přehled programů OPZ+
                 </div>
-                <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">
-                  Programy <span className="text-cyan-400 italic font-serif">REST||ART</span>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Programy <span className="text-cyan-300 headline-thin">REST||ART</span>
                 </h2>
                 <p className="text-white/40 font-light max-w-3xl">
                   Programy jsou kombinovatelné dle potřeb klienta a využívají jednotný pětifázový rámec:
@@ -783,7 +1582,7 @@ const App = () => {
                </div>
               
               <div className="relative z-20 text-center space-y-4">
-                <h1 className="text-6xl md:text-[10rem] font-serif text-white font-black tracking-tighter text-glow-cyan animate-pulse">
+                <h1 className="text-5xl md:text-[8rem] font-serif text-white font-black tracking-tighter text-glow-cyan animate-pulse">
                   REST<span className="text-cyan-400/50 italic">||</span>ART
                 </h1>
                 <p className="text-cyan-300/60 font-light tracking-[0.5em] uppercase text-xs md:text-xl">Integrace Společnosti</p>
@@ -797,24 +1596,37 @@ const App = () => {
                   <div className="inline-flex items-center gap-2 text-cyan-400 font-bold text-xs tracking-widest uppercase bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-400/20">
                     David Kozák International, s.r.o.
                   </div>
-                  <h2 className="text-5xl md:text-8xl text-white leading-tight text-glow-cyan">
-                    Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-400 italic font-serif">každý.</span>
+                  <h2 className="text-4xl md:text-7xl text-white leading-tight text-glow-cyan">
+                    Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-300 headline-thin">každý.</span>
                   </h2>
                   <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-light">
                     REST||ART Integrace je kostra nové společnosti. Budujeme udržitelný systém pro ty, které svět přestal vidět.
                   </p>
                   <div className="flex flex-wrap gap-4 pt-4">
                     <button onClick={() => goToPage('projects')} className="bg-cyan-500 text-black px-10 py-5 rounded-2xl font-black text-lg hover:shadow-cyan-500/30 shadow-xl transition-all">NAŠE PROJEKTY</button>
-                    <button className="glass-panel text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/5 transition-all">O NÁS</button>
+                    <button onClick={() => goToPage('about')} className="glass-panel text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/5 transition-all">O NÁS</button>
                   </div>
                 </div>
                 <div className="relative group lg:-mt-40">
                   <div className="relative rounded-[3.5rem] overflow-hidden shadow-2xl transform rotate-3 group-hover:rotate-0 transition-all duration-700 border-[16px] border-white/5 bg-white/5">
-                    <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200" alt="Integrace" className="w-full h-[600px] object-cover opacity-60 group-hover:opacity-100 transition-all" />
+                    <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200" alt="Integrace" className="hero-desat w-full h-[600px] object-cover opacity-60 group-hover:opacity-100 transition-all duration-700" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-transparent opacity-80" />
                     <div className="absolute bottom-10 left-10 text-white italic text-2xl font-serif drop-shadow-lg">"Každý příběh má právo pokračovat."</div>
                   </div>
                 </div>
+              </div>
+            </section>
+
+            <section className="py-12 px-6 max-w-7xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-6">
+                {homeStatItems.map((item, idx) => (
+                  <div key={item.label} className="glass-panel p-8 rounded-3xl text-center group hover:-translate-y-1 transition-all duration-500 border-white/10">
+                    <p className="text-5xl md:text-6xl font-black text-glow-cyan leading-none mb-4">
+                      {animatedStats[idx]}{item.suffix}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/35 font-black">{item.label}</p>
+                  </div>
+                ))}
               </div>
             </section>
 
@@ -823,8 +1635,10 @@ const App = () => {
               <div className="max-w-5xl mx-auto text-center space-y-16 relative z-10">
                 <div className="space-y-4">
                   <h3 className="text-cyan-400 font-black tracking-[0.4em] text-xs uppercase">Značka druhé šance</h3>
-                  <h2 className="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase leading-none">
-                    "Toto není <br /><span className="text-glow-cyan">další projekt"</span>
+                  <h2 className="text-4xl md:text-7xl text-white tracking-tighter uppercase leading-none">
+                    "<span className="font-thin">Toto není</span>
+                    <br />
+                    <span className="text-glow-cyan font-extrabold">další projekt</span>"
                   </h2>
                 </div>
                 
@@ -868,7 +1682,7 @@ const App = () => {
                 {/* VÝZVA */}
                 <div className="pt-24 space-y-10 border-t border-white/5">
                   <div className="space-y-4">
-                    <h3 className="text-4xl md:text-6xl font-black text-white uppercase italic font-serif tracking-tighter">VÝZVA</h3>
+                    <h3 className="text-4xl md:text-6xl font-black font-sans text-white uppercase tracking-[1.5px]">VÝZVA</h3>
                     <p className="text-white/40 text-xl font-light max-w-2xl mx-auto leading-relaxed">
                       Pokud sdílíte tuto vizi – přidejte se. Nemusíte mít připravený rozpočet. Stačí, že máte otevřené srdce, jasný pohled a vůli táhnout.
                     </p>
@@ -889,7 +1703,10 @@ const App = () => {
                      <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                        Páteř naší práce
                      </div>
-                     <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">Morální <br /><span className="text-cyan-400 italic font-serif">Kodex</span></h2>
+                    <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                      Morální <br />
+                      <span className="text-cyan-300 font-thin font-sans text-glow-cyan tracking-[1.5px]">Kodex</span>
+                    </h2>
                    </div>
                    <p className="text-white/30 font-light max-w-sm text-sm leading-relaxed">
                      Tento kodex tvoří závazek vůči všem, kteří s námi vstupují do kontaktu – ať už jako klient, kolega, partner nebo podporovatel.
@@ -926,8 +1743,8 @@ const App = () => {
                     <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] tracking-[0.3em] font-black uppercase">
                       Důkaz, že to jde
                     </div>
-                    <h2 className="text-5xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none">
-                      Příběhy <br /><span className="text-glow-cyan">Restartu</span>
+                    <h2 className="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none">
+                      Příběhy <br /><span className="text-glow-cyan font-thin font-sans tracking-[1.5px]">REST||ARTU</span>
                     </h2>
                     <p className="text-xl text-white/40 font-light max-w-2xl mx-auto">
                       Změna vychází zevnitř. REST||ART staví na motivaci a inspiraci skrze lidi, kteří už svou cestu našli.
@@ -990,7 +1807,7 @@ const App = () => {
                       <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                         Anotace Projektu
                       </div>
-                      <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-glow-cyan">
+                      <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-glow-cyan">
                         REST<span className="text-cyan-400/50 mx-1">||</span>ART INTEGRACE
                       </h2>
                     </div>
@@ -1051,7 +1868,7 @@ const App = () => {
                     <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                       Finanční Udržitelnost
                     </div>
-                    <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">Provozní <br /><span className="text-cyan-400 italic font-serif">Rozpočet</span></h2>
+                    <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">Provozní <br /><span className="text-cyan-300 headline-thin">Rozpočet</span></h2>
                   </div>
                   <div className="bg-cyan-500/10 border border-cyan-400/20 p-8 rounded-3xl">
                     <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1">Celkový roční náklad</p>
@@ -1128,7 +1945,7 @@ const App = () => {
                     <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                       Spolupráce & Systém
                     </div>
-                    <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">Síť <br /><span className="text-cyan-400 italic font-serif">Partnerství</span></h2>
+                    <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">Síť <br /><span className="text-cyan-300 headline-thin">Partnerství</span></h2>
                   </div>
                   <p className="text-white/30 font-light max-w-sm text-sm leading-relaxed">
                     REST||ART není izolovaný projekt. Je to zastřešující platforma pro státní sféru, neziskový sektor a komerční partnery.
@@ -1163,7 +1980,7 @@ const App = () => {
                 <div className="space-y-12 pt-20">
                   <div className="flex items-center gap-6">
                     <div className="w-12 h-12 bg-teal-500/10 text-teal-400 rounded-xl flex items-center justify-center"><LayoutGrid size={24} /></div>
-                    <h3 className="text-3xl font-serif italic text-white uppercase tracking-widest">Programy v detailu</h3>
+                    <h3 className="text-3xl text-white font-black uppercase tracking-[1.5px]">Programy v <span className="text-cyan-300 headline-thin">detailu</span></h3>
                   </div>
 
                   <div className="glass-panel rounded-[3rem] overflow-hidden border-white/5">
@@ -1209,13 +2026,13 @@ const App = () => {
                     <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                       Detailní Projektový Záměr
                     </div>
-                    <h2 className="text-5xl md:text-8xl text-white uppercase leading-tight text-glow-cyan">
-                      RE<span className="text-cyan-400 font-serif italic">WORK</span>
+                    <h2 className="text-4xl md:text-7xl text-white uppercase leading-tight text-glow-cyan">
+                      RE<span className="text-cyan-300 headline-thin">WORK</span>
                     </h2>
                     <div className="grid md:grid-cols-2 gap-4 text-xs text-white/20 uppercase tracking-widest font-black">
                       <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> David Kozák International s.r.o.</div>
                       <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> IČO: 23143614</div>
-                      <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> Drážďanská 517/52, 400 07 Ústí nad Labem</div>
+                      <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> Drážďanská 51/52, 400 07 Ústí nad Labem</div>
                     </div>
                   </div>
                   <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 flex items-center gap-6">
@@ -1250,7 +2067,7 @@ const App = () => {
                 {/* Statistiky a tabulky */}
                 <div className="space-y-12">
                   <div className="flex flex-col md:flex-row gap-8 items-center justify-between">
-                    <h3 className="text-3xl font-serif italic text-white">Analýza trhu & <span className="text-cyan-400">Efektivita</span></h3>
+                    <h3 className="text-3xl text-white font-black uppercase tracking-[1.5px]">Analýza trhu & <span className="text-cyan-300 headline-thin">efektivita</span></h3>
                     <div className="flex gap-4">
                       <div className="bg-cyan-500/10 border border-cyan-400/20 px-6 py-3 rounded-2xl">
                         <span className="text-[10px] text-cyan-400 font-black uppercase tracking-widest block mb-1">Ratio UOZ/VPM</span>
@@ -1340,8 +2157,8 @@ const App = () => {
                     <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                       Kapitola 2.1: Cíl Projektu
                     </div>
-                    <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-glow-cyan uppercase leading-tight">
-                      Vize sociální <br /><span className="text-cyan-400 font-serif italic">reintegrace</span>
+                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-glow-cyan uppercase leading-tight">
+                      Vize sociální <br /><span className="text-cyan-300 headline-thin">reintegrace</span>
                     </h2>
                   </div>
                   
@@ -1370,7 +2187,7 @@ const App = () => {
                   <div className="glass-panel p-12 md:p-16 rounded-[4rem] border-white/5 space-y-12">
                     <div className="space-y-6">
                       <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center"><Flag size={32} /></div>
-                      <h3 className="text-3xl font-serif italic text-white">Definice úspěchu</h3>
+                      <h3 className="text-3xl text-white font-black uppercase tracking-[1.5px]">Definice <span className="text-cyan-300 headline-thin">úspěchu</span></h3>
                       <p className="text-white/50 font-light leading-relaxed italic text-lg">
                         "Úspěch není grant. Úspěch je člověk, který byl dřív v base nebo na ulici – a dnes má práci, bydlení a je inspirací pro ostatní."
                       </p>
@@ -1425,7 +2242,7 @@ const App = () => {
                       Konkrétní Pilotní Plán
                     </div>
                     <h2 className="text-5xl md:text-6xl text-white uppercase leading-tight text-glow-cyan">
-                      JAILBREAK <br /><span className="text-cyan-400 font-serif italic">+ REWORK + STREETWISE</span>
+                      JAILBREAK <br /><span className="text-cyan-300 headline-thin">+ REWORK + STREETWISE</span>
                     </h2>
                     <p className="text-lg text-white/40 font-light leading-relaxed">
                       V tomto prostoru lze zaměstnat osoby ve výkonu trestu, ale také civilní pracovníky z řad dlouhodobě nezaměstnaných nebo lidí bez domova. Tím se propojuje několik cílových skupin v jednom provozu.
@@ -1457,7 +2274,7 @@ const App = () => {
                       <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                         Jak pracujeme
                       </div>
-                      <h2 className="text-5xl md:text-6xl font-black text-white uppercase leading-tight">Fázový model <br /><span className="text-cyan-400 italic font-serif">Metodiky</span></h2>
+                      <h2 className="text-5xl md:text-6xl font-black text-white uppercase leading-tight">Fázový model <br /><span className="text-cyan-300 headline-thin">Metodiky</span></h2>
                     </div>
 
                     <div className="space-y-4">
@@ -1485,7 +2302,7 @@ const App = () => {
                       <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-teal-500/5 border border-teal-400/20 text-teal-400 text-[10px] tracking-[0.3em] font-black uppercase">
                         Milníky Realizace
                       </div>
-                      <h2 className="text-5xl md:text-6xl font-black text-white uppercase leading-tight">Časová <br /><span className="text-teal-400 italic font-serif">Osa 2025+</span></h2>
+                      <h2 className="text-5xl md:text-6xl font-black text-white uppercase leading-tight">Časová <br /><span className="text-teal-300 headline-thin">Osa 2025+</span></h2>
                     </div>
 
                     <div className="relative space-y-8 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-white/5">
@@ -1535,8 +2352,8 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     Příčina a Následek
                   </div>
-                  <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase leading-tight">
-                    Kde to <span className="text-red-500 italic font-serif">začíná?</span>
+                  <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase leading-tight">
+                    Kde to <span className="text-red-400 headline-thin">začíná?</span>
                   </h2>
                 </div>
 
@@ -1595,7 +2412,7 @@ const App = () => {
                 {/* PROČ TO NEFUNGUJE */}
                 <div className="grid lg:grid-cols-2 gap-16 items-center pt-20">
                   <div className="space-y-8">
-                    <h2 className="text-4xl md:text-5xl font-serif italic text-white leading-tight">Proč to <span className="text-red-500">nefunguje?</span></h2>
+                    <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-[1.5px] leading-tight">Proč to <span className="text-red-400 headline-thin">nefunguje?</span></h2>
                     <p className="text-xl text-white/40 font-light leading-relaxed">
                       Každý článek systému – ústav, úřad, neziskovka, kurátor, terapeut – funguje sám za sebe. Není tu jeden jazyk. Jeden cíl. Jedna značka odpovědnosti.
                     </p>
@@ -1613,7 +2430,7 @@ const App = () => {
                       <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                         Řešení = REST||ART
                       </div>
-                      <h3 className="text-3xl font-black text-white tracking-widest uppercase">Sjednocená <br /><span className="text-cyan-400 italic font-serif">odpovědnost</span></h3>
+                      <h3 className="text-3xl font-black text-white tracking-widest uppercase">Sjednocená <br /><span className="text-cyan-300 headline-thin">odpovědnost</span></h3>
                       <p className="text-white/60 font-light leading-relaxed">
                         REST||ART není jen soubor programů. Je to strukturovaná cesta, kde jeden program navazuje na druhý. Systém, který konečně spolu mluví.
                       </p>
@@ -1633,8 +2450,8 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     Ekonomický Dopad
                   </div>
-                  <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase leading-tight">
-                    Klíčová <span className="text-cyan-400 italic font-serif">čísla</span>
+                  <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase leading-tight">
+                    Klíčová <span className="text-cyan-300 headline-thin">čísla</span>
                   </h2>
                   <p className="text-xl text-white/40 font-light">
                     Vězeňství není jen sociální téma. Je to obrovská zátěž pro státní rozpočet, kterou lze efektivně snížit.
@@ -1719,7 +2536,7 @@ const App = () => {
                        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                          Co nabízíme
                        </div>
-                       <h2 className="text-5xl md:text-6xl font-black text-white uppercase leading-tight">Servis pro <br /><span className="text-cyan-400 italic font-serif">Účastníky</span></h2>
+                       <h2 className="text-5xl md:text-6xl font-black text-white uppercase leading-tight">Servis pro <br /><span className="text-cyan-300 headline-thin">Účastníky</span></h2>
                      </div>
 
                      <div className="grid sm:grid-cols-2 gap-6">
@@ -1744,7 +2561,7 @@ const App = () => {
                        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-teal-500/5 border border-teal-400/20 text-teal-400 text-[10px] tracking-[0.3em] font-black uppercase">
                          Pro Partnery
                        </div>
-                       <h2 className="text-5xl md:text-6xl font-black text-white uppercase leading-tight">Přínos <br /><span className="text-teal-400 italic font-serif">Veřejnosti</span></h2>
+                       <h2 className="text-5xl md:text-6xl font-black text-white uppercase leading-tight">Přínos <br /><span className="text-teal-300 headline-thin">Veřejnosti</span></h2>
                      </div>
 
                      <div className="space-y-6">
@@ -1784,7 +2601,7 @@ const App = () => {
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> AI Integrační Asistent
                   </div>
-                  <h3 className="text-4xl md:text-5xl text-white text-glow-cyan">Váš plán <span className="text-cyan-400 italic font-serif">restartu</span></h3>
+                  <h3 className="text-4xl md:text-5xl text-white text-glow-cyan">Váš plán <span className="text-cyan-300 headline-thin">restartu</span></h3>
                   <p className="text-white/40 font-light max-w-2xl mx-auto">Napište nám o své situaci a naše AI vám navrhne první kroky podle pilířů Integrace.</p>
                 </div>
 
@@ -1847,7 +2664,7 @@ const App = () => {
               <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-16">
                 <div className="space-y-4">
                   <h2 className="text-4xl md:text-6xl text-white uppercase leading-tight text-glow-cyan">
-                    Pět pilířů <br /><span className="text-cyan-400 italic font-serif">restartu</span>
+                    Pět pilířů <br /><span className="text-cyan-300 headline-thin">restartu</span>
                   </h2>
                   <div className="h-1 w-24 bg-cyan-500 rounded-full" />
                 </div>
@@ -1881,13 +2698,100 @@ const App = () => {
     }
   };
 
+  const renderMenuNodes = (nodes: MenuNode[], depth = 0) => (
+    <div className={depth === 0 ? 'space-y-2' : 'space-y-1 mt-2'}>
+      {nodes.map((node) => {
+        const hasChildren = Boolean(node.children?.length);
+        const isExpanded = expandedMenuKeys.includes(node.key);
+        const isActive = isNodeActive(node);
+        const rowPadding = depth === 0 ? 'px-3' : depth === 1 ? 'pl-7 pr-3' : 'pl-11 pr-3';
+        const labelClass =
+          depth === 0
+            ? 'text-sm font-semibold uppercase tracking-wide'
+            : depth === 1
+              ? 'text-xs font-semibold uppercase tracking-wide'
+              : 'text-[11px] font-semibold uppercase tracking-[0.08em]';
+
+        if (hasChildren) {
+          return (
+            <div key={node.key} className="glass-panel rounded-xl border-white/10">
+              <button
+                onClick={() => toggleMenuNode(node.key)}
+                className={`w-full flex items-center justify-between ${rowPadding} py-3 rounded-xl transition-all ${
+                  isActive ? 'bg-cyan-500/20 text-cyan-300' : 'text-white/80 hover:bg-white/10 hover:text-cyan-300'
+                }`}
+                aria-expanded={isExpanded}
+                aria-controls={`submenu-${node.key}`}
+              >
+                <span className={`${labelClass} leading-tight`}>{node.label}</span>
+                <ChevronRight size={16} className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+              </button>
+
+              {isExpanded && (
+                <div id={`submenu-${node.key}`} className="pb-2">
+                  {node.id && (
+                    <button
+                      onClick={() => handleMenuNavigation(node.id as PageKey | 'contacts-modal')}
+                      className={`w-full text-left py-2 ${depth === 0 ? 'pl-7 pr-3' : 'pl-11 pr-3'} text-[10px] font-black uppercase tracking-[0.14em] transition-colors ${
+                        node.id === currentPage ? 'text-cyan-300' : 'text-white/45 hover:text-cyan-300'
+                      }`}
+                    >
+                      Přehled: {node.label}
+                    </button>
+                  )}
+                  {renderMenuNodes(node.children ?? [], depth + 1)}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <button
+            key={node.key}
+            onClick={() => handleMenuNavigation(node.id as PageKey | 'contacts-modal')}
+            className={`w-full flex items-center justify-between ${rowPadding} py-3 rounded-xl transition-all ${
+              isActive ? 'bg-cyan-500/20 text-cyan-300' : 'text-white/80 hover:bg-white/10 hover:text-cyan-300'
+            }`}
+          >
+            <span className={`${labelClass} leading-tight`}>{node.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const ContactModalRoute = () => {
+    useEffect(() => {
+      setIsContactModalOpen(true);
+      navigate(pagePathMap.home, { replace: true });
+    }, [navigate]);
+
+    return null;
+  };
+
   return (
-    <div className="min-h-screen bg-[#051111] text-white/90 font-sans selection:bg-cyan-500/30 overflow-x-hidden relative antialiased">
+    <div className={`min-h-screen font-sans selection:bg-cyan-500/30 overflow-x-hidden relative antialiased transition-colors duration-500 ${isDark ? 'theme-dark bg-[#051111] text-white/90' : 'theme-light bg-[#f0fdf9] text-slate-900'}`}>
+      <div
+        className="fixed top-0 left-0 h-1 z-[140] transition-all duration-300"
+        style={{
+          width: `${scrollProgress}%`,
+          background: isDark ? '#06b6d4' : '#0e7490',
+          boxShadow: isDark ? '0 0 15px #00F2EA' : '0 0 15px rgba(14,116,144,0.45)'
+        }}
+      />
+
       {/* Background Aura */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-teal-600/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute top-[40%] right-[-5%] w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[100px] animate-bounce-slow"></div>
-        <div className="absolute bottom-[-10%] left-[20%] w-[700px] h-[700px] bg-emerald-900/20 rounded-full blur-[150px]"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] animate-pulse" style={{ background: isDark ? 'rgba(13,148,136,0.20)' : 'rgba(20,184,166,0.14)' }} />
+        <div className="absolute top-[40%] right-[-5%] w-[500px] h-[500px] rounded-full blur-[100px] animate-bounce-slow" style={{ background: isDark ? 'rgba(6,182,212,0.10)' : 'rgba(14,116,144,0.10)' }} />
+        <div className="absolute bottom-[-10%] left-[20%] w-[700px] h-[700px] rounded-full blur-[150px]" style={{ background: isDark ? 'rgba(6,78,59,0.20)' : 'rgba(45,212,191,0.12)' }} />
+        <img
+          src="/images/silhouette-oak-tree-isolated-white-background-44662890.webp"
+          alt=""
+          className={`tree-watermark-photo ${isDark ? 'tree-watermark-photo-dark' : 'tree-watermark-photo-light'}`}
+          aria-hidden="true"
+        />
       </div>
 
       {/* NAVBAR */}
@@ -1897,14 +2801,15 @@ const App = () => {
             REST<span className="text-cyan-400 mx-1 group-hover:scale-110 transition-transform">||</span>ART
             <span className="ml-2 text-[10px] font-light tracking-[0.2em] uppercase hidden sm:block text-white/50">Integrace</span>
           </div>
-          <div className="flex items-center space-x-4 md:space-x-6">
+          <div className="flex items-center">
             <button
-              onClick={() => setIsContactModalOpen(true)}
-              className="hidden sm:block bg-cyan-500/20 border border-cyan-400/50 text-cyan-100 px-6 py-2 rounded-full text-xs font-black tracking-widest hover:bg-cyan-400 transition-all hover:text-black"
+              onClick={() => setIsDark((prev) => !prev)}
+              className={`p-3 rounded-2xl transition-all mr-3 ${scrolled ? 'bg-white/5 hover:bg-white/10' : 'bg-white/10 hover:bg-white/20'}`}
+              aria-label={isDark ? 'Přepnout do light mode' : 'Přepnout do dark mode'}
+              title={isDark ? 'Přepnout do light mode' : 'Přepnout do dark mode'}
             >
-              ZAPOJIT SE
+              {isDark ? <Sun className="text-cyan-400" size={18} /> : <Moon className="text-cyan-500" size={18} />}
             </button>
-            {/* Hamburger for BOTH Desktop and Mobile */}
             <button 
               className={`p-3 rounded-2xl transition-all ${scrolled ? 'bg-white/5 hover:bg-white/10' : 'bg-white/10 hover:bg-white/20'}`} 
               onClick={() => setIsMenuOpen(true)}
@@ -1915,129 +2820,59 @@ const App = () => {
         </div>
       </nav>
 
-      {/* SLIDE-OUT MENU (Full Navigation) */}
-      <div className={`fixed inset-0 z-[120] glass-panel bg-[#051111]/95 transition-transform duration-700 cubic-bezier(0.4, 0, 0.2, 1) ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="p-8 flex flex-col items-center justify-center h-full space-y-8 relative overflow-y-auto">
-          <button onClick={() => setIsMenuOpen(false)} className="absolute top-8 right-8 text-cyan-400 p-4 hover:scale-110 transition-transform"><X size={32} /></button>
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 opacity-5 pointer-events-none"><Users size={400} /></div>
+      {/* COMPACT SLIDE-OUT MENU */}
+      <div className={`fixed inset-0 z-[120] transition-opacity duration-300 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <button
+          aria-label="Zavřít menu"
+          onClick={() => setIsMenuOpen(false)}
+          className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+        />
 
-          {navItems.map((item, idx) => {
-            const isActive = currentPage === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (item.id === 'contacts-modal') {
-                    setIsContactModalOpen(true);
-                    setIsMenuOpen(false);
-                    return;
-                  }
-                  goToPage(item.id);
-                }}
-                className={`group flex items-center gap-6 text-xl md:text-3xl text-white uppercase transition-all ${
-                  isActive ? 'text-cyan-400' : 'hover:text-cyan-400'
-                }`}
-              >
-                <span className={`text-xs md:text-sm text-cyan-400 font-black tracking-tighter transition-opacity ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}>
-                  {String(idx + 1).padStart(2, '0')}
-                </span>
-                {item.label}
-              </button>
-            );
-          })}
-          
-          <div className="pt-12 flex gap-8">
-            <Instagram className="text-white/20 hover:text-cyan-400 cursor-pointer transition-colors" size={24} />
-            <Facebook className="text-white/20 hover:text-cyan-400 cursor-pointer transition-colors" size={24} />
-            <Globe className="text-white/20 hover:text-cyan-400 cursor-pointer transition-colors" size={24} />
-          </div>
-        </div>
-      </div>
-
-      {renderContent()}
-
-      {isContactModalOpen && (
-        <div
-          className="fixed inset-0 z-[130] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 md:p-8"
-          onClick={() => setIsContactModalOpen(false)}
-        >
-          <div
-            className="w-full max-w-4xl glass-panel border-cyan-400/20 rounded-[2.5rem] p-8 md:p-12 relative max-h-[90vh] overflow-y-auto"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              onClick={() => setIsContactModalOpen(false)}
-              className="absolute top-5 right-5 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-400 transition-all"
-              aria-label="Zavřít kontaktní okno"
-            >
+        <aside className={`absolute top-0 right-0 h-full w-[min(88vw,380px)] md:w-[420px] glass-panel ${isDark ? 'bg-[#051111]/95 border-cyan-400/20' : 'bg-[#f0fdf9]/95 border-cyan-900/10'} border-l transition-transform duration-500 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
+          <div className="flex items-center justify-between p-5 border-b border-white/10">
+            <p className="text-[10px] uppercase tracking-[0.3em] font-black text-cyan-400">Navigace</p>
+            <button onClick={() => setIsMenuOpen(false)} className="text-cyan-400 p-2 rounded-lg hover:bg-white/10 transition-colors">
               <X size={22} />
             </button>
-
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-cyan-400">Kontaktní miniokno</p>
-                <h3 className="text-4xl md:text-5xl font-black text-white uppercase leading-tight">
-                  Kontaktujte <span className="text-cyan-400 italic font-serif">nás</span>
-                </h3>
-                <p className="text-white/40 font-light max-w-2xl">
-                  Zůstáváte na aktuální stránce a formulář se otevře pouze v překryvném okně.
-                </p>
-              </div>
-
-              <div className="grid lg:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <div className="glass-panel p-6 rounded-2xl border-white/10 space-y-2">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">Firma</p>
-                    <p className="text-xl font-bold text-white">DAVID KOZÁK INTERNATIONAL S.R.O.</p>
-                  </div>
-                  <div className="glass-panel p-6 rounded-2xl border-white/10 space-y-2">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">Telefon</p>
-                    <p className="text-lg font-bold text-cyan-400">+420 705 217 251</p>
-                  </div>
-                  <div className="glass-panel p-6 rounded-2xl border-white/10 space-y-2">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">Email</p>
-                    <p className="text-lg font-bold text-cyan-400">info@david-kozak.com</p>
-                  </div>
-                </div>
-
-                <form className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Vaše jméno"
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 focus:border-cyan-400 outline-none placeholder:text-white/20"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Váš email"
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 focus:border-cyan-400 outline-none placeholder:text-white/20"
-                  />
-                  <textarea
-                    placeholder="Jak vám můžeme pomoci?"
-                    className="w-full h-40 bg-black/40 border border-white/10 rounded-2xl px-5 py-4 focus:border-cyan-400 outline-none resize-none placeholder:text-white/20"
-                  />
-                  <button
-                    type="button"
-                    className="w-full bg-cyan-500 text-black py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-cyan-400 transition-all"
-                  >
-                    Odeslat zprávu
-                  </button>
-                </form>
-              </div>
-            </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <p className="px-3 text-[10px] uppercase tracking-[0.25em] text-white/30 font-black">Rozevírací seznam navigace</p>
+            {renderMenuNodes(navTree)}
+          </div>
+
+          <div className="p-5 border-t border-white/10 flex items-center justify-center gap-6">
+            <Instagram className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
+            <Facebook className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
+            <Globe className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
+          </div>
+        </aside>
+      </div>
+
+      <Routes>
+        {routablePages.map((page) => (
+          <Route key={page} path={pagePathMap[page]} element={renderContent(page)} />
+        ))}
+        <Route path={pagePathMap.contacts} element={<ContactModalRoute />} />
+        <Route path="*" element={<Navigate to={pagePathMap.home} replace />} />
+      </Routes>
+
+      <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
 
       {/* MAGICKÝ OBRÁZEK PŘED FOOTEREM */}
-      <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden flex items-center justify-center my-20">
+      <section className="relative w-full h-[420px] md:h-[500px] overflow-hidden flex items-center justify-center my-16 group">
         <div className="absolute inset-0 z-0">
-          <img src="Gemini_Generated_Image_cbpno7cbpno7cbpn.jpg" alt="Vizuál" className="w-full h-full object-cover opacity-60" />
+          <img src="Gemini_Generated_Image_cbpno7cbpno7cbpn.jpg" alt="Vizuál" className="w-full h-full object-cover opacity-60 scale-105 group-hover:scale-110 transition-transform duration-[8000ms]" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-[#051111]"></div>
           <div className="absolute inset-0 bg-[#051111]/40"></div>
         </div>
-        <div className="relative z-10 text-center px-6 max-w-4xl space-y-8">
-          <Quote size={60} className="text-cyan-400/30 mx-auto" />
-          <h3 className="text-3xl md:text-6xl font-serif italic text-white drop-shadow-2xl">"Na nikoho se nezapomíná. Každý si zaslouží druhou šanci."</h3>
+        <div className="relative z-10 text-center px-6 max-w-3xl space-y-6">
+          <Quote size={48} className="text-cyan-400/30 mx-auto group-hover:scale-110 transition-transform duration-700" />
+          <h3 className="text-2xl md:text-5xl font-serif italic text-white drop-shadow-2xl leading-tight">
+            <span className="neon-quote-mark">"</span>
+            Na nikoho se nezapomíná. Každý si zaslouží druhou šanci.
+            <span className="neon-quote-mark neon-quote-mark-end">"</span>
+          </h3>
           <div className="h-1 w-20 bg-cyan-400 mx-auto rounded-full"></div>
         </div>
       </section>
@@ -2056,7 +2891,8 @@ const App = () => {
               <div className="space-y-2">
                 <p className="text-white/40 text-sm font-bold">DAVID KOZÁK INTERNATIONAL S.R.O.</p>
                 <p className="text-white/20 text-[10px] leading-relaxed max-w-sm font-light">
-                  Růžová 202/6, Krásné Březno, 400 07 Ústí nad Labem<br />
+                  Drážďanská 51/52, 400 07 Ústí nad Labem<br />
+                  Tel: +420 705 217 251<br />
                   IČO: 23143614 | DIČ: CZ23143614<br />
                   Spisová značka: C 53832 u Krajského soudu v Ústí nad Labem
                 </p>
@@ -2088,8 +2924,23 @@ const App = () => {
           </div>
         </div>
       </footer>
+
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Zpět nahoru"
+          title="Zpět nahoru"
+          className={`fixed bottom-8 right-8 z-[150] glass-panel rounded-full p-4 shadow-2xl transition-all hover:scale-110 active:scale-95 ${
+            isDark ? 'text-cyan-400' : 'text-cyan-700'
+          }`}
+        >
+          <ChevronUp size={24} />
+        </button>
+      )}
     </div>
   );
 };
 
 export default App;
+
+

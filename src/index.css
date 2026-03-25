@@ -21,9 +21,10 @@ body {
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 242, 234, 0.1);
+  background: rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 242, 234, 0.08);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
 }
 
 /* Custom scrollbar */
@@ -57,3 +58,162 @@ body {
 .animate-pulse-glow {
   animation: pulse-glow 4s ease-in-out infinite;
 }
+
+.headline-thin {
+  font-family: 'Poppins', sans-serif;
+  font-style: normal;
+  font-weight: 300;
+  letter-spacing: 1.5px;
+}
+
+.theme-light {
+  --light-bg: #f0fdf9;
+  --light-text: rgba(12, 32, 32, 0.92);
+  --light-mid: rgba(12, 32, 32, 0.66);
+  --light-muted: rgba(12, 32, 32, 0.45);
+  --light-accent: #0e7490;
+}
+
+.theme-light .glass-panel {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(14, 116, 144, 0.18);
+  box-shadow: 0 10px 36px -14px rgba(14, 116, 144, 0.28);
+}
+
+.theme-light .text-glow-cyan {
+  text-shadow: 0 0 12px rgba(14, 116, 144, 0.2), 0 0 22px rgba(15, 118, 110, 0.12);
+}
+
+.theme-light [class*="text-white"] {
+  color: var(--light-text) !important;
+}
+
+.theme-light [class*="text-cyan-400"] {
+  color: var(--light-accent) !important;
+}
+
+.theme-light [class*="text-cyan-300"] {
+  color: #0f766e !important;
+}
+
+.theme-light [class*="text-teal-400"] {
+  color: #0f766e !important;
+}
+
+.theme-light [class*="text-red-400"] {
+  color: #b91c1c !important;
+}
+
+.theme-light [class*="border-white/"] {
+  border-color: rgba(12, 32, 32, 0.12) !important;
+}
+
+.theme-light [class*="bg-black/"] {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.theme-light [class*="bg-[#051111]"] {
+  background-color: var(--light-bg) !important;
+}
+
+.theme-light [class*="bg-[#051111]/95"] {
+  background-color: rgba(240, 253, 249, 0.95) !important;
+}
+
+.theme-light [class*="from-[#051111]"] {
+  --tw-gradient-from: #f0fdf9 var(--tw-gradient-from-position) !important;
+}
+
+.theme-light [class*="to-[#051111]"] {
+  --tw-gradient-to: #f0fdf9 var(--tw-gradient-to-position) !important;
+}
+
+.theme-light ::-webkit-scrollbar-track {
+  background: #e6f6f4;
+}
+
+.theme-light ::-webkit-scrollbar-thumb {
+  background: rgba(14, 116, 144, 0.32);
+}
+
+.theme-light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(14, 116, 144, 0.52);
+}
+
+.hero-desat {
+  filter: grayscale(100%);
+  transition: filter 700ms ease, opacity 700ms ease, transform 700ms ease;
+}
+
+.group:hover .hero-desat {
+  filter: grayscale(0%);
+}
+
+@keyframes neon-quote-flicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 8px rgba(34, 211, 238, 0.9), 0 0 18px rgba(34, 211, 238, 0.6), 0 0 28px rgba(34, 211, 238, 0.35);
+  }
+  20%, 24%, 55% {
+    opacity: 0.55;
+    text-shadow: 0 0 4px rgba(34, 211, 238, 0.45), 0 0 10px rgba(34, 211, 238, 0.25);
+  }
+}
+
+.neon-quote-mark {
+  color: #22d3ee;
+  display: inline-block;
+  margin: 0 0.08em;
+  animation: neon-quote-flicker 3.2s infinite;
+}
+
+.neon-quote-mark-end {
+  animation-delay: 0.9s;
+}
+
+.theme-light .neon-quote-mark {
+  color: #0e7490;
+  text-shadow: 0 0 8px rgba(14, 116, 144, 0.45), 0 0 16px rgba(14, 116, 144, 0.25);
+}
+
+.tree-watermark-photo {
+  position: absolute;
+  right: -7%;
+  bottom: -8%;
+  width: min(58vw, 720px);
+  height: auto;
+  pointer-events: none;
+  transform: rotate(-2deg);
+  transition: opacity 500ms ease, filter 500ms ease;
+}
+
+.tree-watermark-photo-dark {
+  opacity: 0.15;
+  mix-blend-mode: screen;
+  filter: grayscale(100%) invert(1) brightness(0.9) contrast(1.15) blur(0.8px)
+    drop-shadow(0 0 24px rgba(0, 242, 234, 0.2));
+}
+
+.tree-watermark-photo-light {
+  opacity: 0.12;
+  mix-blend-mode: multiply;
+  filter: grayscale(100%) saturate(0%) brightness(1) contrast(1.2) blur(0.7px)
+    drop-shadow(0 0 16px rgba(15, 23, 42, 0.2));
+}
+
+@media (max-width: 1024px) {
+  .tree-watermark-photo {
+    right: -25%;
+    bottom: -6%;
+    width: min(92vw, 580px);
+  }
+
+  .tree-watermark-photo-dark {
+    opacity: 0.14;
+  }
+
+  .tree-watermark-photo-light {
+    opacity: 0.1;
+  }
+}
+
