@@ -2,7 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './index.css';
 import BlogPage, { type BlogPost } from './pages/BlogPage';
+import BlockQuote from './components/BlockQuote';
 import ContactModal from './components/ContactModal';
+import Carousel from './components/Carousel';
+import MatrixFxHero from './components/MatrixFxHero';
+import MediaEnlarge from './components/MediaEnlarge';
+import ParticleBackground from './components/ParticleBackground';
+import RadialGauge from './components/RadialGauge';
+import RevealFx from './components/RevealFx';
 import { 
   Menu, X, ArrowRight, Heart, Briefcase, DoorOpen, Home, 
   ShieldCheck, Leaf, Instagram, Facebook, Globe, Users, 
@@ -30,6 +37,7 @@ interface Pillar {
   description: string;
   icon: React.ReactElement;
   color: string;
+  imageSrc?: string;
   isMain?: boolean;
 }
 
@@ -82,6 +90,180 @@ const pagePathMap: Record<PageKey, string> = {
   'zamer-programy': '/investicni-zamer/programy'
 };
 
+const brandAssets = {
+  heroBanner: '/images/podklady/selected/motion-graphic-r.png',
+  heroRealistic: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200',
+  claimInfographic: '/images/podklady/selected/claim-main.png',
+  programsOverview: '/images/podklady/selected/programs-overview.png',
+  workVisual: '/images/podklady/selected/work-visual-01.png',
+  goldTree: '/images/podklady/branding/strom-02.jpg',
+  strongIcon: '/images/podklady/selected/icon-44.png',
+  treeLogo: '/images/podklady/restart-tree-logo.png',
+  monetization: {
+    programBudgets: '/images/podklady/monetizace/program-budgets.png',
+    donationCertificate: '/images/podklady/monetizace/donate-certificate.png',
+    infrastructureBudget: '/images/podklady/monetizace/infrastructure-budget.jpg',
+    budgetOverview: '/images/podklady/monetizace/program-budget-overview.png',
+    budgetGraph: '/images/podklady/monetizace/total-budget-graph.png',
+    budgetGrids: '/images/podklady/monetizace/program-budget-grids.png',
+    roiPoster: '/images/podklady/monetizace/roi-poster-fixed.png'
+  },
+  branding: {
+    whyNotNonProfit: '/images/podklady/branding/proc-nejsme-neziskovka.png',
+    logoPrimary: '/images/podklady/branding/logo-main.png',
+    logoAlt: '/images/podklady/branding/logo-9.png',
+    brandStatement: '/images/podklady/branding/icon-42.png',
+    doorMotto: '/images/podklady/branding/door-motto.png',
+    brandPoster: '/images/podklady/branding/registered-mark.jpg'
+  },
+  homepageVisuals: {
+    challenge: '/images/podklady/adds/challenge-37-copy.jpg',
+    silence: '/images/podklady/adds/staci-ticho.png',
+    everythingHasItsTime: '/images/podklady/adds/vsechno-ma-svuj-cas.png'
+  },
+  storiesGallery: [
+    '/images/podklady/stories/societ-cz-05.jpeg',
+    '/images/podklady/stories/societ-cz-06.jpeg',
+    '/images/podklady/stories/society-02.jpeg',
+    '/images/podklady/stories/zakladatel-01.jpeg',
+    '/images/podklady/stories/zakladatel-02.jpeg',
+    '/images/podklady/stories/zakladatel-03.jpeg',
+    '/images/podklady/stories/zakladatel-05.jpeg'
+  ],
+  partnerSupport: {
+    sponsorLogo: '/images/podklady/design/sponsor-logo.png',
+    presentationIcon: '/images/podklady/design/presentation-icon.png',
+    registeredMark: '/images/podklady/branding/registered-mark.jpg'
+  },
+  brochures: {
+    jailbreakCover: '/images/podklady/brochures/brochure-jailbreak-cover.jpg',
+    jailbreakSpread: '/images/podklady/brochures/brochure-jailbreak-spread.jpg',
+    realneCover: '/images/podklady/brochures/brochure-realne-cover.png',
+    realneBack: '/images/podklady/brochures/brochure-realne-back.png',
+    realneIntro: '/images/podklady/brochures/brochure-realne-intro.png',
+    socialAd: '/images/podklady/design/social-ad-02.png'
+  },
+  brochureDocs: {
+    jailbreak: '/docs/brochures/brochure-jailbreak.pdf',
+    elegant: '/docs/brochures/elegant-brochure.pdf',
+    rozkladaci: '/docs/brochures/brochure-rozkladaci-03.pdf'
+  },
+  programsShowcase: {
+    table: '/images/podklady/design/programs-table.png',
+    leaders: '/images/podklady/design/restart-lidstva.png'
+  },
+  programPosters: {
+    jailbreak: [
+      { src: '/images/podklady/program-posters/jailbreak-program.png', alt: 'Programový plakát JAILBREAK', caption: 'Programový plakát JAILBREAK.' },
+      { src: '/images/podklady/program-posters/jailbreak-second-chance.png', alt: 'Druhá šance JAILBREAK', caption: 'JAILBREAK claim o druhé šanci.' },
+      { src: '/images/podklady/program-posters/jailbreak-proklam.png', alt: 'JAILBREAK PROKLAM', caption: 'Programový proklam JAILBREAK.' }
+    ],
+    rework: [
+      { src: '/images/podklady/program-posters/rework-01.png', alt: 'Programový plakát REWORK', caption: 'Programový plakát REWORK.' },
+      { src: '/images/podklady/program-posters/rework-brochure.png', alt: 'Brožura programu REWORK', caption: 'Brožura a náborový vizuál programu REWORK.' }
+    ],
+    streetwise: [
+      { src: '/images/podklady/program-posters/streetwise-01.png', alt: 'Programový plakát STREETWISE', caption: 'Programový plakát STREETWISE.' },
+      { src: '/images/podklady/program-posters/streetwise-program.png', alt: 'Pomoc bez domova STREETWISE', caption: 'STREETWISE jako první kontakt a terénní opora.' }
+    ],
+    reset: [
+      { src: '/images/podklady/program-posters/reset-01.png', alt: 'Programový plakát RESET', caption: 'Programový plakát RESET.' },
+      { src: '/images/podklady/program-posters/reset-02.png', alt: 'Doplňkový vizuál RESET', caption: 'RESET jako nový začátek a vnitřní restart.' }
+    ],
+    bodzlomu: [
+      { src: '/images/podklady/program-posters/bod-zlomu-01.png', alt: 'Programový plakát BOD ZLOMU', caption: 'Programový plakát BOD ZLOMU.' },
+      { src: '/images/podklady/program-posters/misto-zlomu-01.png', alt: 'MÍSTO ZLOMU mentoring', caption: 'Mentoring a prevence propadu u mladých lidí.' }
+    ],
+    stabilizace: [
+      { src: '/images/podklady/program-posters/stabilizace-01.png', alt: 'Programový plakát STABILIZACE', caption: 'Programový plakát STABILIZACE.' },
+      { src: '/images/podklady/program-posters/stabilizace-poster.png', alt: 'Plakát programu STABILIZACE', caption: 'Stabilizace bydlení, práce a dlouhodobého režimu.' }
+    ]
+  },
+  campaignAds: {
+    general: [
+      {
+        src: '/images/podklady/adds/general-1-2.png',
+        alt: 'RESTARTUJ si tělo i mysl',
+        caption: 'Obecný claim RESTART: Restartuj si tělo i mysl.'
+      },
+      {
+        src: '/images/podklady/adds/general-1.png',
+        alt: 'Druhá šance pro všechny',
+        caption: 'Obecný claim RESTART: Druhá šance pro všechny.'
+      },
+      {
+        src: '/images/podklady/adds/general-2-copy.png',
+        alt: 'Silný claim kampaně RESTART',
+        caption: 'Obecný claim kampaně RESTART.'
+      },
+      {
+        src: '/images/podklady/adds/general-2-3.png',
+        alt: 'Další claim vizuál RESTART',
+        caption: 'Claim vizuál RESTART pro veřejnou komunikaci.'
+      },
+      {
+        src: '/images/podklady/adds/general-2.jpg',
+        alt: 'Návrat důstojnosti a cesty, která má smysl',
+        caption: 'Návrat důstojnosti a cesty, která má smysl.'
+      },
+      {
+        src: '/images/podklady/adds/general-3.png',
+        alt: 'REST ART Integrace pomáhá těm, na které svět zapomněl',
+        caption: 'Silný obecný claim o druhé šanci a návratu do života.'
+      },
+      {
+        src: '/images/podklady/adds/general-4-2.png',
+        alt: 'Kampaňový poster RESTART',
+        caption: 'Obecný poster kampaně RESTART.'
+      },
+      {
+        src: '/images/podklady/adds/general-7-2.png',
+        alt: 'Temnější claim vizuál kampaně RESTART',
+        caption: 'Temnější kampaňový vizuál s důrazem na zastavení a změnu.'
+      },
+      {
+        src: '/images/podklady/design/letak-proklam.png',
+        alt: 'Obecný leták PROKLAM RESTART',
+        caption: 'Obecný proklam značky RESTART pro veřejnou komunikaci.'
+      }
+    ],
+    quoteCards: [
+      {
+        src: '/images/podklady/adds/general-blue-quote.png',
+        alt: 'Restart your mind balance your body',
+        caption: 'Claim zaměřený na rovnováhu mysli a těla.'
+      },
+      {
+        src: '/images/podklady/adds/general-pause.jpg',
+        alt: 'Na chvilku se zastav',
+        caption: 'Výlohový claim: Na chvilku se zastav a zkus otevřít oči.'
+      },
+      {
+        src: '/images/podklady/adds/general-resta.png',
+        alt: 'Minimalistický vizuál RESTA',
+        caption: 'Minimalistický claim vizuál značky RESTA.'
+      }
+    ],
+    bodZlomu: {
+      src: '/images/podklady/adds/bod-zlomu-6.jpg',
+      alt: 'BOD ZLOMU kampaňový vizuál',
+      caption: 'Programový vizuál BOD ZLOMU.'
+    }
+  },
+  campaigns: {
+    jailbreakPoster: '/images/podklady/branding/campaigns/campaign-2.png',
+    secondChancesGrid: '/images/podklady/branding/campaigns/campaign-6.png'
+  },
+  programIcons: {
+    jailbreak: '/images/podklady/programs/jailbreak.png',
+    rework: '/images/podklady/programs/rework.png',
+    streetwise: '/images/podklady/programs/streetwise.png',
+    reset: '/images/podklady/programs/reset.png',
+    bodzlomu: '/images/podklady/programs/misto-zlomu.png',
+    stabilizace: '/images/podklady/programs/stabilizace.png'
+  }
+} as const;
+
 interface MenuNode {
   key: string;
   label: string;
@@ -98,8 +280,7 @@ const App = () => {
     if (typeof window === 'undefined') return true;
     const savedTheme = window.localStorage.getItem('restart-theme');
     if (savedTheme === 'light') return false;
-    if (savedTheme === 'dark') return true;
-    return !window.matchMedia('(prefers-color-scheme: light)').matches;
+    return true;
   });
 
   const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
@@ -157,6 +338,98 @@ const App = () => {
     { target: 127, suffix: '+', label: 'Klientů v integračním procesu' },
     { target: 6, suffix: '', label: 'Aktivních programů REST||ART' },
     { target: 78, suffix: '%', label: 'Úspěšnost stabilizace' }
+  ];
+  const currencyFormatter = new Intl.NumberFormat('cs-CZ');
+  const formatCurrency = (value: number) => `${currencyFormatter.format(value)} Kč`;
+  const totalInfrastructureInvestment = 14_200_000;
+  const annualSystemCostModel = 600_000;
+  const annualSystemCostHistorical = 647_145;
+  const annualReintegrationCost = 50_000;
+  const annualSavingsPerPerson = annualSystemCostModel - annualReintegrationCost;
+  const annualHistoricalSavingsPerPerson = annualSystemCostHistorical - annualReintegrationCost;
+  const totalSystemBurden = 13_000_000_000;
+  const singleProgramBudget = 180_000;
+  const allProgramBudgets = singleProgramBudget * 6;
+  const officeAndEnergyBudget = 1_510_000;
+  const annualPilotOperationBudget = allProgramBudgets + officeAndEnergyBudget;
+  const phasedImplementationBudget = 1_400_000;
+  const recidivismBaseRate = 70;
+  const recidivismProgramRate = 17;
+  const recidivismDelta = recidivismBaseRate - recidivismProgramRate;
+  const costReductionRate = Math.round((annualSavingsPerPerson / annualSystemCostModel) * 100);
+  const relativeRecidivismDrop = Math.round((recidivismDelta / recidivismBaseRate) * 100);
+  const infrastructureBreakEvenParticipants = Math.ceil(totalInfrastructureInvestment / annualSavingsPerPerson);
+  const fullLaunchBreakEvenParticipants = Math.ceil((totalInfrastructureInvestment + annualPilotOperationBudget) / annualSavingsPerPerson);
+  const savingsPlanRows = [10, 25, 50, 100].map((participants) => ({
+    participants,
+    systemCost: participants * annualSystemCostModel,
+    reintegrationCost: participants * annualReintegrationCost,
+    savings: participants * annualSavingsPerPerson
+  }));
+  const impactGaugeStats = [
+    {
+      label: 'Recidiva bez podpory',
+      value: recidivismBaseRate,
+      hue: 'danger' as const,
+      description: 'Výchozí stav systému bez návazné podpory, práce a stabilizace.'
+    },
+    {
+      label: 'Recidiva s REST||ART',
+      value: recidivismProgramRate,
+      hue: 'success' as const,
+      description: 'Cílový stav při propojení mentoringu, práce, bydlení a dlouhodobého doprovodu.'
+    },
+    {
+      label: 'Relativní pokles recidivy',
+      value: relativeRecidivismDrop,
+      hue: [190, 165] as [number, number],
+      description: 'Rozdíl mezi 70 % a 17 % vyjádřený jako relativní pokles rizika návratu.'
+    },
+    {
+      label: 'Úspora nákladu na osobu',
+      value: costReductionRate,
+      hue: [45, 172] as [number, number],
+      description: 'Program stojí zhruba o 92 % méně než opakované selhání v systému.'
+    }
+  ];
+  const programBudgetBreakdown = [
+    { category: 'Mzdy a honoráře', amount: 40_000, share: '22,2 %' },
+    { category: 'Provozní náklady', amount: 30_000, share: '16,7 %' },
+    { category: 'Externí služby', amount: 25_000, share: '13,9 %' },
+    { category: 'Rekvalifikace', amount: 20_000, share: '11,1 %' },
+    { category: 'IT a technická podpora', amount: 15_000, share: '8,3 %' },
+    { category: 'Marketing a komunikace', amount: 15_000, share: '8,3 %' },
+    { category: 'Cestovné a doprovody', amount: 10_000, share: '5,6 %' },
+    { category: 'Rezerva', amount: 10_000, share: '5,6 %' },
+    { category: 'Software a licence', amount: 8_000, share: '4,4 %' },
+    { category: 'Materiál a pomůcky', amount: 5_000, share: '2,8 %' }
+  ];
+  const phaseBudgetRows = [
+    { phase: 'Příprava a koordinace', date: 'měsíce 1-2', budget: 150_000 },
+    { phase: 'Výběr účastníků a vstupní diagnostika', date: 'měsíce 2-4', budget: 80_000 },
+    { phase: 'Individuální plány a vstupní diagnostika', date: 'měsíce 2-4', budget: 100_000 },
+    { phase: 'Školení a rekvalifikace', date: 'měsíce 4-6', budget: 300_000 },
+    { phase: 'Zapojení do pracovního procesu', date: 'měsíce 6-10', budget: 400_000 },
+    { phase: 'Mentoring a supervize', date: 'měsíce 6-12', budget: 200_000 },
+    { phase: 'Stabilizace a přechod do samostatnosti', date: 'měsíce 8-12', budget: 120_000 },
+    { phase: 'Závěrečné vyhodnocení a zprávy', date: 'měsíc 12', budget: 50_000 }
+  ];
+  const monetizationStreams = [
+    {
+      title: 'Partnerské financování',
+      description: 'Firemní spolupráce, CSR partnerství a certifikát podpory pro značky, které chtějí financovat konkrétní změnu.',
+      icon: <HeartHandshake />
+    },
+    {
+      title: 'Pravidelná podpora',
+      description: 'Měsíční patronství a drobní dárci jako stabilní vrstva provozu, která nespoléhá jen na jednorázové granty.',
+      icon: <Wallet />
+    },
+    {
+      title: 'Reinvestice výnosů',
+      description: 'Model INTEGR!A vrací vydělané prostředky zpět do pracovních míst, rekvalifikací a doprovodných služeb.',
+      icon: <Rocket />
+    }
   ];
   const [animatedStats, setAnimatedStats] = useState<number[]>(homeStatItems.map(() => 0));
   
@@ -301,12 +574,12 @@ const App = () => {
 
   // Pillars - Integrated (no external links for Jailbreak/Bod Zlomu as they are here)
   const pillars: Pillar[] = [
-    { id: 'jailbreak', title: 'JAILBREAK', description: 'Reintegrace osob po výkonu trestu. Pomoc s doklady, rodinnými vazbami a diskrétní mapování (tajná fáze).', icon: <DoorOpen />, color: 'cyan', isMain: true },
-    { id: 'rework', title: 'REWORK', description: 'Pracovní aktivace a integrace nezaměstnaných skrze přímé zaměstnání a mentoring (včetně zahraničí).', icon: <Briefcase />, color: 'teal', isMain: true },
-    { id: 'streetwise', title: 'STREETWISE', description: 'Terénní práce s lidmi na ulici a závislými. Budování důvěry, hygienické balíčky a mobilní týmy.', icon: <Home />, color: 'cyan', isMain: true },
-    { id: 'reset', title: 'RESET', description: 'Nová životní cesta a restart osobních hodnot skrze vnitřní rozhodnutí a motivaci.', icon: <RefreshCw />, color: 'emerald' },
-    { id: 'bodzlomu', title: 'BOD ZLOMU', description: 'Provázení dětí z dětských domovů do dospělosti – prevence recidivy a selhání.', icon: <Heart />, color: 'emerald' },
-    { id: 'stabilizace', title: 'STABILIZACE', description: 'Udržení životní změny, plná integrace a budování národní značky důvěry.', icon: <ShieldCheck />, color: 'teal' }
+    { id: 'jailbreak', title: 'JAILBREAK', description: 'Okamžitá a intenzivní podpora při přechodu z vězeňského prostředí na svobodu, práce, bydlení, dluhy i vnitřní stabilita.', icon: <DoorOpen />, color: 'cyan', imageSrc: brandAssets.programIcons.jailbreak, isMain: true },
+    { id: 'rework', title: 'REWORK', description: 'Aktivace na trhu práce pro dlouhodobě nezaměstnané a lidi s bariérami, diagnostika, rekvalifikace a udržitelný pracovní vstup.', icon: <Briefcase />, color: 'teal', imageSrc: brandAssets.programIcons.rework, isMain: true },
+    { id: 'streetwise', title: 'STREETWISE', description: 'Terénní práce, první kontakt, základní stabilizace a bezpečné napojení na další pomoc pro lidi na ulici nebo v závislosti.', icon: <Home />, color: 'cyan', imageSrc: brandAssets.programIcons.streetwise, isMain: true },
+    { id: 'reset', title: 'RESET', description: 'Restart motivace, identity a životního směru pro lidi, kteří potřebují znovu nastavit režim, cíle a osobní oporu.', icon: <RefreshCw />, color: 'emerald', imageSrc: brandAssets.programIcons.reset },
+    { id: 'bodzlomu', title: 'BOD ZLOMU', description: 'Provázení mladých lidí z ústavní péče nebo krizového prostředí do samostatnosti, prevence propadu a ztráty směru.', icon: <Heart />, color: 'emerald', imageSrc: brandAssets.programIcons.bodzlomu },
+    { id: 'stabilizace', title: 'STABILIZACE', description: 'Dlouhodobé udržení změny, follow-up, pracovní a komunitní opora, zdraví, bydlení a zodpovědnost za další krok.', icon: <ShieldCheck />, color: 'teal', imageSrc: brandAssets.programIcons.stabilizace }
   ];
 
   // Projects data from the provided image
@@ -402,47 +675,52 @@ const App = () => {
   ];
 
   const investmentGoals = [
-    "Založení stabilního integračního centra (1× hlavní zázemí, 2× regionální pobočky).",
-    "Vybudování školících, terapeutických a pracovních kapacit.",
-    "Vybavení pro tréninkové pracoviště.",
-    "Zahájení a financování prvních tří programů (JAILBREAK, REWORK, STREETWISE).",
-    "Zajištění odborného personálu, koordinátorů a mentorů."
+    "Vybudovat funkční ekosystém pracovní reintegrace pro osoby po výkonu trestu, dlouhodobě nezaměstnané a další znevýhodněné skupiny.",
+    "Spustit modulární programy JAILBREAK, REWORK a STREETWISE jako navazující cestu od krizové situace ke stabilní práci.",
+    "Zajistit diagnostiku, mentoring, rekvalifikace, pracovní nácvik a doprovod při přechodu do běžného života.",
+    "Propojit veřejný, soukromý a neziskový sektor do jednoho odpovědného rámce místo roztříštěné pomoci.",
+    "Snížit recidivu, posílit zaměstnatelnost a vytvořit dlouhodobě udržitelný model se sociálním dopadem."
   ];
 
   const investmentCosts = [
-    { area: "Pronájem a úpravy prostor", amount: "3 000 000 Kč" },
-    { area: "Vybavení (IT, nábytek, dílny)", amount: "1 500 000 Kč" },
-    { area: "Školení a akreditace", amount: "750 000 Kč" },
-    { area: "Mzdy odborného týmu (12 měsíců)", amount: "4 800 000 Kč" },
-    { area: "Marketing a PR", amount: "600 000 Kč" },
-    { area: "Právní a administrativní služby", amount: "350 000 Kč" },
-    { area: "Rezerva (10 %)", amount: "1 100 000 Kč" }
+    { area: "Pořízení školícího vybavení (notebooky, projektory, nábytek)", amount: formatCurrency(1_500_000) },
+    { area: "Vybavení pro pracovní činnosti (stroje, nástroje, OOPP)", amount: formatCurrency(2_200_000) },
+    { area: "Rekonstrukce prostor a komunitního zázemí", amount: formatCurrency(3_000_000) },
+    { area: "Terapeutické a konzultační místnosti", amount: formatCurrency(1_200_000) },
+    { area: "IT infrastruktura (servery, síť, software)", amount: formatCurrency(1_000_000) },
+    { area: "Vozidlo pro terénní práci a přepravu účastníků", amount: formatCurrency(900_000) },
+    { area: "Marketing a vizuální identita projektu", amount: formatCurrency(500_000) },
+    { area: "Dokumentace a administrativní náklady", amount: formatCurrency(400_000) },
+    { area: "Vytvoření pracovních míst (HR, koordinátor, mentor)", amount: formatCurrency(2_500_000) },
+    { area: "Rezerva a nepředvídané výdaje", amount: formatCurrency(1_000_000) }
   ];
 
   const investmentBenefits = [
     {
-      title: "Sociální návratnost",
-      description: "Snížení recidivy, podpora soběstačnosti a prevence kriminality.",
+      title: "Roční úspora na 1 účastníka",
+      value: formatCurrency(annualSavingsPerPerson),
+      description: "Konzervativní model počítá s rozdílem 600 000 Kč v selhávajícím systému oproti 50 000 Kč v programu REST||ART.",
       icon: <TrendingDown />
     },
     {
-      title: "Ekonomická návratnost",
-      description: "Zapojení lidí do práce a snížení závislosti na sociálních dávkách.",
+      title: "Návratnost investice",
+      value: `${infrastructureBreakEvenParticipants} lidí`,
+      description: "Samotná infrastrukturní investice 14,2 mil. Kč se podle tohoto modelu vrací při stabilizaci 26 lidí v ročním horizontu.",
       icon: <TrendingUp />
     },
     {
-      title: "Společenský přínos",
-      description: "Stabilizace komunit, vyšší bezpečnost a obnova lidské důstojnosti.",
+      title: "Pokles recidivy",
+      value: `-${recidivismDelta} p. b.`,
+      description: "Cílem je posun z 70 % na 17 % při propojení programů JAILBREAK, REWORK, STREETWISE a návazné stabilizace.",
       icon: <ShieldCheck />
     }
   ];
 
-  const projectTimeline = [
-    { phase: "Příprava a dokumentace", date: "červen-červenec 2025" },
-    { phase: "Schvalování a smlouvy", date: "srpen 2025" },
-    { phase: "Zahájení pilotní fáze", date: "září 2025" },
-    { phase: "První vyhodnocení", date: "únor 2026" }
-  ];
+  const projectTimeline = phaseBudgetRows.map((item) => ({
+    phase: item.phase,
+    date: item.date,
+    budget: formatCurrency(item.budget)
+  }));
 
   const opzPrograms = [
     {
@@ -491,56 +769,111 @@ const App = () => {
 
   const blogPosts: BlogPost[] = [
     {
-      title: "Spuštění pilotní fáze REST||ART INTEGRACE",
-      date: "září 2025",
-      category: "Projekt",
-      excerpt: "Pilotní provoz zahájen ve vybraných lokalitách. Fokus na JAILBREAK, REWORK a STREETWISE."
+      title: "Brána na svobodu: proč práce rozhoduje o návratu do života",
+      date: "říjen 2025",
+      category: "Analýza",
+      excerpt: "Zaměstnání není jen příjem. Je to bod obratu, který snižuje recidivu, vrací důstojnost a dává člověku nový rytmus."
     },
     {
-      title: "První průběžné výsledky programu REWORK",
+      title: "Strategická zpráva REST||ART: ekonomická efektivita versus systémová zátěž",
       date: "listopad 2025",
-      category: "Dopad",
-      excerpt: "Vyhodnocujeme první měsíce pracovních asistencí, rekvalifikací a zaměstnanecké stability."
+      category: "Strategie",
+      excerpt: "Současný systém stojí veřejné rozpočty miliardy korun, zatímco cílená reintegrace umí snížit recidivu i dlouhodobé náklady."
     },
     {
-      title: "Rozšiřujeme síť partnerství pro rok 2026",
+      title: "Tone of Voice REST||ART: důstojný, přímý a transformační jazyk",
       date: "leden 2026",
-      category: "Partnerství",
-      excerpt: "Navazujeme spolupráci s institucemi, zaměstnavateli a odborníky pro další etapu projektu."
+      category: "Značka",
+      excerpt: "Komunikace projektu staví na empatii, odvaze a výzvě k akci. Bez patosu, bez lítosti, s respektem ke skutečným příběhům."
     }
   ];
 
   const storyHighlights = [
     {
-      name: "Martin K.",
+      name: "Erik Horváth",
       pillar: "JAILBREAK",
-      quote: "REST||ART mi dal práci a hlavně víru v sebe. Dnes vedu normální život.",
-      outcome: "Pracuje jako svářeč",
+      quote: "Restart nepřišel sám. Přišel skrze práci, důvěru a návrat k rodině, která mě znovu přijala.",
+      outcome: "Elektrikář, abstinence, návrat k rodině",
       image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=900"
     },
     {
-      name: "Tereza M.",
-      pillar: "MÍSTO ZLOMU",
-      quote: "Tady mi pomohli najít první bydlení i odvahu studovat vysokou školu.",
-      outcome: "Studuje VŠ a pracuje",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=900"
+      name: "Mio Prešíč",
+      pillar: "REWORK",
+      quote: "Dostal jsem šanci pracovat v zahraničí, projít proměnou a postavit si vlastní stabilitu na skutečné práci.",
+      outcome: "Spolumajitel sítě automyček v Německu",
+      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=900"
     },
     {
-      name: "Jakub R.",
+      name: "Ambasador změny",
       pillar: "STREETWISE",
-      quote: "Po dvou letech na ulici jsem konečně našel cestu zpět. Díky za trpělivost.",
-      outcome: "Azylové bydlení, program REWORK",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=900"
+      quote: "Změna nezačíná tlakem zvenku. Začíná ve chvíli, kdy člověk uvěří, že jeho příběh nemusí skončit na ulici.",
+      outcome: "Motivační linka pro terén, mentoring a první kontakt",
+      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=900"
+    }
+  ];
+
+  const storyGallerySlides = storyHighlights.map((story) => ({
+    alt: `${story.name} | ${story.pillar}`,
+    slide: (
+      <div className="h-full w-full bg-[radial-gradient(circle_at_top,rgba(15,118,110,0.18),rgba(1,6,7,0.96)_58%)] p-3 md:p-5 flex items-center justify-center">
+        <img
+          src={story.image}
+          alt={`${story.name} | ${story.pillar}`}
+          className="h-full w-full object-contain rounded-[1.8rem]"
+        />
+      </div>
+    )
+  }));
+
+  const brochureMaterials = [
+    {
+      title: 'Brožura JAILBREAK',
+      description: 'Programový materiál pro druhou šanci po výkonu trestu, návrat do práce a bezpečný přechod do civilu.',
+      cover: brandAssets.brochures.jailbreakCover,
+      pdf: brandAssets.brochureDocs.jailbreak,
+      caption: 'Titulní a zadní strana brožury JAILBREAK.'
+    },
+    {
+      title: 'Reálné možnosti změny',
+      description: 'Brožura postavená na motivaci, příběhu a restartu důstojnosti v reálném světle.',
+      cover: brandAssets.brochures.realneCover,
+      pdf: brandAssets.brochureDocs.elegant,
+      caption: 'Přebal brožury Reálné možnosti změny.'
+    },
+    {
+      title: 'Sociální výzva RESTART',
+      description: 'Vizuální materiál pro veřejnost a partnery, který propojuje claim, značku a výzvu k podpoře.',
+      cover: brandAssets.brochures.socialAd,
+      pdf: brandAssets.brochureDocs.rozkladaci,
+      caption: 'Sociální reklamní materiál RESTART.'
     }
   ];
 
   const pillarRoadmap = [
-    { id: 'jailbreak', stat: '78% úspěšnost', focus: 'Práce s lidmi po VTOS, asistence a bezpečný návrat do společnosti.' },
-    { id: 'rework', stat: '120+ pracovních vstupů', focus: 'Rekvalifikace, přímé napojení na zaměstnavatele a stabilizace práce.' },
-    { id: 'streetwise', stat: 'Terén 7 dní v týdnu', focus: 'Street outreach, krizová podpora, budování důvěry a základní stabilizace.' },
-    { id: 'reset', stat: 'Program 3-6 měsíců', focus: 'Restart osobních cílů, motivace a návrat k dennímu režimu.' },
-    { id: 'bodzlomu', stat: 'Mládež 17-26 let', focus: 'Podpora mladých při přechodu z ústavní péče do samostatného života.' },
-    { id: 'stabilizace', stat: '6+ měsíců follow-up', focus: 'Dlouhodobé udržení změny, bydlení, zdraví a komunitní opora.' }
+    { id: 'jailbreak', stat: 'až -50 % rizika návratu', focus: 'Praktická pomoc po VTOS: práce, bydlení, dluhy, mentoring a obnova vnitřní svobody.' },
+    { id: 'rework', stat: 'trénink + vstup do práce', focus: 'Diagnostika, pracovní nácvik a řízený přechod na otevřený trh práce.' },
+    { id: 'streetwise', stat: 'první kontakt v terénu', focus: 'Krizová intervence, důvěra, základní stabilizace a napojení na další pilíře.' },
+    { id: 'reset', stat: 'nový režim a motivace', focus: 'Posílení identity, rozhodnutí ke změně a nastavení osobního směru.' },
+    { id: 'bodzlomu', stat: 'prevence propadu', focus: 'Bezpečný most mezi ústavní péčí, osamostatněním a reálným životem.' },
+    { id: 'stabilizace', stat: 'dlouhodobý follow-up', focus: 'Udržení práce, bydlení, zdraví a odpovědnosti v běžném životě.' }
+  ];
+
+  const voicePrinciples = [
+    {
+      title: 'Empatický a lidský',
+      description: 'Mluvíme jazykem skutečných lidí. Respekt, důstojnost a porozumění mají přednost před sterilním úředním tónem.',
+      icon: <HeartHandshake />
+    },
+    {
+      title: 'Přímý a výzvový',
+      description: 'Značka aktivuje ke změně. Používá krátké věty, silná slovesa a jasné výzvy bez patosu nebo laciné charity.',
+      icon: <MessageCircle />
+    },
+    {
+      title: 'Odvážný a vizuálně silný',
+      description: 'Text a obraz musí táhnout za jeden provaz. Emoce podporují akci, ne sentiment, a vizuál nese stejnou důstojnost jako obsah.',
+      icon: <Sparkles />
+    }
   ];
 
   const pillarPageMap: Record<string, PageKey> = {
@@ -594,6 +927,10 @@ const App = () => {
     goal: string;
     duration: string;
     icon: React.ReactElement;
+    heroImageSrc?: string;
+    heroImageAlt?: string;
+    quote?: string;
+    gallery?: readonly { src: string; alt: string; caption: string }[];
   }) => (
     <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
@@ -608,9 +945,9 @@ const App = () => {
           </h2>
         </div>
 
-        <div className="grid lg:grid-cols-[auto,1fr] gap-8">
+        <div className={`grid gap-8 ${config.heroImageSrc ? 'lg:grid-cols-[auto,1fr,0.85fr]' : 'lg:grid-cols-[auto,1fr]'}`}>
           <div className="glass-panel p-8 rounded-[2.5rem] border-white/10 h-fit">
-            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center overflow-hidden">
               {React.cloneElement(config.icon as React.ReactElement<{ size?: number }>, { size: 30 })}
             </div>
           </div>
@@ -621,10 +958,739 @@ const App = () => {
               <p><span className="text-white font-semibold">Cíl:</span> {config.goal}</p>
               <p><span className="text-white font-semibold">Délka:</span> {config.duration}</p>
             </div>
+            {config.quote && (
+              <BlockQuote
+                preline="Klíčová věta programu"
+                subline={`${config.title} | ${config.duration}`}
+                author={{ name: 'REST||ART' }}
+              >
+                {config.quote}
+              </BlockQuote>
+            )}
           </div>
+          {config.heroImageSrc && (
+            <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+              <div className="rounded-[2.4rem] overflow-hidden bg-white/5 h-full min-h-[320px]">
+                <MediaEnlarge
+                  src={config.heroImageSrc}
+                  alt={config.heroImageAlt ?? `${config.title} vizuál`}
+                  caption={config.heroImageAlt ?? `${config.title} vizuál`}
+                  className="w-full h-full"
+                  imgClassName="min-h-[320px]"
+                />
+              </div>
+            </div>
+          )}
         </div>
+
+        {config.gallery && config.gallery.length > 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                <LayoutGrid size={18} />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Programové materiály</p>
+                <h3 className="text-2xl font-black text-white uppercase tracking-[0.08em]">Plakáty a vývěsky</h3>
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {config.gallery.map((asset) => (
+                <div key={asset.src} className="glass-panel p-4 rounded-[2.8rem] border-white/10 overflow-hidden">
+                  <MediaEnlarge
+                    src={asset.src}
+                    alt={asset.alt}
+                    caption={asset.caption}
+                    className="rounded-[2.1rem] aspect-[4/5]"
+                    imgClassName="rounded-[2.1rem]"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
+  );
+
+  const renderPillarVisual = (pillar: Pillar, iconSize = 30) => {
+    if (pillar.imageSrc) {
+      return (
+        <img
+          src={pillar.imageSrc}
+          alt={`${pillar.title} ikona`}
+          className="w-full h-full object-cover"
+        />
+      );
+    }
+
+    return React.cloneElement(pillar.icon as React.ReactElement<{ size?: number }>, { size: iconSize });
+  };
+
+  const renderBrochureSection = () => (
+    <section className="py-24 px-6 relative overflow-hidden bg-black/20">
+      <div className="absolute top-0 right-0 w-[460px] h-[460px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+      <div className="max-w-7xl mx-auto space-y-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-white/10 pb-10">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+              <img
+                src={brandAssets.partnerSupport.presentationIcon}
+                alt=""
+                className="w-5 h-5 object-contain rounded-full"
+                aria-hidden="true"
+              />
+              Brožury & materiály
+            </div>
+            <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+              Tiskoviny <span className="text-cyan-300 headline-thin">RESTART</span>
+            </h2>
+          </div>
+          <p className="text-white/40 font-light max-w-2xl">
+            Samostatná sekce pro brožury, skládací materiály a prezentační podklady. Náhled můžeš otevřít kliknutím,
+            PDF potom rovnou v novém panelu.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-[1.1fr,0.9fr] gap-6 items-center">
+          <div className="glass-panel p-6 rounded-[3rem] border-white/10 space-y-4">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-400 font-black">Registrovaná vizuální značka</p>
+            <div className="rounded-[2.4rem] overflow-hidden border border-white/10 bg-white">
+              <MediaEnlarge
+                src={brandAssets.partnerSupport.registeredMark}
+                alt="Registrovaná vizuální značka REST ART"
+                caption="Registrovaná vizuální značka REST ART Integrace."
+                className="aspect-[16/8]"
+                objectFit="contain"
+                imgClassName="p-4"
+              />
+            </div>
+          </div>
+          <BlockQuote
+            preline="Prezentace značky"
+            subline="Hlavní wordmark, registrovaná vizuální značka a materiály pro partnery držíme v jedné linii."
+            author={{ name: 'REST||ART brand' }}
+          >
+            Značka musí být rozpoznatelná v prezentaci, na webu i v terénu.
+          </BlockQuote>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {brochureMaterials.map((item, index) => (
+            <RevealFx key={item.title} delay={0.06 + (index * 0.08)} translateY={0.8 + (index * 0.1)}>
+              <article className="glass-panel p-6 rounded-[3rem] border-white/10 space-y-6 h-full flex flex-col">
+                <MediaEnlarge
+                  src={item.cover}
+                  alt={item.title}
+                  caption={item.caption}
+                  className="rounded-[2.4rem] aspect-[4/5]"
+                  imgClassName="rounded-[2.4rem]"
+                />
+                <div className="space-y-3 flex-grow">
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Materiál {index + 1}</p>
+                  <h3 className="text-2xl font-black text-white">{item.title}</h3>
+                  <p className="text-sm text-white/45 font-light leading-relaxed">{item.description}</p>
+                </div>
+                <a
+                  href={item.pdf}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-between gap-3 rounded-[1.6rem] bg-cyan-500 text-black px-5 py-4 text-[11px] uppercase tracking-[0.24em] font-black hover:bg-cyan-400 transition-colors"
+                >
+                  Otevřít PDF
+                  <ExternalLink size={16} />
+                </a>
+              </article>
+            </RevealFx>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderLegacyHomepageSections = () => (
+    <>
+      <section className="py-24 px-6 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+
+        <div className="max-w-7xl mx-auto">
+          <div className="glass-panel p-12 md:p-20 rounded-[4rem] border-white/5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none -rotate-12">
+              <LayoutGrid size={300} className="text-cyan-400" />
+            </div>
+
+            <div className="relative z-10 space-y-12">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                  Anotace projektu
+                </div>
+                <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-glow-cyan">
+                  REST<span className="text-cyan-400/50 mx-1">||</span>ART INTEGRACE
+                </h2>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-16 items-start">
+                <div className="space-y-8">
+                  <p className="text-xl md:text-2xl text-white/70 font-light leading-relaxed">
+                    Projekt představuje inovativní přístup k řešení dlouhodobé sociální exkluze, nezaměstnanosti a recidivy.
+                    Zaměřuje se na osoby po výkonu trestu, osoby bez domova, závislé, mládež z dětských domovů a další
+                    znevýhodněné skupiny.
+                  </p>
+                  <p className="text-lg text-white/40 font-light leading-relaxed">
+                    Cílem je jejich opětovné začlenění do společnosti prostřednictvím vzdělávání, pracovní integrace,
+                    mentoringu a stabilizace. Program pokrývá všechny fáze životní změny od krize po plnohodnotné
+                    začlenění.
+                  </p>
+                </div>
+
+                <div className="space-y-10 bg-white/5 p-10 rounded-[3rem] border border-white/5">
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] uppercase tracking-[0.4em] text-cyan-400 font-black">Investice do budoucnosti</h4>
+                    <p className="text-3xl font-bold text-white leading-tight">{formatCurrency(totalInfrastructureInvestment)}</p>
+                    <p className="text-sm text-white/30 font-light leading-relaxed">
+                      Prostředky budou využity na vybavení školících místností, terapeutických prostor, technického zázemí
+                      pro pracovní činnost a komunitních prostor.
+                    </p>
+                  </div>
+
+                  <div className="h-px bg-white/10 w-full" />
+
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] uppercase tracking-[0.4em] text-teal-400 font-black">Vize a transformace</h4>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center text-teal-400"><Rocket size={24} /></div>
+                      <p className="text-2xl font-bold text-white">INTEGR!A</p>
+                    </div>
+                    <p className="text-sm text-white/30 font-light leading-relaxed">
+                      Plánovaná transformace značky do samostatného sociálního podniku s cílem dlouhodobé soběstačnosti a
+                      udržitelnosti.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/30">
+                    <img
+                      src={brandAssets.heroBanner}
+                      alt="Motion vizuál REST||ART v pracovním kontextu"
+                      className="w-full h-60 object-cover opacity-85"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 relative bg-gradient-to-b from-transparent via-cyan-500/[0.02] to-transparent">
+        <div className="max-w-7xl mx-auto space-y-20">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                Detailní projektový záměr
+              </div>
+              <h2 className="text-5xl md:text-8xl text-white uppercase leading-tight text-glow-cyan">
+                RE<span className="text-cyan-300 headline-thin">WORK</span>
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4 text-xs text-white/20 uppercase tracking-widest font-black">
+                <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> David Kozák International s.r.o.</div>
+                <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> IČO: 23143614</div>
+                <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> Drážďanská 51/52, 400 07 Ústí nad Labem</div>
+              </div>
+            </div>
+            <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 flex items-center gap-6">
+              <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-400"><Users size={32} /></div>
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-white/30 font-black mb-1">Zodpovědná osoba</p>
+                <p className="text-xl font-bold text-white">David Kozák</p>
+                <p className="text-xs text-cyan-400 font-light">Majitel projektu</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {[
+              { icon: <BarChart />, title: '1. VÝCHOZÍ SITUACE', text: 'Program REWORK vzniká jako odpověď na zásadní nesoulad mezi počtem uchazečů o zaměstnání a dostupnými pracovními místy. V regionech se poměr pohybuje nad 3-4 uchazeči na 1 VPM.' },
+              { icon: <Target />, title: '2. CÍL PROGRAMU', text: 'Příprava osob v evidenci ÚP na úspěšný nástup do stabilního zaměstnání formou diagnostiky, rekvalifikací a dlouhodobého mentoringu.' },
+              { icon: <Users />, title: '3. CÍLOVÁ SKUPINA', text: 'Dlouhodobě nezaměstnaní, osoby bez praxe, lidé se zadlužením, po závislostech či s bariérami v oblasti vzdělání a trestní minulosti.' },
+              { icon: <Activity />, title: '4. KLÍČOVÉ AKTIVITY', text: 'Individuální plány, rekvalifikační kurzy, simulované pracovní pozice, finanční poradenství a asistence při hledání běžného zaměstnání.' },
+              { icon: <Wallet />, title: '5. ZDROJE A PODPORA', text: 'Aktivní využití SÚPM, příspěvků na zapracování, rekvalifikací z ÚP a doprovodných služeb.' },
+              { icon: <CheckCircle />, title: '6. ZÁVĚREČNÉ HODNOCENÍ', text: 'Vytváříme model, který umožňuje osobám před přímým nástupem do zaměstnání absolvovat nácvik, zažít úspěch a obnovit dovednosti.' }
+            ].map((card, idx) => (
+              <div key={idx} className="glass-panel p-10 rounded-[3rem] space-y-6 hover:bg-cyan-500/5 transition-all group border-white/10">
+                <div className="w-14 h-14 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  {card.icon}
+                </div>
+                <h3 className="text-lg font-black tracking-widest uppercase text-white group-hover:text-cyan-400 transition-colors">{card.title}</h3>
+                <p className="text-sm text-white/40 font-light leading-relaxed">{card.text}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-12">
+            <div className="flex flex-col md:flex-row gap-8 items-center justify-between">
+              <h3 className="text-3xl font-serif italic text-white">Analýza trhu &amp; <span className="text-cyan-400">efektivita</span></h3>
+              <div className="flex gap-4">
+                <div className="bg-cyan-500/10 border border-cyan-400/20 px-6 py-3 rounded-2xl">
+                  <span className="text-[10px] text-cyan-400 font-black uppercase tracking-widest block mb-1">Ratio UOZ/VPM</span>
+                  <span className="text-2xl font-black text-white">3.3 - 3.8</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div className="glass-panel rounded-[3rem] overflow-hidden border-white/10">
+                <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                  <span className="text-xs font-black uppercase tracking-widest text-white/40">Srovnání Poptávka / Nabídka</span>
+                  <TrendingDown size={16} className="text-cyan-400" />
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/5">
+                        <th className="p-6 font-black">Datum</th>
+                        <th className="p-6 font-black">Uchazeči (UOZ)</th>
+                        <th className="p-6 font-black">Místa (VPM)</th>
+                        <th className="p-6 font-black text-cyan-400">Poměr (na 1 VPM)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm text-white/60">
+                      {reworkMarketRows.map((row) => (
+                        <tr key={row.date} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                          <td className="p-6 font-mono text-xs">{row.date}</td>
+                          <td className="p-6 font-bold text-white/80">{row.uoz}</td>
+                          <td className="p-6 font-bold text-white/80">{row.vpm}</td>
+                          <td className="p-6 font-black text-cyan-400">{row.ratio}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="glass-panel rounded-[3rem] overflow-hidden border-white/10">
+                <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                  <span className="text-xs font-black uppercase tracking-widest text-white/40">Fáze integrace REWORK</span>
+                  <TrendingUp size={16} className="text-teal-400" />
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/5">
+                        <th className="p-6 font-black">Aktivita</th>
+                        <th className="p-6 font-black">Fáze</th>
+                        <th className="p-6 font-black text-teal-400">Nástroj ÚP</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm text-white/60">
+                      {reworkIntegrationRows.map((row) => (
+                        <tr key={row.act} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                          <td className="p-6 font-bold text-white/80">{row.act}</td>
+                          <td className="p-6 text-xs">{row.phase}</td>
+                          <td className="p-6 font-black text-teal-400 uppercase text-[10px] tracking-widest">{row.tool}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-4">
+              <button onClick={() => goToPage('pillar-rework')} className="bg-cyan-500 text-black px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-cyan-400 transition-all">
+                Otevřít detail REWORK
+              </button>
+              <button onClick={() => goToPage('pillar-rework-analyza')} className="glass-panel px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs text-white hover:bg-white/10 transition-all">
+                Analýza trhu
+              </button>
+              <button onClick={() => goToPage('pillar-rework-implementace')} className="glass-panel px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs text-white hover:bg-white/10 transition-all">
+                Implementace
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
+          <div className="space-y-10">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                Kapitola 2.1: Cíl projektu
+              </div>
+              <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-glow-cyan uppercase leading-tight">
+                Vize sociální <br /><span className="text-cyan-300 headline-thin">reintegrace</span>
+              </h2>
+            </div>
+
+            <div className="space-y-8 text-xl text-white/70 font-light leading-relaxed">
+              <p>
+                Cílem projektu REST||ART je vytvořit komplexní, propojený systém sociální reintegrace, který přetváří
+                jednotlivce bez budoucnosti ve stabilní součást společnosti.
+              </p>
+              <p className="text-lg text-white/40">
+                Nechceme se pouštět do iluze, že změníme celý systém. Chceme ale změnit způsob, jakým se k jednotlivcům na
+                jeho okraji přistupuje. Zaměřujeme se na dlouhodobé problémy, jako jsou nezaměstnanost, recidiva a
+                závislosti, a hledáme způsob, jak z nich vytvořit fungující sílu.
+              </p>
+            </div>
+
+            <div className="glass-panel p-8 rounded-[2.5rem] border-cyan-400/10 bg-cyan-500/[0.02] space-y-4">
+              <div className="flex items-center gap-4 text-cyan-400">
+                <Workflow size={24} />
+                <h4 className="font-bold tracking-widest uppercase text-xs">Zastřešující platforma</h4>
+              </div>
+              <p className="text-sm text-white/40 font-light leading-relaxed">
+                REST||ART usiluje o propojení všech aktérů. Chceme vytvořit platformu, pod kterou nebude nutné bojovat o
+                dotace, ale kde bude balík koordinovaně přerozdělen podle skutečné potřeby.
+              </p>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 bg-cyan-500/10 rounded-[4rem] blur-3xl -z-10 animate-pulse" />
+            <div className="glass-panel p-12 md:p-16 rounded-[4rem] border-white/10 space-y-12">
+              <div className="space-y-6">
+                <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center"><Flag size={32} /></div>
+                <h3 className="text-3xl font-serif italic text-white">Definice úspěchu</h3>
+                <p className="text-white/50 font-light leading-relaxed italic text-lg">
+                  "Úspěch není grant. Úspěch je člověk, který byl dřív ve vězení nebo na ulici a dnes má práci, bydlení a
+                  je inspirací pro ostatní."
+                </p>
+              </div>
+
+              <div className="space-y-6 pt-8 border-t border-white/5">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-teal-500/20 rounded-xl flex items-center justify-center text-teal-400"><Award size={20} /></div>
+                  <h4 className="text-sm font-black uppercase tracking-widest text-white/80">Ambasadoři změny</h4>
+                </div>
+                <p className="text-sm text-white/30 font-light leading-relaxed">
+                  U osob se zkušeností se závislostí počítáme s jejich zaměstnáním přímo pod značkou DKI jako ambasadorů,
+                  kteří sdílejí svou zkušenost. Podmínkou je potvrzená abstinence a spolupráce se sociálními službami.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 relative overflow-hidden bg-black/30">
+        <div className="absolute top-0 left-0 w-[420px] h-[420px] bg-orange-500/5 rounded-full blur-[120px] -z-10" />
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.02fr,0.98fr] gap-12 items-start">
+          <RevealFx delay={0.05} translateY={0.8}>
+            <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+              <MediaEnlarge
+                src={brandAssets.branding.whyNotNonProfit}
+                alt="Proč nejsme neziskovka"
+                caption="Plakát vysvětlující filozofii projektu a vztah k monetizaci."
+                className="rounded-[2.5rem]"
+                imgClassName="rounded-[2.5rem] max-h-[640px]"
+              />
+            </div>
+          </RevealFx>
+
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-400/20 text-orange-300 text-[10px] tracking-[0.3em] font-black uppercase">
+                Monetizace a partnerství
+              </div>
+              <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                Proč nejsme <br /><span className="text-orange-300 headline-thin">jen neziskovka</span>
+              </h2>
+              <p className="text-white/45 font-light leading-relaxed max-w-2xl">
+                REST||ART stojí na výsledcích, ne na výkazech. Financování proto skládáme z úspor pro stát, firemních
+                partnerství, pravidelné podpory a reinvestice výnosů zpět do lidí.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              {monetizationStreams.map((stream) => (
+                <div key={stream.title} className="glass-panel p-6 rounded-[2rem] border-white/10 space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-300 flex items-center justify-center">
+                    {React.cloneElement(stream.icon as React.ReactElement<{ size?: number }>, { size: 22 })}
+                  </div>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-white">{stream.title}</h3>
+                  <p className="text-sm text-white/45 font-light leading-relaxed">{stream.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid sm:grid-cols-[240px,1fr] gap-4 items-stretch">
+              <RevealFx delay={0.14} translateY={0.75}>
+                <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-white/5">
+                  <MediaEnlarge
+                    src={brandAssets.branding.doorMotto}
+                    alt="Slogan projektu REST||ART"
+                    caption="Štítek s mottem projektu REST||ART."
+                    className="h-full"
+                    imgClassName="h-full max-h-[380px]"
+                  />
+                </div>
+              </RevealFx>
+              <div className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-24 h-24 md:w-28 md:h-28 shrink-0 rounded-[2rem] bg-cyan-500/10 border border-cyan-400/20 overflow-hidden p-3 shadow-[0_18px_50px_rgba(0,242,234,0.12)]">
+                    <img
+                      src={brandAssets.branding.logoAlt}
+                      alt="Alternativní logo REST||ART"
+                      className="w-full h-full object-contain scale-[1.08]"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Brand message</p>
+                    <p className="text-2xl text-white font-serif italic">Spojujeme lidi, obnovujeme důvěru.</p>
+                  </div>
+                </div>
+                <p className="text-white/50 font-light leading-relaxed">
+                  Monetizace zde neznamená komerční cynismus. Znamená návrh systému, který umí nést vlastní provoz, dokáže
+                  partnerům ukázat konkrétní dopad a přitom drží důstojnost člověka ve středu všeho.
+                </p>
+                <p className="text-sm text-white/30 font-light leading-relaxed">
+                  Proto kombinujeme grantové příležitosti, CSR certifikát, pravidelnou podporu i sociálně odpovědné
+                  podnikání pod značkou INTEGR!A.
+                </p>
+                <div className="pt-5 border-t border-white/10">
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-400 font-black mb-3">Sponzorováno / podporováno</p>
+                  <div className="rounded-[2rem] overflow-hidden border border-white/10 bg-white/5">
+                    <MediaEnlarge
+                      src={brandAssets.partnerSupport.sponsorLogo}
+                      alt="Hlavní logo s označením sponzorováno"
+                      caption="Hlavní logo a vizuál s označením sponzorováno."
+                      className="aspect-[16/9]"
+                      objectFit="contain"
+                      imgClassName="p-5 bg-white/5"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 relative bg-[#0D2F2F]/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="order-2 lg:order-1 relative group">
+              <div className="relative rounded-[3rem] overflow-hidden border-[12px] border-white/5 shadow-2xl transition-all duration-700 group-hover:scale-[1.02]">
+                <div className="absolute inset-0 bg-cyan-500/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="bg-black/60 p-12 space-y-8 relative z-10">
+                  <div className="flex items-center gap-6">
+                    <div className="w-14 h-14 bg-cyan-500/20 rounded-2xl flex items-center justify-center text-cyan-400"><Building2 size={28} /></div>
+                    <div>
+                      <h4 className="text-xl font-bold text-white uppercase tracking-widest">Věznice Jiřice</h4>
+                      <p className="text-xs text-cyan-400 font-light">Lokace pilotního plánu</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 text-white/60 text-sm font-light">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Pronájem skladové haly
+                    </div>
+                    <div className="flex items-center gap-4 text-white/60 text-sm font-light">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Zaměstnávání osob ve výkonu trestu
+                    </div>
+                    <div className="flex items-center gap-4 text-white/60 text-sm font-light">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Dohled VSČR + civilní pracovníci
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="order-1 lg:order-2 space-y-8">
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                Konkrétní pilotní plán
+              </div>
+              <h2 className="text-5xl md:text-6xl text-white uppercase leading-tight text-glow-cyan">
+                JAILBREAK <br /><span className="text-cyan-300 headline-thin">+ REWORK + STREETWISE</span>
+              </h2>
+              <p className="text-lg text-white/40 font-light leading-relaxed">
+                V tomto prostoru lze zaměstnat osoby ve výkonu trestu, ale také civilní pracovníky z řad dlouhodobě
+                nezaměstnaných nebo lidí bez domova. Tím se propojuje několik cílových skupin v jednom provozu.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                  <h5 className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Logistika & Bezpečnost</h5>
+                  <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťují státní složky, ÚP a věznice.</p>
+                </div>
+                <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                  <h5 className="text-[10px] font-black uppercase tracking-widest text-teal-400">Terénní práce</h5>
+                  <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťuje neziskový sektor.</p>
+                </div>
+              </div>
+              <p className="text-sm text-white/20 italic font-light">
+                Tento model slouží jako důkazní prvek pro rozvoj a duplikaci REST||ART v dalších regionech.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 relative bg-[#051111]">
+        <div className="max-w-7xl mx-auto space-y-32">
+          <div className="text-center space-y-6 max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] tracking-[0.3em] font-black uppercase">
+              Příčina a následek
+            </div>
+            <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase leading-tight">
+              Kde to <span className="text-red-500 italic font-serif">začíná?</span>
+            </h2>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-12 relative">
+            <div className="hidden lg:block absolute top-1/2 left-1/3 w-1/6 h-px bg-gradient-to-r from-red-500/50 to-transparent -translate-y-1/2" />
+            <div className="hidden lg:block absolute top-1/2 left-2/3 w-1/6 h-px bg-gradient-to-r from-red-500/50 to-transparent -translate-y-1/2" />
+
+            {[
+              {
+                title: 'BOD ZLOMU',
+                icon: <ShieldAlert size={32} />,
+                text: 'U mnoha lidí začíná příběh v dětském domově. Bez rodinných vzorců, bez důvěry, bez hranic. Tam se láme charakter.',
+                items: ['Přizpůsobení skupině', 'Rezignace', 'Ztráta motivace'],
+                extra: null,
+                shift: ''
+              },
+              {
+                title: 'JAILBREAK',
+                icon: <Gavel size={32} />,
+                text: 'Po výkonu trestu je většina lidí ještě zranitelnější. Bez zázemí a přijetí se vrací do stejného prostředí.',
+                items: [],
+                extra: <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 text-xs text-red-400 font-bold italic">"Recidiva není otázka šance. Je to jistota."</div>,
+                shift: 'lg:mt-12'
+              },
+              {
+                title: 'REWORK',
+                icon: <TrendingDown size={32} />,
+                text: 'Naučená bezmoc a zvyk "mít za nic". Neřešení problémů, dokud se nehroutí. Cesta zpět k trestné činnosti.',
+                items: [],
+                extra: (
+                  <div className="flex items-center gap-3 text-red-500 animate-pulse">
+                    <AlertCircle size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Kritický řetězec selhání</span>
+                  </div>
+                ),
+                shift: 'lg:mt-24'
+              }
+            ].map((card) => (
+              <div key={card.title} className={`glass-panel p-10 rounded-[3rem] border-red-500/10 space-y-8 relative group hover:border-red-500/30 transition-all ${card.shift}`}>
+                <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">{card.icon}</div>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-black tracking-widest text-white uppercase">{card.title}</h3>
+                  <p className="text-white/40 font-light leading-relaxed">{card.text}</p>
+                </div>
+                {card.items.length > 0 && (
+                  <ul className="space-y-2 text-xs text-red-400/60 font-black uppercase tracking-widest">
+                    {card.items.map((item) => (
+                      <li key={item} className="flex items-center gap-2">
+                        <ArrowRight size={14} />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {card.extra}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-16 items-center pt-20">
+            <div className="space-y-8">
+              <h2 className="text-4xl md:text-5xl font-serif italic text-white leading-tight">Proč to <span className="text-red-500">nefunguje?</span></h2>
+              <p className="text-xl text-white/40 font-light leading-relaxed">
+                Každý článek systému, ústav, úřad, neziskovka, kurátor nebo terapeut, funguje sám za sebe. Není tu jeden
+                jazyk. Jeden cíl. Jedna značka odpovědnosti.
+              </p>
+              <div className="flex gap-4">
+                <div className="w-px h-20 bg-gradient-to-b from-red-500 to-transparent" />
+                <p className="text-sm text-white/30 italic font-light max-w-sm">
+                  Fragmentace systému je největší bariérou skutečné životní změny.
+                </p>
+              </div>
+            </div>
+
+            <div className="glass-panel p-12 md:p-16 rounded-[4rem] border-cyan-400/20 bg-cyan-500/[0.02] space-y-10 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-12 opacity-5 -rotate-12 pointer-events-none"><Zap size={200} className="text-cyan-400" /></div>
+              <div className="space-y-6 relative z-10">
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                  Řešení = REST||ART
+                </div>
+                <h3 className="text-3xl font-black text-white tracking-widest uppercase">Sjednocená <br /><span className="text-cyan-300 headline-thin">odpovědnost</span></h3>
+                <p className="text-white/60 font-light leading-relaxed">
+                  REST||ART není jen soubor programů. Je to strukturovaná cesta, kde jeden program navazuje na druhý.
+                  Systém, který konečně spolu mluví.
+                </p>
+              </div>
+              <BlockQuote
+                preline="Princip projektu"
+                subline="Včasná pomoc, navazující práce a dlouhodobá stabilizace."
+                author={{ name: 'REST||ART' }}
+              >
+                Nečekáme, až lidé spadnou. Ale ani je nenecháme ležet.
+              </BlockQuote>
+              <div className="rounded-[2.6rem] overflow-hidden border border-white/10 bg-[#010607] relative z-10">
+                <MediaEnlarge
+                  src={brandAssets.campaignAds.quoteCards[2].src}
+                  alt={brandAssets.campaignAds.quoteCards[2].alt}
+                  caption="Minimalistický vizuál RESTA jako signál sjednocené značky a odpovědnosti."
+                  className="aspect-[4/3]"
+                  objectFit="contain"
+                  imgClassName="p-2 md:p-3"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+
+  const renderHomepagePillarsSection = () => (
+    <section className="py-24 px-6 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-16">
+        <div className="space-y-4">
+          <h2 className="text-4xl md:text-6xl text-white uppercase leading-tight text-glow-cyan">
+            Šest pilířů <br /><span className="text-cyan-300 headline-thin">restartu</span>
+          </h2>
+          <div className="h-1 w-24 bg-cyan-500 rounded-full" />
+        </div>
+        <p className="text-white/40 max-w-md font-light text-right">
+          Každý pilíř představuje klíčovou fázi integrace. Na homepage je opět celý přehled a v menu zároveň zůstávají
+          detailní podstránky.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {pillars.map((pillar, idx) => {
+          const targetPage = pillarPageMap[pillar.id];
+          return (
+            <button
+              key={pillar.id}
+              type="button"
+              onClick={() => {
+                if (targetPage) goToPage(targetPage);
+              }}
+              className={`glass-panel p-10 rounded-[3rem] group hover:-translate-y-2 transition-all relative overflow-hidden flex flex-col h-full border-cyan-400/5 hover:border-cyan-400/30 text-left ${pillar.isMain ? 'ring-1 ring-cyan-500/20' : ''}`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex justify-between items-start mb-8 relative z-10">
+                <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">
+                  {renderPillarVisual(pillar, 28)}
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">0{idx + 1}</span>
+                  {pillar.isMain && <span className="text-[8px] bg-cyan-500 text-black px-2 py-0.5 rounded-full font-black uppercase mt-2">Hlavní</span>}
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold mb-4 uppercase tracking-widest leading-tight relative z-10 group-hover:text-cyan-400 transition-colors">{pillar.title}</h3>
+              <p className="text-white/40 text-base mb-8 font-light leading-relaxed relative z-10 group-hover:text-white/60 transition-colors flex-grow">{pillar.description}</p>
+              <div className="relative z-10 flex items-center justify-between pt-5 border-t border-white/10">
+                <span className="text-[10px] uppercase tracking-[0.18em] text-white/25 font-black">Otevřít detail</span>
+                <ArrowRight size={16} className="text-cyan-400 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 
   const renderContent = (page: PageKey) => {
@@ -664,19 +1730,52 @@ const App = () => {
                     Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-300 headline-thin">každý.</span>
                   </h2>
                   <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-light">
-                    Přecházíme na čisté vícestránkové uspořádání. Každá oblast má vlastní stránku, vlastní navigaci a jasný kontext.
+                    Homepage znovu spojuje hlavní články a zpracované sekce do jednoho proudu. Zároveň zůstává zachované
+                    rozdělení do samostatných stránek a detailů v menu.
                   </p>
+                  <RevealFx delay={0.12} translateY={0.55}>
+                    <div className="max-w-xl rounded-[2.3rem] border border-cyan-400/15 bg-cyan-500/[0.05] p-6 md:p-7 space-y-3">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Motto projektu</p>
+                      <p className="text-2xl md:text-3xl text-white font-serif italic leading-tight">
+                        "Každý příběh má právo pokračovat."
+                      </p>
+                      <p className="text-sm text-white/40 font-light leading-relaxed">
+                        Druhá šance není slogan do kampaně. Je to pracovní metoda, která vrací člověka zpět do vztahů, práce a důvěry.
+                      </p>
+                    </div>
+                  </RevealFx>
                   <div className="flex flex-wrap gap-4 pt-4">
-                    <button onClick={() => goToPage('pillars')} className="bg-cyan-500 text-black px-10 py-5 rounded-2xl font-black text-lg hover:shadow-cyan-500/30 shadow-xl transition-all">PŘEJÍT NA PILÍŘE</button>
-                    <button onClick={() => goToPage('news')} className="glass-panel text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/5 transition-all">NOVINKY</button>
+                    <RevealFx delay={0.18} translateY={0.7}>
+                      <button onClick={() => goToPage('pillars')} className="bg-cyan-500 text-black px-10 py-5 rounded-2xl font-black text-lg hover:shadow-cyan-500/30 shadow-xl transition-all">PŘEJÍT NA PILÍŘE</button>
+                    </RevealFx>
+                    <RevealFx delay={0.26} translateY={0.85}>
+                      <button onClick={() => goToPage('about')} className="glass-panel text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/5 transition-all">O PROJEKTU</button>
+                    </RevealFx>
                   </div>
+                  <RevealFx delay={0.34} translateY={0.85}>
+                    <div className="max-w-xl">
+                      <MatrixFxHero
+                        isDark={isDark}
+                        darkLogoSrc={brandAssets.branding.logoAlt}
+                        lightLogoSrc={brandAssets.branding.logoPrimary}
+                        darkLogoAlt="REST||ART logo pro tmavé téma"
+                        lightLogoAlt="REST||ART logo pro světlé téma"
+                        revealFrom="bottom"
+                        label="Restart"
+                        description="Restartuj své myšlení, Daruj Druhou šanci!"
+                        bulge={{ type: 'ripple', duration: 4, intensity: 15, repeat: true }}
+                      />
+                    </div>
+                  </RevealFx>
                 </div>
                 <div className="relative group lg:-mt-40">
-                  <div className="relative rounded-[3.5rem] overflow-hidden shadow-2xl transform rotate-3 group-hover:rotate-0 transition-all duration-700 border-[16px] border-white/5 bg-white/5">
-                    <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200" alt="Integrace" className="hero-desat w-full h-[600px] object-cover opacity-60 group-hover:opacity-100 transition-all duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-transparent opacity-80" />
-                    <div className="absolute bottom-10 left-10 text-white italic text-2xl font-serif drop-shadow-lg">"Každý příběh má právo pokračovat."</div>
-                  </div>
+                  <RevealFx delay={0.12} translateY={0.7}>
+                    <div className="relative rounded-[3.5rem] overflow-hidden shadow-2xl transform rotate-3 group-hover:rotate-0 transition-all duration-700 border-[16px] border-white/5 bg-white/5">
+                      <img src={brandAssets.heroRealistic} alt="REST||ART Integrace realistický hero vizuál" className="hero-desat w-full h-[600px] object-cover opacity-60 group-hover:opacity-100 transition-all duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-transparent opacity-80" />
+                      <div className="absolute bottom-10 left-10 text-white italic text-2xl font-serif drop-shadow-lg">"Každý příběh má právo pokračovat."</div>
+                    </div>
+                  </RevealFx>
                 </div>
               </div>
             </section>
@@ -726,6 +1825,10 @@ const App = () => {
                 </div>
               </div>
             </section>
+
+            {renderLegacyHomepageSections()}
+
+            {renderBrochureSection()}
 
             <section className="py-24 px-6 relative">
               <div className="max-w-4xl mx-auto glass-panel p-12 rounded-[4rem] space-y-8 relative overflow-hidden border-cyan-400/10">
@@ -784,6 +1887,8 @@ const App = () => {
                 </div>
               </div>
             </section>
+
+            {renderHomepagePillarsSection()}
           </>
         );
       case 'pillar-jailbreak': {
@@ -797,7 +1902,11 @@ const App = () => {
           activities: program.activities,
           goal: program.goal,
           duration: program.duration,
-          icon: <DoorOpen />
+          icon: <DoorOpen />,
+          heroImageSrc: brandAssets.campaigns.jailbreakPoster,
+          heroImageAlt: 'Plakát JAILBREAK / Second Chances',
+          quote: 'Po výkonu trestu nesmí člověk dostat jen svobodu. Musí dostat i strukturu, práci a důvěru.',
+          gallery: brandAssets.programPosters.jailbreak
         });
       }
       case 'pillar-streetwise': {
@@ -811,7 +1920,10 @@ const App = () => {
           activities: program.activities,
           goal: program.goal,
           duration: program.duration,
-          icon: <Home />
+          icon: <Home />,
+          heroImageSrc: brandAssets.programPosters.streetwise[0].src,
+          heroImageAlt: brandAssets.programPosters.streetwise[0].alt,
+          gallery: brandAssets.programPosters.streetwise
         });
       }
       case 'pillar-reset': {
@@ -825,7 +1937,10 @@ const App = () => {
           activities: program.activities,
           goal: program.goal,
           duration: program.duration,
-          icon: <RefreshCw />
+          icon: <RefreshCw />,
+          heroImageSrc: brandAssets.programPosters.reset[0].src,
+          heroImageAlt: brandAssets.programPosters.reset[0].alt,
+          gallery: brandAssets.programPosters.reset
         });
       }
       case 'pillar-mistozlomu': {
@@ -839,7 +1954,11 @@ const App = () => {
           activities: program.activities,
           goal: program.goal,
           duration: program.duration,
-          icon: <Heart />
+          icon: <Heart />,
+          heroImageSrc: brandAssets.campaignAds.bodZlomu.src,
+          heroImageAlt: brandAssets.campaignAds.bodZlomu.alt,
+          quote: 'Některé životní okamžiky rozhodují o celé budoucnosti. MÍSTO ZLOMU je opora ve chvíli, kdy se láme směr.',
+          gallery: brandAssets.programPosters.bodzlomu
         });
       }
       case 'pillar-stabilizace': {
@@ -853,7 +1972,10 @@ const App = () => {
           activities: program.activities,
           goal: program.goal,
           duration: program.duration,
-          icon: <ShieldCheck />
+          icon: <ShieldCheck />,
+          heroImageSrc: brandAssets.programPosters.stabilizace[0].src,
+          heroImageAlt: brandAssets.programPosters.stabilizace[0].alt,
+          gallery: brandAssets.programPosters.stabilizace
         });
       }
       case 'pillar-rework':
@@ -874,6 +1996,34 @@ const App = () => {
                   <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> David Kozák International s.r.o.</div>
                   <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> IČO: 23143614</div>
                   <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> Drážďanská 51/52, 400 07 Ústí nad Labem</div>
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-[1.1fr,0.9fr] gap-8 items-start">
+                <div className="glass-panel p-6 rounded-[3rem] border-white/10 space-y-5">
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">REWORK v obraze</p>
+                  <BlockQuote
+                    preline="Zdroj: REST_ART_BusinessPlan_FINAL_v2"
+                    subline="Individuální podpora, rekvalifikace a úzká koordinace s Úřady práce pro motivované uchazeče."
+                    author={{ name: 'Business plán 2025-2026' }}
+                  >
+                    REWORK vzniká jako odpověď na zásadní nesoulad mezi počtem uchazečů o zaměstnání a dostupnými pracovními místy.
+                  </BlockQuote>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {brandAssets.programPosters.rework.map((asset, index) => (
+                    <RevealFx key={asset.src} delay={0.08 + (index * 0.08)} translateY={0.78 + (index * 0.08)}>
+                      <div className="glass-panel p-4 rounded-[2.6rem] border-white/10 overflow-hidden">
+                        <MediaEnlarge
+                          src={asset.src}
+                          alt={asset.alt}
+                          caption={asset.caption}
+                          className="rounded-[2rem] aspect-[4/5]"
+                          imgClassName="rounded-[2rem]"
+                        />
+                      </div>
+                    </RevealFx>
+                  ))}
                 </div>
               </div>
 
@@ -1067,7 +2217,7 @@ const App = () => {
                   </h2>
                 </div>
                 <p className="text-white/40 font-light max-w-md">
-                  Propojujeme sociální práci, pracovní integraci a lidský přístup do jednoho funkčního systému.
+                  Propojujeme důstojnost, práci, mentoring a spolupráci sektorů do jednoho funkčního modelu reintegrace.
                 </p>
               </div>
 
@@ -1075,19 +2225,20 @@ const App = () => {
                 <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-white/10 space-y-6">
                   <h3 className="text-3xl text-white font-black tracking-[1.5px] uppercase">Naše mise</h3>
                   <p className="text-white/55 font-light leading-relaxed">
-                    Vytváříme cestu zpět pro lidi po výkonu trestu, bez domova, v závislostech nebo v dlouhodobé nezaměstnanosti.
-                    Cílem je důstojnost, stabilita a samostatnost.
+                    Vytváříme cestu zpět pro lidi po výkonu trestu, bez domova, v závislostech nebo v dlouhodobé
+                    nezaměstnanosti. Naším cílem je důstojnost, stabilita, práce a převzetí odpovědnosti za vlastní budoucnost.
                   </p>
                   <p className="text-white/40 font-light leading-relaxed">
-                    Pracujeme mezi institucemi, obcemi, zaměstnavateli a odborníky. Nejsme jen program, jsme integrační infrastruktura.
+                    Nejsme izolovaný projekt. Stavíme integrační infrastrukturu, která propojuje stát, zaměstnavatele,
+                    odborníky i neziskový sektor místo roztříštěné a krátkodobé pomoci.
                   </p>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-6">
                   {[
-                    { icon: <Users size={24} />, title: 'Komunitní přístup', text: 'Tým s osobní zkušeností i odbornou praxí.' },
-                    { icon: <HeartHandshake size={24} />, title: 'Druhá šance', text: 'Každý klient má individuální plán a mentora.' },
-                    { icon: <Workflow size={24} />, title: 'Napříč sektory', text: 'Koordinace mezi veřejným a soukromým sektorem.' },
-                    { icon: <ShieldCheck size={24} />, title: 'Měřitelný dopad', text: 'Sledujeme stabilizaci, zaměstnání a prevenci recidivy.' }
+                    { icon: <Users size={24} />, title: 'Důstojnost', text: 'Ke každému klientovi přistupujeme s respektem a vírou v jeho potenciál.' },
+                    { icon: <HeartHandshake size={24} />, title: 'Druhá šance', text: 'Příležitost není alibi. Vyžaduje motivaci, práci a osobní závazek.' },
+                    { icon: <Workflow size={24} />, title: 'Spolupráce sektorů', text: 'Funkční reintegrace vzniká jen spojením institucí, firem a terénu.' },
+                    { icon: <ShieldCheck size={24} />, title: 'Udržitelnost', text: 'Měříme stabilitu, zaměstnání a prevenci recidivy, ne jen počet kontaktů.' }
                   ].map((item, idx) => (
                     <div key={idx} className="glass-panel p-8 rounded-[2rem] border-white/10 space-y-4">
                       <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
@@ -1097,6 +2248,116 @@ const App = () => {
                       <p className="text-xs text-white/45 font-light leading-relaxed">{item.text}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-[1.2fr,0.8fr] gap-8 items-start">
+                <RevealFx delay={0.08} translateY={0.85}>
+                  <div className="glass-panel p-6 md:p-8 rounded-[3rem] border-white/10 overflow-hidden space-y-6">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-3">
+                        <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Veřejná komunikace</p>
+                        <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-[0.08em]">Claimy, které unesou druhou šanci</h3>
+                        <p className="text-sm text-white/45 font-light max-w-2xl leading-relaxed">
+                          V sekci O nás držíme jen obecné vizuály značky. Mluví o důstojnosti, zastavení, nové cestě a
+                          návratu k sobě. Programové plakáty patří až pod konkrétní pilíře.
+                        </p>
+                      </div>
+                      <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 bg-white">
+                        <img src={brandAssets.strongIcon} alt="Silná ikona RESTART" className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+
+                    <div className="max-w-[430px] mx-auto">
+                      <Carousel
+                        indicator="line"
+                        aspectRatio="10 / 14"
+                        controls
+                        auto
+                        revealedByDefault
+                        className="w-full"
+                        items={brandAssets.campaignAds.general.map((asset) => ({
+                          alt: asset.alt,
+                          slide: (
+                            <MediaEnlarge
+                              src={asset.src}
+                              alt={asset.alt}
+                              caption={asset.caption}
+                              className="h-full w-full"
+                              imgClassName="h-full w-full"
+                            />
+                          )
+                        }))}
+                      />
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {[
+                        {
+                          title: 'Krátký claim',
+                          text: 'Silná věta musí fungovat ve výloze, na síti i v prostoru centra.'
+                        },
+                        {
+                          title: 'Klid + důstojnost',
+                          text: 'Vizuály nesmí sklouznout k senzaci. Mají držet respekt a naději.'
+                        },
+                        {
+                          title: 'Výzva ke změně',
+                          text: 'Komunikace vede člověka k zastavení, uvědomění a dalšímu kroku.'
+                        }
+                      ].map((item) => (
+                        <div key={item.title} className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-5 space-y-2">
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-400 font-black">{item.title}</p>
+                          <p className="text-sm text-white/50 font-light leading-relaxed">{item.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </RevealFx>
+
+                <div className="space-y-6">
+                  <div className="glass-panel p-8 rounded-[3rem] border-white/10 overflow-hidden">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black mb-4">Hlas značky</p>
+                    <div className="space-y-4">
+                      {voicePrinciples.map((principle) => (
+                        <div key={principle.title} className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5 space-y-3">
+                          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                            {React.cloneElement(principle.icon as React.ReactElement<{ size?: number }>, { size: 20 })}
+                          </div>
+                          <h4 className="text-lg font-bold text-white">{principle.title}</h4>
+                          <p className="text-sm text-white/45 font-light leading-relaxed">{principle.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    {brandAssets.campaignAds.quoteCards.slice(0, 2).map((asset, index) => (
+                      <RevealFx key={asset.alt} delay={0.16 + (index * 0.08)} translateY={0.72 + (index * 0.12)}>
+                        <div className="glass-panel p-3 rounded-[3rem] border-white/10 overflow-hidden">
+                          <MediaEnlarge
+                            src={asset.src}
+                            alt={asset.alt}
+                            caption={asset.caption}
+                            className="rounded-[2.2rem] aspect-[4/5]"
+                            imgClassName="rounded-[2.2rem]"
+                          />
+                        </div>
+                      </RevealFx>
+                    ))}
+                  </div>
+
+                  <RevealFx delay={0.3} translateY={0.9}>
+                    <div className="glass-panel p-3 rounded-[3rem] border-white/10 overflow-hidden">
+                      <MediaEnlarge
+                        src={brandAssets.campaignAds.quoteCards[2].src}
+                        alt={brandAssets.campaignAds.quoteCards[2].alt}
+                        caption={brandAssets.campaignAds.quoteCards[2].caption}
+                        className="rounded-[2.2rem] aspect-[16/10]"
+                        imgClassName="rounded-[2.2rem]"
+                      />
+                    </div>
+                  </RevealFx>
                 </div>
               </div>
             </div>
@@ -1129,7 +2390,7 @@ const App = () => {
                       className="w-full text-left glass-panel p-8 md:p-12 rounded-[3rem] border-white/10 grid lg:grid-cols-[auto,1fr,auto] gap-8 items-center group hover:border-cyan-400/25 transition-all"
                     >
                       <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
-                        {React.cloneElement(pillar.icon as React.ReactElement<{ size?: number }>, { size: 30 })}
+                        {renderPillarVisual(pillar, 30)}
                       </div>
                       <div className="space-y-2">
                         <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-widest group-hover:text-cyan-400 transition-colors">
@@ -1163,20 +2424,47 @@ const App = () => {
                 </h2>
               </div>
 
+              <RevealFx delay={0.05} translateY={0.8}>
+                <div className="glass-panel p-5 rounded-[3rem] border-white/10 max-w-6xl mx-auto">
+                  <Carousel
+                    indicator="line"
+                    auto
+                    revealedByDefault
+                    aspectRatio="16 / 10"
+                    items={storyGallerySlides}
+                    className="rounded-[2.4rem]"
+                  />
+                </div>
+              </RevealFx>
+
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {storyHighlights.map((story) => (
-                  <article key={story.name} className="glass-panel p-8 rounded-[2.5rem] border-white/10 hover:border-cyan-400/25 hover:-translate-y-2 transition-all duration-500 flex flex-col h-full group">
-                    <div className="h-52 rounded-2xl overflow-hidden border border-white/10 mb-6">
-                      <img src={story.image} alt={story.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
-                    </div>
-                    <p className="text-[10px] text-cyan-400 uppercase tracking-[0.25em] font-black mb-2">{story.pillar}</p>
-                    <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-cyan-400 transition-colors">{story.name}</h3>
-                    <p className="text-white/50 font-light italic leading-relaxed mb-6">"{story.quote}"</p>
-                    <div className="mt-auto pt-5 border-t border-white/10">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-white/25 font-black mb-1">Aktuální stav</p>
-                      <p className="text-sm text-cyan-400 font-semibold group-hover:text-cyan-300 transition-colors">{story.outcome}</p>
-                    </div>
-                  </article>
+                {storyHighlights.map((story, idx) => (
+                  <RevealFx key={story.name} delay={0.08 + idx * 0.1} translateY={0.9}>
+                    <article className="glass-panel p-8 rounded-[2.5rem] border-white/10 hover:border-cyan-400/25 hover:-translate-y-2 transition-all duration-500 flex flex-col h-full group">
+                      <div className="h-52 rounded-2xl overflow-hidden border border-white/10 mb-6">
+                        <MediaEnlarge
+                          src={story.image}
+                          alt={story.name}
+                          caption={`${story.name} | ${story.pillar}`}
+                          className="h-full"
+                          imgClassName="grayscale group-hover:grayscale-0"
+                        />
+                      </div>
+                      <p className="text-[10px] text-cyan-400 uppercase tracking-[0.25em] font-black mb-2">{story.pillar}</p>
+                      <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-cyan-400 transition-colors">{story.name}</h3>
+                      <BlockQuote
+                        preline={`Program ${story.pillar}`}
+                        subline="Skutečný příběh změny a návratu do běžného života."
+                        className="mb-6"
+                      >
+                        {story.quote}
+                      </BlockQuote>
+                      <div className="mt-auto pt-5 border-t border-white/10">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/25 font-black mb-1">Aktuální stav</p>
+                        <p className="text-sm text-cyan-400 font-semibold group-hover:text-cyan-300 transition-colors">{story.outcome}</p>
+                      </div>
+                    </article>
+                  </RevealFx>
                 ))}
               </div>
             </div>
@@ -1432,30 +2720,114 @@ const App = () => {
                 </div>
                 <div className="glass-panel p-8 rounded-[2rem] border-white/10">
                   <p className="text-[10px] text-cyan-400 uppercase tracking-widest font-black mb-1">Celkem</p>
-                  <p className="text-4xl font-black text-white text-glow-cyan">12 100 000 Kč</p>
+                  <p className="text-4xl font-black text-white text-glow-cyan">{formatCurrency(totalInfrastructureInvestment)}</p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+                {[
+                  { label: 'Infrastrukturní investice', value: formatCurrency(totalInfrastructureInvestment), note: 'Kompletní zázemí a rekonstrukce' },
+                  { label: '1 programový modul', value: formatCurrency(singleProgramBudget), note: 'Základní roční rozpočet programu' },
+                  { label: '6 modulů REST||ART', value: formatCurrency(allProgramBudgets), note: 'Součet všech pilířů v základním režimu' },
+                  { label: 'Pilotní provoz + kancelář', value: formatCurrency(annualPilotOperationBudget), note: 'Roční provozní rámec s energiemi a zázemím' }
+                ].map((card) => (
+                  <div key={card.label} className="glass-panel p-6 rounded-[2.2rem] border-white/10 space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">{card.label}</p>
+                    <p className="text-3xl font-black text-white leading-none">{card.value}</p>
+                    <p className="text-sm text-white/40 font-light leading-relaxed">{card.note}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid xl:grid-cols-[1.1fr,0.9fr] gap-8 items-start">
+                <div className="glass-panel rounded-[3rem] overflow-hidden border-white/10">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/10 bg-white/5">
+                          <th className="p-6 md:p-8 font-black">Oblast investice</th>
+                          <th className="p-6 md:p-8 font-black text-right">Náklady</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-sm text-white/70">
+                        {investmentCosts.map((row, idx) => (
+                          <tr key={idx} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td className="p-6 md:p-8 font-light">{row.area}</td>
+                            <td className="p-6 md:p-8 text-right font-black text-cyan-400/90">{row.amount}</td>
+                          </tr>
+                        ))}
+                        <tr className="bg-cyan-500/5">
+                          <td className="p-6 md:p-8 font-black uppercase tracking-widest text-white/60 text-xs">Celkem</td>
+                          <td className="p-6 md:p-8 text-right font-black text-white text-2xl">{formatCurrency(totalInfrastructureInvestment)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <RevealFx delay={0.1} translateY={0.8}>
+                    <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                      <MediaEnlarge
+                        src={brandAssets.monetization.budgetOverview}
+                        alt="Přehled rozpočtů programů REST ART Integrace"
+                        caption="Grafický přehled rozpočtů programů a modulů REST ART Integrace."
+                        className="rounded-[2.4rem]"
+                        objectFit="contain"
+                        imgClassName="rounded-[2.4rem] max-h-[320px] bg-white p-2"
+                      />
+                    </div>
+                  </RevealFx>
+                  <RevealFx delay={0.18} translateY={0.9}>
+                    <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                      <MediaEnlarge
+                        src={brandAssets.monetization.budgetGraph}
+                        alt="Celkový rozpočet projektu REST ART Integrace"
+                        caption="Celkový rozpočet projektu rozpadnutý do hlavních investičních oblastí."
+                        className="rounded-[2.4rem]"
+                        objectFit="contain"
+                        imgClassName="rounded-[2.4rem] max-h-[320px] bg-white p-2"
+                      />
+                    </div>
+                  </RevealFx>
+                  <div className="glass-panel p-6 rounded-[2.5rem] border-cyan-400/10 bg-cyan-500/[0.03] space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Poznámka k modelu</p>
+                    <p className="text-white/50 font-light leading-relaxed">
+                      Detailní provozní výpočty jsou rozdělené do dvou vrstev: infrastrukturní investice {formatCurrency(totalInfrastructureInvestment)}
+                      a fázový roční plán {formatCurrency(phasedImplementationBudget)} pro samotný náběh programu.
+                    </p>
+                  </div>
                 </div>
               </div>
 
               <div className="glass-panel rounded-[3rem] overflow-hidden border-white/10">
+                <div className="p-8 border-b border-white/10 bg-white/5 flex items-center justify-between gap-6">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black mb-2">Rozpad 1 programového modulu</p>
+                    <h3 className="text-2xl font-bold text-white">Jak je spočítáno 180 000 Kč</h3>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-black mb-1">1 modul / rok</p>
+                    <p className="text-2xl font-black text-white">{formatCurrency(singleProgramBudget)}</p>
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/10 bg-white/5">
-                        <th className="p-6 md:p-8 font-black">Oblast investice</th>
-                        <th className="p-6 md:p-8 font-black text-right">Náklady</th>
+                      <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/10">
+                        <th className="p-6 md:p-8 font-black">Kategorie</th>
+                        <th className="p-6 md:p-8 font-black text-right">Částka</th>
+                        <th className="p-6 md:p-8 font-black text-right">Podíl</th>
                       </tr>
                     </thead>
                     <tbody className="text-sm text-white/70">
-                      {investmentCosts.map((row, idx) => (
-                        <tr key={idx} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                          <td className="p-6 md:p-8 font-light">{row.area}</td>
-                          <td className="p-6 md:p-8 text-right font-black text-cyan-400/90">{row.amount}</td>
+                      {programBudgetBreakdown.map((row) => (
+                        <tr key={row.category} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                          <td className="p-6 md:p-8 font-light">{row.category}</td>
+                          <td className="p-6 md:p-8 text-right font-black text-cyan-400/90">{formatCurrency(row.amount)}</td>
+                          <td className="p-6 md:p-8 text-right text-white/45">{row.share}</td>
                         </tr>
                       ))}
-                      <tr className="bg-cyan-500/5">
-                        <td className="p-6 md:p-8 font-black uppercase tracking-widest text-white/60 text-xs">Celkem</td>
-                        <td className="p-6 md:p-8 text-right font-black text-white text-2xl">12 100 000 Kč</td>
-                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -1487,9 +2859,200 @@ const App = () => {
                       {React.cloneElement(benefit.icon as React.ReactElement<{ size?: number }>, { size: 24 })}
                     </div>
                     <h3 className="text-xl font-bold text-white">{benefit.title}</h3>
+                    {'value' in benefit && (
+                      <p className="text-4xl font-black text-white leading-none text-glow-cyan">{benefit.value}</p>
+                    )}
                     <p className="text-white/50 font-light leading-relaxed">{benefit.description}</p>
                   </div>
                 ))}
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-8">
+                <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-red-500/10 bg-red-500/[0.02] space-y-6">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-red-400 font-black">Bez intervence</p>
+                  <h3 className="text-3xl font-black text-white uppercase leading-none">Selhávající systém</h3>
+                  <div className="grid sm:grid-cols-2 gap-6 pt-4">
+                    <div className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-red-400/60 font-black">Model / osoba / rok</p>
+                      <p className="text-4xl font-black text-white">{formatCurrency(annualSystemCostModel)}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-red-400/60 font-black">Historický údaj 2022</p>
+                      <p className="text-4xl font-black text-white">{formatCurrency(annualSystemCostHistorical)}</p>
+                    </div>
+                  </div>
+                  <p className="text-white/45 font-light leading-relaxed">
+                    Náklad vzniká bez stabilizačního efektu a bez skutečného návratu člověka do práce, bydlení a odpovědnosti.
+                  </p>
+                </div>
+
+                <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-cyan-400/10 bg-cyan-500/[0.03] space-y-6">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">S intervencí REST||ART</p>
+                  <h3 className="text-3xl font-black text-white uppercase leading-none">Plán úspor a návratnosti</h3>
+                  <div className="grid sm:grid-cols-2 gap-6 pt-4">
+                    <div className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-cyan-400/60 font-black">Reintegrace / osoba / rok</p>
+                      <p className="text-4xl font-black text-white">{formatCurrency(annualReintegrationCost)}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-cyan-400/60 font-black">Úspora / osoba / rok</p>
+                      <p className="text-4xl font-black text-cyan-300">{formatCurrency(annualSavingsPerPerson)}</p>
+                    </div>
+                  </div>
+                  <p className="text-white/45 font-light leading-relaxed">
+                    Každý člověk, který se nevrátí do recidivy a místo toho pracuje, generuje úsporu a zároveň obnovuje bezpečnost i důvěru v komunitě.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-5">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black mb-2">Modelové scénáře</p>
+                    <h3 className="text-3xl font-black text-white">Plán úspor podle kapacity</h3>
+                  </div>
+                  <p className="text-sm text-white/40 font-light max-w-xl">
+                    Výpočty níže pracují s konzervativní roční úsporou {formatCurrency(annualSavingsPerPerson)} na jednoho stabilizovaného účastníka.
+                  </p>
+                </div>
+                <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+                  {savingsPlanRows.map((row) => (
+                    <div key={row.participants} className="glass-panel p-6 rounded-[2.2rem] border-white/10 space-y-4">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">{row.participants} lidí / rok</p>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Bez programu</p>
+                          <p className="text-2xl font-black text-white">{formatCurrency(row.systemCost)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">S programem</p>
+                          <p className="text-2xl font-black text-white">{formatCurrency(row.reintegrationCost)}</p>
+                        </div>
+                      </div>
+                      <div className="pt-3 border-t border-white/10">
+                        <p className="text-[10px] uppercase tracking-widest text-cyan-400 font-black">Roční úspora</p>
+                        <p className="text-3xl font-black text-cyan-300">{formatCurrency(row.savings)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-white/10 space-y-8">
+                <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black mb-2">Živé grafy dopadu</p>
+                    <h3 className="text-3xl font-black text-white">Klíčové ukazatele návratnosti</h3>
+                  </div>
+                  <p className="text-sm text-white/40 font-light max-w-2xl">
+                    Tyto gauge grafy jsou dopočtené z plánovacích podkladů projektu: náklad systému 600 000 Kč,
+                    náklad reintegrace 50 000 Kč a cílový pokles recidivy z 70 % na 17 %.
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+                  {impactGaugeStats.map((stat, index) => (
+                    <RevealFx key={stat.label} delay={0.04 + (index * 0.06)} translateY={0.75 + (index * 0.08)}>
+                      <div className="h-full rounded-[2.4rem] border border-white/10 bg-white/[0.02] p-5 space-y-4">
+                        <div className="flex justify-center">
+                          <RadialGauge
+                            width={220}
+                            height={220}
+                            value={stat.value}
+                            unit="%"
+                            hue={stat.hue}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">{stat.label}</p>
+                          <p className="text-sm text-white/45 font-light leading-relaxed">{stat.description}</p>
+                        </div>
+                      </div>
+                    </RevealFx>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid xl:grid-cols-[0.95fr,1.05fr] gap-8 items-start">
+                <div className="space-y-6">
+                  <RevealFx delay={0.08} translateY={0.85}>
+                    <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                      <MediaEnlarge
+                        src={brandAssets.monetization.roiPoster}
+                        alt="Potenciální ekonomický přínos programů REST ART Integrace"
+                        caption="ROI plakát s ekonomickým přínosem jednotlivých programů při kapacitě 100 osob."
+                        className="rounded-[2.4rem]"
+                        objectFit="contain"
+                        imgClassName="rounded-[2.4rem] max-h-[360px] bg-[#082331] p-2"
+                      />
+                    </div>
+                  </RevealFx>
+                  <RevealFx delay={0.16} translateY={0.95}>
+                    <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                      <MediaEnlarge
+                        src={brandAssets.monetization.budgetGrids}
+                        alt="Rozpočty programů BOD ZLOMU, REWORK, JAILBREAK a RESET"
+                        caption="Podkladové grafy a rozpočtové rozpisy jednotlivých programových modulů."
+                        className="rounded-[2.4rem]"
+                        objectFit="contain"
+                        imgClassName="rounded-[2.4rem] max-h-[360px] bg-white p-2"
+                      />
+                    </div>
+                  </RevealFx>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="glass-panel p-8 rounded-[3rem] border-white/10 space-y-6">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black mb-2">Monetizační mix</p>
+                      <h3 className="text-3xl font-black text-white leading-none">Jak projekt nese vlastní váhu</h3>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {monetizationStreams.map((stream) => (
+                        <div key={stream.title} className="rounded-[2rem] border border-white/10 bg-white/[0.02] p-5 space-y-3">
+                          <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                            {React.cloneElement(stream.icon as React.ReactElement<{ size?: number }>, { size: 20 })}
+                          </div>
+                          <h4 className="text-sm font-black uppercase tracking-widest text-white">{stream.title}</h4>
+                          <p className="text-sm text-white/45 font-light leading-relaxed">{stream.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="rounded-[2rem] border border-white/10 bg-white/[0.02] p-5 space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black mb-1">ROI podle programu</p>
+                          <h4 className="text-xl font-black text-white">Podkladový přehled pro 100 osob</h4>
+                        </div>
+                        <p className="text-xs text-white/35 font-light">Hodnoty přepsané z ROI plakátu v podkladech.</p>
+                      </div>
+                      {[
+                        { label: 'JAILBREAK', value: 226.1 },
+                        { label: 'REWORK', value: 133.3 },
+                        { label: 'RESET', value: 90.0 },
+                        { label: 'STREETWISE', value: 55.6 },
+                        { label: 'BOD ZLOMU', value: 113.9 }
+                      ].map((item) => (
+                        <div key={item.label} className="space-y-2">
+                          <div className="flex items-center justify-between gap-4 text-sm">
+                            <p className="font-black uppercase tracking-[0.22em] text-white">{item.label}</p>
+                            <p className="text-cyan-300 font-black">+{item.value.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %</p>
+                          </div>
+                          <div className="h-2.5 rounded-full bg-white/[0.08] overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-teal-400 to-amber-300"
+                              style={{ width: `${Math.min((item.value / 230) * 100, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-6 rounded-[2rem] bg-cyan-500/5 border border-cyan-400/10 text-white/50 font-light leading-relaxed">
+                      Historický údaj vězeňství ukazuje rozdíl až {formatCurrency(annualHistoricalSavingsPerPerson)} na osobu a rok.
+                      Investiční záměr ale drží opatrnější plánovací model, aby byl dopad projektu obhajitelný i bez nadsazených předpokladů.
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1506,6 +3069,9 @@ const App = () => {
                 <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
                   Postup <span className="text-cyan-300 headline-thin">realizace</span>
                 </h2>
+                <p className="text-white/40 font-light max-w-3xl">
+                  Fázový rozpočet pro realizaci programu je spočítán na {formatCurrency(phasedImplementationBudget)} a je rozložen do osmi navazujících kroků.
+                </p>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -1519,6 +3085,10 @@ const App = () => {
                     </div>
                     <h3 className="text-2xl font-bold text-white">{item.phase}</h3>
                     <p className="text-white/50 font-light">{item.date}</p>
+                    <div className="pt-4 border-t border-white/10">
+                      <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black mb-2">Rozpočet fáze</p>
+                      <p className="text-2xl font-black text-white">{item.budget}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1541,6 +3111,37 @@ const App = () => {
                   Programy jsou kombinovatelné dle potřeb klienta a využívají jednotný pětifázový rámec:
                   identifikace, intervence, stabilizace, podpora, přechod.
                 </p>
+              </div>
+
+              <div className="grid lg:grid-cols-[1.05fr,0.95fr] gap-8 items-start">
+                <div className="space-y-6">
+                  <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                    <MediaEnlarge
+                      src={brandAssets.programsShowcase.leaders}
+                      alt="RESTART Lidstva - představitelé pilířů RESET, JAILBREAK a STREETWISE"
+                      caption="Vizuál programů: RESET, JAILBREAK a STREETWISE."
+                      className="rounded-[2.4rem] aspect-[4/5]"
+                      imgClassName="rounded-[2.4rem]"
+                    />
+                  </div>
+                  <BlockQuote
+                    preline="Zdroj: REST_ART_BusinessPlan_FINAL_v2"
+                    subline="Pilotně Ústecký kraj, postupné rozšíření na celou ČR a návazně evropská úroveň."
+                    author={{ name: 'Business plán' }}
+                  >
+                    REST||ART je propojený systém sociální reintegrace, který nemá jen řešit jednotlivé případy, ale sjednotit způsob spolupráce napříč institucemi.
+                  </BlockQuote>
+                </div>
+
+                <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                  <MediaEnlarge
+                    src={brandAssets.programsShowcase.table}
+                    alt="Tabulka programů REST ART"
+                    caption="Tabulka programů a jejich zaměření."
+                    className="rounded-[2.4rem] aspect-[3/2]"
+                    imgClassName="rounded-[2.4rem]"
+                  />
+                </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -1664,6 +3265,31 @@ const App = () => {
                   </p>
                 </div>
 
+                <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                  <RevealFx delay={0.08} translateY={0.72}>
+                    <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                      <MediaEnlarge
+                        src={brandAssets.homepageVisuals.silence}
+                        alt="Stačí ticho"
+                        caption="Claim vizuál Stačí ticho."
+                        className="rounded-[2.4rem] aspect-[4/5]"
+                        imgClassName="rounded-[2.4rem]"
+                      />
+                    </div>
+                  </RevealFx>
+                  <RevealFx delay={0.16} translateY={0.84}>
+                    <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                      <MediaEnlarge
+                        src={brandAssets.homepageVisuals.everythingHasItsTime}
+                        alt="Všechno má svůj čas"
+                        caption="Claim vizuál Všechno má svůj čas."
+                        className="rounded-[2.4rem] aspect-[4/5]"
+                        imgClassName="rounded-[2.4rem]"
+                      />
+                    </div>
+                  </RevealFx>
+                </div>
+
                 <div className="grid md:grid-cols-3 gap-8 pt-12">
                   {[
                     { label: "Partnerství bez rivality", icon: <Link size={20} /> },
@@ -1681,15 +3307,30 @@ const App = () => {
 
                 {/* VÝZVA */}
                 <div className="pt-24 space-y-10 border-t border-white/5">
-                  <div className="space-y-4">
-                    <h3 className="text-4xl md:text-6xl font-black font-sans text-white uppercase tracking-[1.5px]">VÝZVA</h3>
-                    <p className="text-white/40 text-xl font-light max-w-2xl mx-auto leading-relaxed">
-                      Pokud sdílíte tuto vizi – přidejte se. Nemusíte mít připravený rozpočet. Stačí, že máte otevřené srdce, jasný pohled a vůli táhnout.
-                    </p>
+                  <div className="grid lg:grid-cols-[0.95fr,1.05fr] gap-8 items-center text-left">
+                    <div className="space-y-4">
+                      <h3 className="text-4xl md:text-6xl font-black font-sans text-white uppercase tracking-[1.5px]">VÝZVA</h3>
+                      <p className="text-white/40 text-xl font-light max-w-2xl leading-relaxed">
+                        Pokud sdílíte tuto vizi, přidejte se. Nemusíte mít připravený rozpočet. Stačí, že máte otevřené srdce,
+                        jasný pohled a vůli táhnout.
+                      </p>
+                      <button onClick={() => setIsContactModalOpen(true)} className="bg-white text-black px-12 py-6 rounded-2xl font-black text-xs tracking-[0.3em] uppercase hover:bg-cyan-400 transition-all shadow-2xl shadow-white/5">
+                        CHCI SE PŘIDAT
+                      </button>
+                    </div>
+
+                    <RevealFx delay={0.1} translateY={0.7}>
+                      <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                        <MediaEnlarge
+                          src={brandAssets.homepageVisuals.challenge}
+                          alt="Výzva RESTART"
+                          caption="Silný výzvový vizuál RESTART pro přidání se k projektu."
+                          className="rounded-[2.4rem] aspect-square"
+                          imgClassName="rounded-[2.4rem]"
+                        />
+                      </div>
+                    </RevealFx>
                   </div>
-                  <button onClick={() => setIsContactModalOpen(true)} className="bg-white text-black px-12 py-6 rounded-2xl font-black text-xs tracking-[0.3em] uppercase hover:bg-cyan-400 transition-all shadow-2xl shadow-white/5">
-                    CHCI SE PŘIDAT
-                  </button>
                 </div>
               </div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,242,234,0.05)_0%,transparent_70%)] pointer-events-none" />
@@ -1758,14 +3399,14 @@ const App = () => {
                         tag: "Bývalý dealer & vězeň",
                         now: "Elektrikář & Otec rodiny",
                         text: "Erik prošel restartem skrze práci v zahraničí. Dnes je vyléčený ze závislosti, pracuje jako elektrikář a žije se svou rodinou, která má zpět svého otce.",
-                        img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800"
+                        img: storyHighlights[0].image
                       },
                       {
                         name: "Mio Prešíč",
                         tag: "Bývalý vězeň",
                         now: "Spolumajitel sítě automyček",
                         text: "Díky spolupráci s DKI s.r.o. a dvouleté práci v Německu nalezl Mio novou cestu. Dnes je úspěšným podnikatelem a inspirací pro ostatní.",
-                        img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=800"
+                        img: storyHighlights[1].image
                       }
                     ].map((story, i) => (
                       <div key={i} className="glass-panel p-8 md:p-12 rounded-[4rem] border-white/5 flex flex-col md:flex-row gap-10 hover:bg-white/[0.02] transition-all group relative overflow-hidden">
@@ -1835,7 +3476,7 @@ const App = () => {
                       <div className="space-y-10 bg-white/5 p-10 rounded-[3rem] border border-white/5">
                         <div className="space-y-4">
                           <h4 className="text-[10px] uppercase tracking-[0.4em] text-cyan-400 font-black">Investiční Záměr</h4>
-                          <p className="text-3xl font-bold text-white leading-tight">14 000 000 Kč</p>
+                          <p className="text-3xl font-bold text-white leading-tight">{formatCurrency(totalInfrastructureInvestment)}</p>
                           <p className="text-sm text-white/30 font-light leading-relaxed">
                             Prostředky jsou směřovány do infrastruktury programu, školících místností a technického zázemí pro pracovní nácvik v pilotních lokalitách.
                           </p>
@@ -2435,8 +4076,22 @@ const App = () => {
                         REST||ART není jen soubor programů. Je to strukturovaná cesta, kde jeden program navazuje na druhý. Systém, který konečně spolu mluví.
                       </p>
                     </div>
-                    <div className="p-8 rounded-3xl bg-cyan-500/10 border border-cyan-400/20 italic font-serif text-xl text-cyan-100 leading-relaxed">
-                      "Nečekáme, až lidé spadnou. Ale ani je nenecháme ležet."
+                    <BlockQuote
+                      preline="Princip projektu"
+                      subline="Včasná pomoc, navazující práce a dlouhodobá stabilizace."
+                      author={{ name: 'REST||ART' }}
+                    >
+                      Nečekáme, až lidé spadnou. Ale ani je nenecháme ležet.
+                    </BlockQuote>
+                    <div className="rounded-[2.6rem] overflow-hidden border border-white/10 bg-[#010607] relative z-10">
+                      <MediaEnlarge
+                        src={brandAssets.campaignAds.quoteCards[2].src}
+                        alt={brandAssets.campaignAds.quoteCards[2].alt}
+                        caption="Minimalistický vizuál RESTA jako signál sjednocené značky a odpovědnosti."
+                        className="aspect-[4/3]"
+                        objectFit="contain"
+                        imgClassName="p-2 md:p-3"
+                      />
                     </div>
                   </div>
                 </div>
@@ -2473,18 +4128,18 @@ const App = () => {
                         </div>
                         <div className="space-y-2">
                           <p className="text-[10px] font-black text-red-400/60 uppercase tracking-widest">Ročně / 1 vězeň</p>
-                          <p className="text-4xl font-bold text-white leading-none">647 145 Kč</p>
+                          <p className="text-4xl font-bold text-white leading-none">{formatCurrency(annualSystemCostHistorical)}</p>
                         </div>
                       </div>
 
                       <div className="pt-8 space-y-4">
                         <div className="p-8 rounded-3xl bg-red-500/10 border border-red-500/20">
                           <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Celkové roční náklady ČR</p>
-                          <p className="text-5xl font-black text-white tracking-tighter">13,5 mld. Kč</p>
+                          <p className="text-5xl font-black text-white tracking-tighter">{formatCurrency(totalSystemBurden)}</p>
                         </div>
                         <div className="flex items-center gap-4 text-red-400">
                           <div className="w-16 h-1 bg-red-500" />
-                          <p className="text-xs font-black uppercase tracking-widest">Míra recidivy v ČR: až 70 %</p>
+                          <p className="text-xs font-black uppercase tracking-widest">Míra recidivy v ČR: až {recidivismBaseRate} %</p>
                         </div>
                       </div>
                     </div>
@@ -2499,12 +4154,12 @@ const App = () => {
                       <div className="grid sm:grid-cols-2 gap-10">
                         <div className="space-y-2">
                           <p className="text-[10px] font-black text-cyan-400/60 uppercase tracking-widest">Náklady na reintegraci</p>
-                          <p className="text-4xl font-bold text-white leading-none">50 000 Kč</p>
+                          <p className="text-4xl font-bold text-white leading-none">{formatCurrency(annualReintegrationCost)}</p>
                           <p className="text-[10px] text-white/20 font-light italic">Investice do změny / 1 vězeň</p>
                         </div>
                         <div className="space-y-2">
                           <p className="text-[10px] font-black text-cyan-400/60 uppercase tracking-widest">Míra recidivy</p>
-                          <p className="text-4xl font-bold text-cyan-400 leading-none">17 %</p>
+                          <p className="text-4xl font-bold text-cyan-400 leading-none">{recidivismProgramRate} %</p>
                           <p className="text-[10px] text-white/20 font-light italic">Při zapojení do programů</p>
                         </div>
                       </div>
@@ -2513,8 +4168,8 @@ const App = () => {
                         <div className="p-8 rounded-3xl bg-cyan-500/10 border border-cyan-400/20">
                           <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-4">Návratnost investice</p>
                           <div className="flex items-end gap-3">
-                            <p className="text-5xl font-black text-white tracking-tighter">13x</p>
-                            <p className="text-sm text-white/40 mb-2 font-light leading-tight">Nižší náklady oproti jednomu roku ve vězení.</p>
+                            <p className="text-5xl font-black text-white tracking-tighter">12x</p>
+                            <p className="text-sm text-white/40 mb-2 font-light leading-tight">Konzervativní model 600 000 Kč vs. 50 000 Kč na člověka.</p>
                           </div>
                         </div>
                         <p className="text-xs text-white/30 font-light leading-relaxed italic">
@@ -2524,6 +4179,57 @@ const App = () => {
                     </div>
                   </div>
                 </div>
+
+                <div className="grid xl:grid-cols-[1.1fr,0.9fr] gap-8 items-start">
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    {[
+                      {
+                        label: 'Úspora / 1 člověk / rok',
+                        value: formatCurrency(annualSavingsPerPerson),
+                        note: 'Model 600 000 Kč oproti 50 000 Kč'
+                      },
+                      {
+                        label: 'Návratnost infrastruktury',
+                        value: `${infrastructureBreakEvenParticipants} lidí`,
+                        note: `${formatCurrency(totalInfrastructureInvestment)} se vrací při 26 lidech`
+                      },
+                      {
+                        label: 'Návratnost plného spuštění',
+                        value: `${fullLaunchBreakEvenParticipants} lidí`,
+                        note: `${formatCurrency(totalInfrastructureInvestment + annualPilotOperationBudget)} včetně 1. pilotního roku`
+                      }
+                    ].map((card) => (
+                      <div key={card.label} className="glass-panel p-6 rounded-[2.2rem] border-white/10 space-y-3">
+                        <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">{card.label}</p>
+                        <p className="text-3xl font-black text-white leading-none">{card.value}</p>
+                        <p className="text-sm text-white/40 font-light leading-relaxed">{card.note}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="glass-panel p-4 rounded-[2.5rem] border-white/10 overflow-hidden">
+                      <img
+                        src={brandAssets.monetization.infrastructureBudget}
+                        alt="Vizuál investičního rozpočtu infrastruktury"
+                        className="w-full h-full object-cover rounded-[2rem]"
+                      />
+                    </div>
+                    <div className="glass-panel p-4 rounded-[2.5rem] border-white/10 overflow-hidden">
+                      <img
+                        src={brandAssets.monetization.programBudgets}
+                        alt="Vizuál rozpočtů jednotlivých programů"
+                        className="w-full h-full object-cover rounded-[2rem]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-white/30 font-light leading-relaxed max-w-5xl mx-auto text-center">
+                  Referenční historický údaj vězeňství pracuje s nákladem {formatCurrency(annualSystemCostHistorical)} na osobu a rok.
+                  Konzervativní plán úspor pro REST||ART počítá nižší základ {formatCurrency(annualSystemCostModel)}, aby byla návratnost
+                  projektu obhajitelná i při opatrnějším scénáři.
+                </p>
               </div>
             </section>
 
@@ -2772,6 +4478,8 @@ const App = () => {
 
   return (
     <div className={`min-h-screen font-sans selection:bg-cyan-500/30 overflow-x-hidden relative antialiased transition-colors duration-500 ${isDark ? 'theme-dark bg-[#051111] text-white/90' : 'theme-light bg-[#f0fdf9] text-slate-900'}`}>
+        <ParticleBackground isDark={isDark} interactive density={1.55} className="z-0" />
+
       <div
         className="fixed top-0 left-0 h-1 z-[140] transition-all duration-300"
         style={{
@@ -2782,12 +4490,12 @@ const App = () => {
       />
 
       {/* Background Aura */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] animate-pulse" style={{ background: isDark ? 'rgba(13,148,136,0.20)' : 'rgba(20,184,166,0.14)' }} />
         <div className="absolute top-[40%] right-[-5%] w-[500px] h-[500px] rounded-full blur-[100px] animate-bounce-slow" style={{ background: isDark ? 'rgba(6,182,212,0.10)' : 'rgba(14,116,144,0.10)' }} />
         <div className="absolute bottom-[-10%] left-[20%] w-[700px] h-[700px] rounded-full blur-[150px]" style={{ background: isDark ? 'rgba(6,78,59,0.20)' : 'rgba(45,212,191,0.12)' }} />
         <img
-          src="/images/silhouette-oak-tree-isolated-white-background-44662890.webp"
+          src={brandAssets.treeLogo}
           alt=""
           className={`tree-watermark-photo ${isDark ? 'tree-watermark-photo-dark' : 'tree-watermark-photo-light'}`}
           aria-hidden="true"
@@ -2862,7 +4570,7 @@ const App = () => {
       {/* MAGICKÝ OBRÁZEK PŘED FOOTEREM */}
       <section className="relative w-full h-[420px] md:h-[500px] overflow-hidden flex items-center justify-center my-16 group">
         <div className="absolute inset-0 z-0">
-          <img src="Gemini_Generated_Image_cbpno7cbpno7cbpn.jpg" alt="Vizuál" className="w-full h-full object-cover opacity-60 scale-105 group-hover:scale-110 transition-transform duration-[8000ms]" />
+          <img src={brandAssets.programsOverview} alt="Přehled programů RESTART" className="w-full h-full object-cover opacity-60 scale-105 group-hover:scale-110 transition-transform duration-[8000ms]" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-[#051111]"></div>
           <div className="absolute inset-0 bg-[#051111]/40"></div>
         </div>
