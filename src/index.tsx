@@ -22,10 +22,15 @@ import {
   homepageLayoutSettingKey,
   homepageMediaSlotsSettingKey,
   homepageWidgetContentSettingKey,
+  globalPublicContactSettingKey,
+  legalPageContentSettingKey,
   normalizeHomepageLayout,
   normalizeHomepageMediaSlots,
   normalizeHomepageWidgetContent,
+  normalizePublicContactInfo,
+  normalizeLegalPageContent,
   defaultHomepageWidgetContent,
+  defaultLegalPageContent,
   type HomepageSectionId
 } from './lib/siteSettings';
 import { publicContact } from './lib/publicContact';
@@ -413,6 +418,7 @@ const App = () => {
   const [homepageLayout, setHomepageLayout] = useState(defaultHomepageLayout);
   const [homepageMediaSlots, setHomepageMediaSlots] = useState(defaultHomepageMediaSlots);
   const [homepageWidgetContent, setHomepageWidgetContent] = useState(defaultHomepageWidgetContent);
+  const [siteLegalPageContent, setSiteLegalPageContent] = useState(defaultLegalPageContent);
 
   const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
   const isAdminRoute = normalizedPath === '/admin' || normalizedPath.startsWith('/admin/');
@@ -547,14 +553,18 @@ const App = () => {
         const records = await fetchSiteSettings([
           homepageLayoutSettingKey,
           homepageMediaSlotsSettingKey,
-          homepageWidgetContentSettingKey
+          homepageWidgetContentSettingKey,
+          globalPublicContactSettingKey,
+          legalPageContentSettingKey
         ]);
         if (!isMounted) return;
 
         const byKey = new Map(records.map((record) => [record.key, record.value_json]));
+        Object.assign(publicContact, normalizePublicContactInfo(byKey.get(globalPublicContactSettingKey)));
         setHomepageLayout(normalizeHomepageLayout(byKey.get(homepageLayoutSettingKey)));
         setHomepageMediaSlots(normalizeHomepageMediaSlots(byKey.get(homepageMediaSlotsSettingKey)));
         setHomepageWidgetContent(normalizeHomepageWidgetContent(byKey.get(homepageWidgetContentSettingKey)));
+        setSiteLegalPageContent(normalizeLegalPageContent(byKey.get(legalPageContentSettingKey)));
       } catch (error) {
         console.error('Homepage settings fetch failed', error);
       }
@@ -5596,10 +5606,10 @@ const App = () => {
       <LegalPageModal
         isOpen={openLegalPage !== null}
         onClose={() => setOpenLegalPage(null)}
-        eyebrow={openLegalPage ? legalPageContent[openLegalPage].eyebrow : ''}
-        title={openLegalPage ? legalPageContent[openLegalPage].title : ''}
-        description={openLegalPage ? legalPageContent[openLegalPage].description : ''}
-        sections={openLegalPage ? legalPageContent[openLegalPage].sections : []}
+        eyebrow={openLegalPage ? siteLegalPageContent[openLegalPage].eyebrow : ''}
+        title={openLegalPage ? siteLegalPageContent[openLegalPage].title : ''}
+        description={openLegalPage ? siteLegalPageContent[openLegalPage].description : ''}
+        sections={openLegalPage ? siteLegalPageContent[openLegalPage].sections : []}
       />
 
       {/* MAGICKÝ OBRÁZEK PŘED FOOTEREM */}

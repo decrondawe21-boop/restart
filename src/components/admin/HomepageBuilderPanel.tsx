@@ -508,6 +508,22 @@ const HomepageBuilderPanel: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      <div className="glass-panel rounded-[2.8rem] border-white/10 p-6">
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Jak upravit homepage</p>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          {[
+            ['1. Vyber vlevo', 'Klikni na sekci, obrázek nebo textový widget, který chceš upravit.'],
+            ['2. Uprav vpravo', 'Změň text, obrázek nebo pořadí bez zásahu do kódu.'],
+            ['3. Ulož', 'Klikni na Uložit homepage a veřejná stránka načte nové hodnoty.']
+          ].map(([title, text]) => (
+            <div key={title} className="rounded-[2rem] border border-white/10 bg-white/[0.03] px-5 py-4">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">{title}</p>
+              <p className="mt-2 text-sm text-white/40">{text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-[1.02fr,0.98fr]">
         <div className="glass-panel rounded-[3rem] border-white/10 p-4">
           <MatrixFxHero
@@ -569,7 +585,7 @@ const HomepageBuilderPanel: React.FC = () => {
       <aside className="glass-panel rounded-[3rem] border-white/10 p-5">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Homepage builder</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Krok 1</p>
             <h2 className="mt-2 text-2xl font-black text-white">Widgety a sloty</h2>
           </div>
           <button
@@ -733,7 +749,7 @@ const HomepageBuilderPanel: React.FC = () => {
         <div className="glass-panel rounded-[3rem] border-white/10 p-6 md:p-8">
           <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Správa homepage</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Krok 2 a 3</p>
               <h2 className="mt-2 text-3xl font-black text-white">Postranní panel úprav</h2>
               <p className="mt-3 max-w-3xl text-sm text-white/40">
                 Tahle první verze objektivizuje homepage jako seznam widgetů, textových bloků a fixních slotů. Sekce teď můžeš

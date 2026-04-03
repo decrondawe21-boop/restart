@@ -1,4 +1,19 @@
-export const publicContact = {
+export interface PublicContactInfo {
+  companyName: string;
+  companyNameUpper: string;
+  addressLine: string;
+  cityLine: string;
+  phone: string;
+  email: string;
+  primaryWebsite: string;
+  primaryWebsiteUrl: string;
+  secondaryWebsite: string;
+  secondaryWebsiteUrl: string;
+  registrationNote: string;
+  companyMeta: string;
+}
+
+export const publicContact: PublicContactInfo = {
   companyName: 'David Kozák International s.r.o.',
   companyNameUpper: 'DAVID KOZÁK INTERNATIONAL S.R.O.',
   addressLine: 'Drážďanská 517/52',
@@ -11,4 +26,4 @@ export const publicContact = {
   secondaryWebsiteUrl: 'https://international.david-kozak.com',
   registrationNote: 'Zapsaná v obchodním rejstříku vedeném Krajským soudem v Ústí nad Labem, oddíl C, vložka 53832',
   companyMeta: 'IČO: 23143614 | DIČ: CZ23143614'
-} as const;
+};

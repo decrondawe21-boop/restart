@@ -1,6 +1,12 @@
+import { publicContact, type PublicContactInfo } from './publicContact';
+export type { PublicContactInfo } from './publicContact';
+
 export const homepageLayoutSettingKey = 'homepage_layout';
 export const homepageMediaSlotsSettingKey = 'homepage_media_slots';
 export const homepageWidgetContentSettingKey = 'homepage_widget_content';
+export const globalPublicContactSettingKey = 'global_public_contact';
+export const legalPageContentSettingKey = 'legal_page_content';
+export type LegalPageKey = 'privacy' | 'terms' | 'cookies';
 
 export type HomepageSectionId =
   | 'header-reveal'
@@ -132,6 +138,21 @@ export interface HomepageWidgetContentSettings {
   aiAssistant: AiAssistantWidgetContent;
 }
 
+export interface SiteLegalSection {
+  heading: string;
+  paragraphs?: string[];
+  bullets?: string[];
+}
+
+export interface SiteLegalPageEntry {
+  eyebrow: string;
+  title: string;
+  description: string;
+  sections: SiteLegalSection[];
+}
+
+export type LegalPageContentSettings = Record<LegalPageKey, SiteLegalPageEntry>;
+
 export const homepageMediaSlotDefinitions: HomepageMediaSlotDefinition[] = [
   {
     id: 'hero-main-image',
@@ -230,6 +251,104 @@ export const defaultHomepageWidgetContent: HomepageWidgetContentSettings = {
     submitLabel: 'Analyzovat příběh',
     loadingLabel: 'Analyzuji...',
     resultLabel: 'Navržený plán integrace'
+  }
+};
+
+export const defaultPublicContactInfo: PublicContactInfo = {
+  ...publicContact
+};
+
+export const defaultLegalPageContent: LegalPageContentSettings = {
+  privacy: {
+    eyebrow: 'Ochrana údajů',
+    title: 'Ochrana osobních údajů',
+    description:
+      'Tato stránka shrnuje, jak REST||ART pracuje s kontaktními údaji, poptávkami, partnerskou komunikací a obsahem z administrace webu.',
+    sections: [
+      {
+        heading: 'Jaké údaje zpracováváme',
+        bullets: [
+          'identifikační a kontaktní údaje odeslané přes formuláře nebo e-mail',
+          'obsah zpráv, poptávek, žádostí o spolupráci a administrativní komunikace',
+          'technické údaje o návštěvě webu v rozsahu potřebném pro bezpečný provoz'
+        ]
+      },
+      {
+        heading: 'Účel zpracování',
+        paragraphs: [
+          'Údaje používáme výhradně pro komunikaci, zajištění provozu webu, vyřízení dotazů, správu obsahu a navazující projektovou spolupráci.',
+          'REST||ART nepoužívá osobní údaje k agresivnímu marketingu ani k jejich dalšímu prodeji třetím stranám.'
+        ]
+      },
+      {
+        heading: 'Správa a bezpečnost',
+        paragraphs: [
+          'Přístup k administraci je omezený pouze na schválené admin účty. Obsahový systém je provozovaný přes Supabase Auth, databázi a storage s řízenými oprávněními.',
+          `Pokud chceš řešit výmaz, opravu nebo export údajů, kontaktuj nás na ${publicContact.email}.`
+        ]
+      }
+    ]
+  },
+  terms: {
+    eyebrow: 'Podmínky užití',
+    title: 'Podmínky užití webu',
+    description:
+      'Web REST||ART slouží jako prezentační, informační a obsahová platforma projektu. Níže je základní rámec, ve kterém se obsah a služby používají.',
+    sections: [
+      {
+        heading: 'Používání obsahu',
+        paragraphs: [
+          'Texty, claimy, vizuály, analytické výstupy a projektové materiály jsou určeny pro informování veřejnosti, partnerů a institucí o aktivitách REST||ART.',
+          'Bez předchozí dohody není dovoleno vydávat obsah webu za vlastní nebo ho používat způsobem, který poškozuje značku nebo projekt.'
+        ]
+      },
+      {
+        heading: 'Dostupnost a změny',
+        bullets: [
+          'obsah webu se může průběžně měnit podle vývoje projektu',
+          'administrace může dočasně upravovat nebo stahovat části webu bez předchozího upozornění',
+          'veřejné informace mají informativní charakter a nenahrazují individuální smluvní ujednání'
+        ]
+      },
+      {
+        heading: 'Odpovědnost',
+        paragraphs: [
+          'REST||ART usiluje o maximální přesnost a aktuálnost. Přesto nenese odpovědnost za škody vzniklé pouze z interpretace veřejného obsahu bez návazné konzultace.',
+          'Pro oficiální spolupráci, nabídky nebo právně závazné kroky vždy používej přímý kontakt s projektem.'
+        ]
+      }
+    ]
+  },
+  cookies: {
+    eyebrow: 'Cookies',
+    title: 'Zásady cookies',
+    description:
+      'Web používá jen technicky přiměřené prvky nutné pro fungování rozhraní, přihlášení do administrace a zachování základního uživatelského nastavení.',
+    sections: [
+      {
+        heading: 'Co se ukládá',
+        bullets: [
+          'volba světlého nebo tmavého režimu v localStorage',
+          'autentizační session pro administraci spravovaná Supabase Auth',
+          'technické údaje potřebné pro bezpečnost a provoz připojených služeb'
+        ]
+      },
+      {
+        heading: 'Na co cookies nepoužíváme',
+        bullets: [
+          'neprodáváme data třetím stranám',
+          'nepoužíváme je pro agresivní reklamní targeting',
+          'bez dalšího rozšíření webu nepoužíváme rozsáhlé behaviorální trackování'
+        ]
+      },
+      {
+        heading: 'Jak můžeš nastavení ovlivnit',
+        paragraphs: [
+          'Cookies a lokální data můžeš odstranit v nastavení prohlížeče. Tím se ale můžeš odhlásit z administrace nebo přijít o uložené preference webu.',
+          'Pokud později nasadíme analytické nebo marketingové skripty, bude potřeba tuhle sekci rozšířit o podrobnější správu souhlasů.'
+        ]
+      }
+    ]
   }
 };
 
@@ -349,5 +468,64 @@ export const normalizeHomepageWidgetContent = (value: unknown): HomepageWidgetCo
       loadingLabel: asNonEmptyString(aiSource.loadingLabel, defaultHomepageWidgetContent.aiAssistant.loadingLabel),
       resultLabel: asNonEmptyString(aiSource.resultLabel, defaultHomepageWidgetContent.aiAssistant.resultLabel)
     }
+  };
+};
+
+export const normalizePublicContactInfo = (value: unknown): PublicContactInfo => {
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+
+  return {
+    companyName: asNonEmptyString(source.companyName, defaultPublicContactInfo.companyName),
+    companyNameUpper: asNonEmptyString(source.companyNameUpper, defaultPublicContactInfo.companyNameUpper),
+    addressLine: asNonEmptyString(source.addressLine, defaultPublicContactInfo.addressLine),
+    cityLine: asNonEmptyString(source.cityLine, defaultPublicContactInfo.cityLine),
+    phone: asNonEmptyString(source.phone, defaultPublicContactInfo.phone),
+    email: asNonEmptyString(source.email, defaultPublicContactInfo.email),
+    primaryWebsite: asNonEmptyString(source.primaryWebsite, defaultPublicContactInfo.primaryWebsite),
+    primaryWebsiteUrl: asNonEmptyString(source.primaryWebsiteUrl, defaultPublicContactInfo.primaryWebsiteUrl),
+    secondaryWebsite: asNonEmptyString(source.secondaryWebsite, defaultPublicContactInfo.secondaryWebsite),
+    secondaryWebsiteUrl: asNonEmptyString(source.secondaryWebsiteUrl, defaultPublicContactInfo.secondaryWebsiteUrl),
+    registrationNote: asNonEmptyString(source.registrationNote, defaultPublicContactInfo.registrationNote),
+    companyMeta: asNonEmptyString(source.companyMeta, defaultPublicContactInfo.companyMeta)
+  };
+};
+
+const normalizeLegalSection = (value: unknown, fallback?: SiteLegalSection): SiteLegalSection => {
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const paragraphs = Array.isArray(source.paragraphs)
+    ? source.paragraphs.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    : fallback?.paragraphs ?? [];
+  const bullets = Array.isArray(source.bullets)
+    ? source.bullets.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    : fallback?.bullets ?? [];
+
+  return {
+    heading: asNonEmptyString(source.heading, fallback?.heading ?? 'Sekce'),
+    paragraphs,
+    bullets
+  };
+};
+
+export const normalizeLegalPageContent = (value: unknown): LegalPageContentSettings => {
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+
+  const buildPage = (key: LegalPageKey): SiteLegalPageEntry => {
+    const fallback = defaultLegalPageContent[key];
+    const pageSource = source[key] && typeof source[key] === 'object' ? (source[key] as Record<string, unknown>) : {};
+    const rawSections = Array.isArray(pageSource.sections) ? pageSource.sections : fallback.sections;
+    const sections = rawSections.map((section, index) => normalizeLegalSection(section, fallback.sections[index]));
+
+    return {
+      eyebrow: asNonEmptyString(pageSource.eyebrow, fallback.eyebrow),
+      title: asNonEmptyString(pageSource.title, fallback.title),
+      description: asNonEmptyString(pageSource.description, fallback.description),
+      sections: sections.length > 0 ? sections : fallback.sections
+    };
+  };
+
+  return {
+    privacy: buildPage('privacy'),
+    terms: buildPage('terms'),
+    cookies: buildPage('cookies')
   };
 };
