@@ -34,7 +34,15 @@ export interface CmsEntryInput {
   published_at?: string | null;
 }
 
+export interface SiteSetting {
+  key: string;
+  value_json: unknown;
+  created_at: string;
+  updated_at: string;
+}
+
 const contentTable = 'cms_entries';
+const siteSettingsTable = 'site_settings';
 const mediaBucket = 'cms-media';
 
 const dateFormatter = new Intl.DateTimeFormat('cs-CZ', {
@@ -105,6 +113,40 @@ export const fetchAdminEntries = async () => {
 
   if (error) throw error;
   return (data ?? []) as CmsEntry[];
+};
+
+export const fetchSiteSettings = async (keys?: string[]) => {
+  let query = supabase
+    .from(siteSettingsTable)
+    .select('*')
+    .order('key', { ascending: true });
+
+  if (keys && keys.length > 0) {
+    query = query.in('key', keys);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []) as SiteSetting[];
+};
+
+export const saveSiteSetting = async (key: string, valueJson: unknown) => {
+  const { data, error } = await supabase
+    .from(siteSettingsTable)
+    .upsert(
+      {
+        key,
+        value_json: valueJson
+      },
+      {
+        onConflict: 'key'
+      }
+    )
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return data as SiteSetting;
 };
 
 export const saveEntry = async (entry: CmsEntryInput) => {

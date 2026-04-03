@@ -11,11 +11,14 @@ import {
   RefreshCw,
   Save,
   ShieldCheck,
+  LayoutTemplate,
   Trash2,
   Upload
 } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import HomepageBuilderPanel from '../components/admin/HomepageBuilderPanel';
+import MatrixFxHero from '../components/MatrixFxHero';
 import RichTextEditor from '../components/admin/RichTextEditor';
 import {
   deleteEntry,
@@ -99,6 +102,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [entries, setEntries] = useState<CmsEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [adminView, setAdminView] = useState<'content' | 'homepage'>('content');
   const [activeType, setActiveType] = useState<CmsEntryType>('news');
   const [editorState, setEditorState] = useState<EditableEntry>(createEmptyEntry('news'));
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -136,6 +140,21 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     () => entries.filter((entry) => entry.type === activeType),
     [activeType, entries]
   );
+
+  const dashboardStats = useMemo(() => {
+    const publishedCount = entries.filter((entry) => entry.status === 'published').length;
+    const draftCount = entries.filter((entry) => entry.status === 'draft').length;
+    const newsCount = entries.filter((entry) => entry.type === 'news').length;
+    const blogCount = entries.filter((entry) => entry.type === 'blog').length;
+
+    return {
+      total: entries.length,
+      published: publishedCount,
+      drafts: draftCount,
+      news: newsCount,
+      blog: blogCount
+    };
+  }, [entries]);
 
   useEffect(() => {
     const selectedEntry = filteredEntries.find((entry) => entry.id === selectedId);
@@ -336,7 +355,149 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-[360px,1fr]">
+        <div className="glass-panel rounded-[2.8rem] border-white/10 p-3">
+          <div className="grid gap-2 md:grid-cols-2">
+            {([
+              ['content', 'Obsah a články', 'Aktuality, blog a rich text editor.'],
+              ['homepage', 'Homepage builder', 'Widgety, pořadí sekcí a fixní obrazové sloty.']
+            ] as const).map(([view, title, description]) => (
+              <button
+                key={view}
+                type="button"
+                onClick={() => setAdminView(view)}
+                className={`rounded-[2rem] px-5 py-4 text-left transition ${
+                  adminView === view
+                    ? 'bg-cyan-500 text-black'
+                    : 'bg-white/[0.03] text-white/70 hover:border-cyan-400/20 hover:bg-white/[0.05]'
+                }`}
+              >
+                <p className="text-xs font-black uppercase tracking-[0.22em]">{title}</p>
+                <p className={`mt-2 text-sm leading-relaxed ${adminView === view ? 'text-black/70' : 'text-white/40'}`}>
+                  {description}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr]">
+          <div className="glass-panel rounded-[3rem] border-white/10 p-6 md:p-8">
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Dashboard</p>
+                <h2 className="mt-2 text-3xl font-black text-white">
+                  {adminView === 'homepage' ? 'Řízení homepage' : 'Obsahový přehled'}
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm text-white/40">
+                  {adminView === 'homepage'
+                    ? 'Tady dává MatrixFx smysl jako vizuální identita dashboardu, ne pod formuláři. Homepage builder tak má vlastní orientační vrstvu a přehled klíčových stavů.'
+                    : 'Admin panel má nově i dashboard vrstvu. Vidíš rychlý stav obsahu, publikace a můžeš se rychle rozhodnout, co upravit dál.'}
+                </p>
+              </div>
+              <div className="hidden rounded-[2rem] border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-right md:block">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Aktivní režim</p>
+                <p className="mt-2 text-sm font-black uppercase tracking-[0.22em] text-white">
+                  {adminView === 'homepage' ? 'Homepage Builder' : activeType === 'news' ? 'Aktuality' : 'Blog'}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {[
+                {
+                  label: 'Všechny záznamy',
+                  value: dashboardStats.total,
+                  description: 'Součet aktualit a blogových článků v CMS.',
+                  icon: <ShieldCheck size={18} />,
+                  accent: 'text-cyan-300',
+                  bg: 'bg-cyan-500/10'
+                },
+                {
+                  label: 'Publikováno',
+                  value: dashboardStats.published,
+                  description: 'Obsah viditelný na veřejném webu.',
+                  icon: <Save size={18} />,
+                  accent: 'text-emerald-300',
+                  bg: 'bg-emerald-500/10'
+                },
+                {
+                  label: 'Drafty',
+                  value: dashboardStats.drafts,
+                  description: 'Rozpracované položky jen pro admin.',
+                  icon: <PencilLine size={18} />,
+                  accent: 'text-amber-300',
+                  bg: 'bg-amber-500/10'
+                },
+                {
+                  label: 'Homepage sloty',
+                  value: '6',
+                  description: 'Pevné obrazové pozice připravené pro builder.',
+                  icon: <LayoutTemplate size={18} />,
+                  accent: 'text-teal-300',
+                  bg: 'bg-teal-500/10'
+                }
+              ].map((card) => (
+                <div key={card.label} className="rounded-[2.2rem] border border-white/10 bg-white/[0.03] p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${card.bg} ${card.accent}`}>
+                      {card.icon}
+                    </div>
+                    <p className="text-3xl font-black text-white">{card.value}</p>
+                  </div>
+                  <p className="mt-5 text-[10px] font-black uppercase tracking-[0.22em] text-white/35">{card.label}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/40">{card.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="rounded-[2.2rem] border border-white/10 bg-black/20 p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Aktuality vs. blog</p>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-2xl font-black text-white">{dashboardStats.news}</p>
+                    <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/35">Aktuality</p>
+                  </div>
+                  <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-2xl font-black text-white">{dashboardStats.blog}</p>
+                    <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/35">Blog</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[2.2rem] border border-white/10 bg-black/20 p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Doporučení</p>
+                <p className="mt-4 text-sm leading-relaxed text-white/45">
+                  MatrixFx nechávám v přehledových blocích a ne pod vstupními poli. Admin tak zůstává čitelný, ale má vlastní
+                  identitu a nepůsobí jako čistý CRUD bez značky.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-[3rem] border-white/10 p-4">
+            <MatrixFxHero
+              isDark={isDark}
+              darkLogoSrc="/images/podklady/branding/logo-9.png"
+              lightLogoSrc="/images/podklady/branding/logo-main.png"
+              darkLogoAlt="REST||ART admin dashboard"
+              lightLogoAlt="REST||ART admin dashboard"
+              revealFrom="bottom"
+              label={adminView === 'homepage' ? 'Homepage Builder' : 'Admin Dashboard'}
+              description={
+                adminView === 'homepage'
+                  ? 'Přesouvej sekce, měň pevné sloty a postupně objektivizuj homepage do editovatelných widgetů.'
+                  : 'Spravuj aktuality, blog a veřejný obsah v jednom prostředí se silnější vizuální identitou.'
+              }
+              bulge={{ type: 'ripple', duration: 4, intensity: 14, repeat: true }}
+            />
+          </div>
+        </div>
+
+        {adminView === 'homepage' ? (
+          <HomepageBuilderPanel />
+        ) : (
+          <div className="grid gap-8 xl:grid-cols-[360px,1fr]">
           <aside className="glass-panel rounded-[3rem] border-white/10 p-5">
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
@@ -716,6 +877,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           </section>
         </div>
+        )}
       </div>
     </div>
   );

@@ -15,7 +15,16 @@ import MediaEnlarge from './components/MediaEnlarge';
 import ParticleBackground from './components/ParticleBackground';
 import RadialGauge from './components/RadialGauge';
 import RevealFx from './components/RevealFx';
-import { fetchPublicEntries, isCurrentUserAdmin, mapCmsEntryToBlogPost } from './lib/cms';
+import { fetchPublicEntries, fetchSiteSettings, isCurrentUserAdmin, mapCmsEntryToBlogPost } from './lib/cms';
+import {
+  defaultHomepageLayout,
+  defaultHomepageMediaSlots,
+  homepageLayoutSettingKey,
+  homepageMediaSlotsSettingKey,
+  normalizeHomepageLayout,
+  normalizeHomepageMediaSlots,
+  type HomepageSectionId
+} from './lib/siteSettings';
 import { isSupabaseConfigured, supabase } from './lib/supabase';
 import { 
   Menu, X, ArrowRight, Heart, Briefcase, DoorOpen, Home, 
@@ -119,6 +128,7 @@ const brandAssets = {
     whyNotNonProfit: '/images/podklady/branding/proc-nejsme-neziskovka.png',
     logoPrimary: '/images/podklady/branding/logo-main.png',
     logoAlt: '/images/podklady/branding/logo-9.png',
+    founderAvatar: '/images/avatar.PNG',
     brandStatement: '/images/podklady/branding/icon-42.png',
     doorMotto: '/images/podklady/branding/door-motto.png',
     brandPoster: '/images/podklady/branding/registered-mark.jpg'
@@ -395,6 +405,8 @@ const App = () => {
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [publicNewsPosts, setPublicNewsPosts] = useState<BlogPost[]>([]);
   const [publicBlogPosts, setPublicBlogPosts] = useState<BlogPost[]>([]);
+  const [homepageLayout, setHomepageLayout] = useState(defaultHomepageLayout);
+  const [homepageMediaSlots, setHomepageMediaSlots] = useState(defaultHomepageMediaSlots);
 
   const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
   const isAdminRoute = normalizedPath === '/admin' || normalizedPath.startsWith('/admin/');
@@ -523,6 +535,17 @@ const App = () => {
         setPublicBlogPosts(blogEntries.map(mapCmsEntryToBlogPost));
       } catch (error) {
         console.error('Public CMS fetch failed', error);
+      }
+
+      try {
+        const records = await fetchSiteSettings([homepageLayoutSettingKey, homepageMediaSlotsSettingKey]);
+        if (!isMounted) return;
+
+        const byKey = new Map(records.map((record) => [record.key, record.value_json]));
+        setHomepageLayout(normalizeHomepageLayout(byKey.get(homepageLayoutSettingKey)));
+        setHomepageMediaSlots(normalizeHomepageMediaSlots(byKey.get(homepageMediaSlotsSettingKey)));
+      } catch (error) {
+        console.error('Homepage settings fetch failed', error);
       }
     };
 
@@ -1011,6 +1034,51 @@ const App = () => {
   const newsPosts = publicNewsPosts.length > 0 ? publicNewsPosts : defaultNewsPosts;
   const editorialPosts = publicBlogPosts.length > 0 ? publicBlogPosts : defaultBlogPosts;
 
+  const getHomepageMediaSlot = (
+    slotId: (typeof defaultHomepageMediaSlots)[number]['id'],
+    fallback: { src: string; alt: string; caption?: string }
+  ) => {
+    const override = homepageMediaSlots.find((slot) => slot.id === slotId);
+
+    return {
+      src: override?.src?.trim() || fallback.src,
+      alt: override?.alt?.trim() || fallback.alt,
+      caption: override?.caption?.trim() || fallback.caption || ''
+    };
+  };
+
+  const homepageMedia = {
+    heroMainImage: getHomepageMediaSlot('hero-main-image', {
+      src: brandAssets.heroRealistic,
+      alt: 'REST||ART Integrace realistický hero vizuál'
+    }),
+    manifestSilence: getHomepageMediaSlot('manifest-silence', {
+      src: brandAssets.homepageVisuals.silence,
+      alt: 'Stačí ticho',
+      caption: 'Claim vizuál Stačí ticho.'
+    }),
+    manifestEverythingHasTime: getHomepageMediaSlot('manifest-everything-has-time', {
+      src: brandAssets.homepageVisuals.everythingHasItsTime,
+      alt: 'Všechno má svůj čas',
+      caption: 'Claim vizuál Všechno má svůj čas.'
+    }),
+    manifestChallenge: getHomepageMediaSlot('manifest-challenge', {
+      src: brandAssets.homepageVisuals.challenge,
+      alt: 'Výzva RESTART',
+      caption: 'Silný výzvový vizuál RESTART pro přidání se k projektu.'
+    }),
+    unityPoster: getHomepageMediaSlot('unity-poster', {
+      src: brandAssets.campaignAds.quoteCards[2].src,
+      alt: brandAssets.campaignAds.quoteCards[2].alt,
+      caption: 'Minimalistický vizuál RESTA jako signál sjednocené značky a odpovědnosti.'
+    }),
+    whyNotNonProfit: getHomepageMediaSlot('why-not-nonprofit', {
+      src: brandAssets.branding.whyNotNonProfit,
+      alt: 'Proč nejsme neziskovka',
+      caption: 'Plakát vysvětlující filozofii projektu a vztah k monetizaci.'
+    })
+  };
+
   const storyHighlights = [
     {
       name: "Erik Horváth",
@@ -1331,6 +1399,225 @@ const App = () => {
     </section>
   );
 
+  const renderHomepageHeaderSection = () => (
+    <header className="relative w-full h-[65vh] md:h-[75vh] flex items-center justify-center overflow-hidden rounded-b-[45%] md:rounded-b-[65%] shadow-[0_20px_50px_rgba(0,242,234,0.15)] bg-[#051111]">
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover opacity-80"
+        >
+          <source src="/videos/Logo_Reveal_REST_ART_Integrace.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/70 pointer-events-none" />
+      </div>
+
+      <div className="relative z-20 text-center space-y-4">
+        <h1 className="text-5xl md:text-[8rem] font-serif text-white font-black tracking-tighter text-glow-cyan animate-pulse">
+          REST<span className="text-cyan-400/50 italic">||</span>ART
+        </h1>
+        <p className="text-cyan-300/60 font-light tracking-[0.5em] uppercase text-xs md:text-xl">Integrace Společnosti</p>
+      </div>
+    </header>
+  );
+
+  const renderHomepageHeroIntroSection = () => (
+    <section className="relative py-24 px-6">
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <div className="space-y-8 animate-in slide-in-from-left duration-1000">
+          <div className="inline-flex items-center gap-2 text-cyan-400 font-bold text-xs tracking-widest uppercase bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-400/20">
+            David Kozák International, s.r.o.
+          </div>
+          <h2 className="text-4xl md:text-7xl text-white leading-tight text-glow-cyan">
+            Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-300 headline-thin">každý.</span>
+          </h2>
+          <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-light">
+            Homepage znovu spojuje hlavní články a zpracované sekce do jednoho proudu. Zároveň zůstává zachované
+            rozdělení do samostatných stránek a detailů v menu.
+          </p>
+          <RevealFx delay={0.12} translateY={0.55}>
+            <div className="max-w-xl rounded-[2.3rem] border border-cyan-400/15 bg-cyan-500/[0.05] p-6 md:p-7 space-y-3">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Motto projektu</p>
+              <p className="text-2xl md:text-3xl text-white font-serif italic leading-tight">
+                "Každý příběh má právo pokračovat."
+              </p>
+              <p className="text-sm text-white/40 font-light leading-relaxed">
+                Druhá šance není slogan do kampaně. Je to pracovní metoda, která vrací člověka zpět do vztahů, práce a důvěry.
+              </p>
+            </div>
+          </RevealFx>
+          <div className="flex flex-wrap gap-4 pt-4">
+            <RevealFx delay={0.18} translateY={0.7}>
+              <button onClick={() => goToPage('pillars')} className="bg-cyan-500 text-black px-10 py-5 rounded-2xl font-black text-lg hover:shadow-cyan-500/30 shadow-xl transition-all">PŘEJÍT NA PILÍŘE</button>
+            </RevealFx>
+            <RevealFx delay={0.26} translateY={0.85}>
+              <button onClick={() => goToPage('about')} className="glass-panel text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/5 transition-all">O PROJEKTU</button>
+            </RevealFx>
+          </div>
+          <RevealFx delay={0.34} translateY={0.85}>
+            <div className="max-w-xl">
+              <MatrixFxHero
+                isDark={isDark}
+                darkLogoSrc={brandAssets.branding.logoAlt}
+                lightLogoSrc={brandAssets.branding.logoPrimary}
+                darkLogoAlt="REST||ART logo pro tmavé téma"
+                lightLogoAlt="REST||ART logo pro světlé téma"
+                revealFrom="bottom"
+                label="Restart"
+                description="Restartuj své myšlení, Daruj Druhou šanci!"
+                bulge={{ type: 'ripple', duration: 4, intensity: 15, repeat: true }}
+              />
+            </div>
+          </RevealFx>
+        </div>
+        <div className="relative group lg:-mt-40">
+          <RevealFx delay={0.12} translateY={0.7}>
+            <div className="relative rounded-[3.5rem] overflow-hidden shadow-2xl transform rotate-3 group-hover:rotate-0 transition-all duration-700 border-[16px] border-white/5 bg-white/5">
+              <img
+                src={homepageMedia.heroMainImage.src}
+                alt={homepageMedia.heroMainImage.alt}
+                className="hero-desat w-full h-[600px] object-cover opacity-60 group-hover:opacity-100 transition-all duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-transparent opacity-80" />
+              <div className="absolute bottom-10 left-10 text-white italic text-2xl font-serif drop-shadow-lg">"Každý příběh má právo pokračovat."</div>
+            </div>
+          </RevealFx>
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderHomepageStatsSection = () => (
+    <section className="py-12 px-6 max-w-7xl mx-auto">
+      <div className="grid md:grid-cols-3 gap-6">
+        {homeStatItems.map((item, idx) => (
+          <div key={item.label} className="glass-panel p-8 rounded-3xl text-center group hover:-translate-y-1 transition-all duration-500 border-white/10">
+            <p className="text-5xl md:text-6xl font-black text-glow-cyan leading-none mb-4">
+              {animatedStats[idx]}{item.suffix}
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/35 font-black">{item.label}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderHomepageTopicPagesSection = () => (
+    <section className="py-16 px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="space-y-4 mb-10">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Rozdělení obsahu</p>
+          <h3 className="text-4xl md:text-6xl text-white uppercase leading-none">
+            Nové stránky <span className="text-cyan-300 headline-thin">podle tématu</span>
+          </h3>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            { id: 'about' as PageKey, title: 'O nás', text: 'Mise, tým, fungování integračního centra.', icon: <Users size={20} /> },
+            { id: 'pillars' as PageKey, title: 'Pilíře', text: 'Přehled všech programů a detailní podstránky.', icon: <LayoutGrid size={20} /> },
+            { id: 'pillar-rework' as PageKey, title: 'REWORK', text: 'Samostatná stránka programu + analýza + implementace.', icon: <Briefcase size={20} /> },
+            { id: 'stories' as PageKey, title: 'Příběhy', text: 'Skutečné příběhy a průběžné výsledky restartu.', icon: <Quote size={20} /> },
+            { id: 'news' as PageKey, title: 'Novinky', text: 'Aktuality a průběžné milníky projektu.', icon: <FileText size={20} /> },
+            { id: 'zamer-uvod' as PageKey, title: 'Investiční záměr', text: 'Kompletní podklady OPZ+ v samostatných stránkách.', icon: <BarChart size={20} /> }
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => goToPage(item.id)}
+              className="glass-panel p-8 rounded-[2.5rem] border-white/10 hover:border-cyan-400/30 transition-all text-left group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-5">
+                {item.icon}
+              </div>
+              <h4 className="text-2xl font-black text-white uppercase tracking-widest group-hover:text-cyan-400 transition-colors">{item.title}</h4>
+              <p className="text-sm text-white/45 font-light leading-relaxed mt-3">{item.text}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderHomepageAiAssistantSection = () => (
+    <section className="py-24 px-6 relative">
+      <div className="max-w-4xl mx-auto glass-panel p-12 rounded-[4rem] space-y-8 relative overflow-hidden border-cyan-400/10">
+        <div className="absolute top-0 right-0 p-12 opacity-5 -rotate-12 pointer-events-none animate-pulse-glow"><Sparkles size={250} className="text-cyan-400" /></div>
+
+        <div className="space-y-4 text-center">
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> AI Integrační Asistent
+          </div>
+          <h3 className="text-4xl md:text-5xl text-white text-glow-cyan">Váš plán <span className="text-cyan-300 headline-thin">restartu</span></h3>
+          <p className="text-white/40 font-light max-w-2xl mx-auto">Napište nám o své situaci a naše AI vám navrhne první kroky podle pilířů Integrace.</p>
+        </div>
+
+        <div className="space-y-6 relative z-10">
+          <div className="relative group">
+            <textarea
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder="Popište svou situaci... (např. 'Právě jsem vyšel z výkonu trestu a nemám kde bydlet')"
+              className="w-full h-48 bg-black/40 border border-white/10 rounded-[2.5rem] p-8 text-white focus:border-cyan-400 outline-none transition-all placeholder:text-white/10 resize-none text-lg font-light leading-relaxed"
+            />
+            <div className="absolute bottom-6 right-6 flex gap-3">
+              <button
+                onClick={generateRestartPath}
+                disabled={isLoading || !userInput.trim()}
+                className="bg-cyan-500 text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-cyan-500/20 hover:bg-cyan-400 transition-all disabled:opacity-30 disabled:grayscale flex items-center gap-3"
+              >
+                {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+                {isLoading ? 'Analyzuji...' : 'Analyzovat příběh'}
+              </button>
+            </div>
+          </div>
+
+          {aiResponse && (
+            <div className="bg-cyan-500/5 border border-cyan-400/20 rounded-[3rem] p-10 md:p-14 text-white/80 font-light leading-relaxed animate-in slide-in-from-bottom-8 duration-700 relative group">
+              <div className="flex justify-between items-center mb-8 border-b border-cyan-400/10 pb-6">
+                <div className="flex items-center gap-3 text-cyan-400">
+                  <Sparkles size={18} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Navržený plán integrace</span>
+                </div>
+                <button
+                  onClick={speakPath}
+                  disabled={isSpeaking}
+                  className={`p-4 rounded-2xl transition-all ${isSpeaking ? 'bg-cyan-500 text-black animate-pulse' : 'bg-white/5 text-white/40 hover:text-cyan-400 hover:bg-white/10'}`}
+                >
+                  <Volume2 size={20} />
+                </button>
+              </div>
+              <div className="prose prose-invert max-w-none">
+                <p className="italic font-serif text-xl md:text-2xl text-white/90 leading-relaxed">
+                  "{aiResponse}"
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderConfiguredHomepage = () => {
+    const sectionRenderers: Record<HomepageSectionId, () => React.JSX.Element> = {
+      'header-reveal': renderHomepageHeaderSection,
+      'hero-intro': renderHomepageHeroIntroSection,
+      stats: renderHomepageStatsSection,
+      'topic-pages': renderHomepageTopicPagesSection,
+      'legacy-storyline': renderLegacyHomepageSections,
+      brochures: renderBrochureSection,
+      'ai-assistant': renderHomepageAiAssistantSection,
+      pillars: renderHomepagePillarsSection
+    };
+
+    return homepageLayout
+      .filter((section) => section.visible)
+      .map((section) => (
+        <React.Fragment key={section.id}>{sectionRenderers[section.id]()}</React.Fragment>
+      ));
+  };
+
   const renderLegacyHomepageSections = () => (
     <>
       <section className="py-24 px-6 relative overflow-hidden">
@@ -1421,7 +1708,9 @@ const App = () => {
               </div>
             </div>
             <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 flex items-center gap-6">
-              <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-400"><Users size={32} /></div>
+              <div className="w-16 h-16 rounded-2xl overflow-hidden border border-cyan-400/20 bg-cyan-500/10">
+                <img src={brandAssets.branding.founderAvatar} alt="David Kozák" className="w-full h-full object-cover" />
+              </div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-white/30 font-black mb-1">Zodpovědná osoba</p>
                 <p className="text-xl font-bold text-white">David Kozák</p>
@@ -1602,9 +1891,9 @@ const App = () => {
           <RevealFx delay={0.05} translateY={0.8}>
             <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
               <MediaEnlarge
-                src={brandAssets.branding.whyNotNonProfit}
-                alt="Proč nejsme neziskovka"
-                caption="Plakát vysvětlující filozofii projektu a vztah k monetizaci."
+                src={homepageMedia.whyNotNonProfit.src}
+                alt={homepageMedia.whyNotNonProfit.alt}
+                caption={homepageMedia.whyNotNonProfit.caption}
                 className="rounded-[2.5rem]"
                 imgClassName="rounded-[2.5rem] max-h-[640px]"
               />
@@ -1851,9 +2140,9 @@ const App = () => {
               </BlockQuote>
               <div className="rounded-[2.6rem] overflow-hidden border border-white/10 bg-[#010607] relative z-10">
                 <MediaEnlarge
-                  src={brandAssets.campaignAds.quoteCards[2].src}
-                  alt={brandAssets.campaignAds.quoteCards[2].alt}
-                  caption="Minimalistický vizuál RESTA jako signál sjednocené značky a odpovědnosti."
+                  src={homepageMedia.unityPoster.src}
+                  alt={homepageMedia.unityPoster.alt}
+                  caption={homepageMedia.unityPoster.caption}
                   className="aspect-[4/3]"
                   objectFit="contain"
                   imgClassName="p-2 md:p-3"
@@ -1919,201 +2208,7 @@ const App = () => {
   const renderContent = (page: PageKey) => {
     switch(page) {
       case 'home':
-        return (
-          <>
-            <header className="relative w-full h-[65vh] md:h-[75vh] flex items-center justify-center overflow-hidden rounded-b-[45%] md:rounded-b-[65%] shadow-[0_20px_50px_rgba(0,242,234,0.15)] bg-[#051111]">
-              <div className="absolute inset-0 z-0">
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="w-full h-full object-cover opacity-80"
-                >
-                  <source src="/videos/Logo_Reveal_REST_ART_Integrace.mp4" type="video/mp4" />
-                </video>
-                <div className="absolute inset-0 bg-black/70 pointer-events-none" />
-              </div>
-
-              <div className="relative z-20 text-center space-y-4">
-                <h1 className="text-5xl md:text-[8rem] font-serif text-white font-black tracking-tighter text-glow-cyan animate-pulse">
-                  REST<span className="text-cyan-400/50 italic">||</span>ART
-                </h1>
-                <p className="text-cyan-300/60 font-light tracking-[0.5em] uppercase text-xs md:text-xl">Integrace Společnosti</p>
-              </div>
-            </header>
-
-            <section className="relative py-24 px-6">
-              <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-                <div className="space-y-8 animate-in slide-in-from-left duration-1000">
-                  <div className="inline-flex items-center gap-2 text-cyan-400 font-bold text-xs tracking-widest uppercase bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-400/20">
-                    David Kozák International, s.r.o.
-                  </div>
-                  <h2 className="text-4xl md:text-7xl text-white leading-tight text-glow-cyan">
-                    Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-300 headline-thin">každý.</span>
-                  </h2>
-                  <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-light">
-                    Homepage znovu spojuje hlavní články a zpracované sekce do jednoho proudu. Zároveň zůstává zachované
-                    rozdělení do samostatných stránek a detailů v menu.
-                  </p>
-                  <RevealFx delay={0.12} translateY={0.55}>
-                    <div className="max-w-xl rounded-[2.3rem] border border-cyan-400/15 bg-cyan-500/[0.05] p-6 md:p-7 space-y-3">
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Motto projektu</p>
-                      <p className="text-2xl md:text-3xl text-white font-serif italic leading-tight">
-                        "Každý příběh má právo pokračovat."
-                      </p>
-                      <p className="text-sm text-white/40 font-light leading-relaxed">
-                        Druhá šance není slogan do kampaně. Je to pracovní metoda, která vrací člověka zpět do vztahů, práce a důvěry.
-                      </p>
-                    </div>
-                  </RevealFx>
-                  <div className="flex flex-wrap gap-4 pt-4">
-                    <RevealFx delay={0.18} translateY={0.7}>
-                      <button onClick={() => goToPage('pillars')} className="bg-cyan-500 text-black px-10 py-5 rounded-2xl font-black text-lg hover:shadow-cyan-500/30 shadow-xl transition-all">PŘEJÍT NA PILÍŘE</button>
-                    </RevealFx>
-                    <RevealFx delay={0.26} translateY={0.85}>
-                      <button onClick={() => goToPage('about')} className="glass-panel text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/5 transition-all">O PROJEKTU</button>
-                    </RevealFx>
-                  </div>
-                  <RevealFx delay={0.34} translateY={0.85}>
-                    <div className="max-w-xl">
-                      <MatrixFxHero
-                        isDark={isDark}
-                        darkLogoSrc={brandAssets.branding.logoAlt}
-                        lightLogoSrc={brandAssets.branding.logoPrimary}
-                        darkLogoAlt="REST||ART logo pro tmavé téma"
-                        lightLogoAlt="REST||ART logo pro světlé téma"
-                        revealFrom="bottom"
-                        label="Restart"
-                        description="Restartuj své myšlení, Daruj Druhou šanci!"
-                        bulge={{ type: 'ripple', duration: 4, intensity: 15, repeat: true }}
-                      />
-                    </div>
-                  </RevealFx>
-                </div>
-                <div className="relative group lg:-mt-40">
-                  <RevealFx delay={0.12} translateY={0.7}>
-                    <div className="relative rounded-[3.5rem] overflow-hidden shadow-2xl transform rotate-3 group-hover:rotate-0 transition-all duration-700 border-[16px] border-white/5 bg-white/5">
-                      <img src={brandAssets.heroRealistic} alt="REST||ART Integrace realistický hero vizuál" className="hero-desat w-full h-[600px] object-cover opacity-60 group-hover:opacity-100 transition-all duration-700" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-transparent opacity-80" />
-                      <div className="absolute bottom-10 left-10 text-white italic text-2xl font-serif drop-shadow-lg">"Každý příběh má právo pokračovat."</div>
-                    </div>
-                  </RevealFx>
-                </div>
-              </div>
-            </section>
-
-            <section className="py-12 px-6 max-w-7xl mx-auto">
-              <div className="grid md:grid-cols-3 gap-6">
-                {homeStatItems.map((item, idx) => (
-                  <div key={item.label} className="glass-panel p-8 rounded-3xl text-center group hover:-translate-y-1 transition-all duration-500 border-white/10">
-                    <p className="text-5xl md:text-6xl font-black text-glow-cyan leading-none mb-4">
-                      {animatedStats[idx]}{item.suffix}
-                    </p>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/35 font-black">{item.label}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="py-16 px-6">
-              <div className="max-w-7xl mx-auto">
-                <div className="space-y-4 mb-10">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Rozdělení obsahu</p>
-                  <h3 className="text-4xl md:text-6xl text-white uppercase leading-none">
-                    Nové stránky <span className="text-cyan-300 headline-thin">podle tématu</span>
-                  </h3>
-                </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[
-                    { id: 'about' as PageKey, title: 'O nás', text: 'Mise, tým, fungování integračního centra.', icon: <Users size={20} /> },
-                    { id: 'pillars' as PageKey, title: 'Pilíře', text: 'Přehled všech programů a detailní podstránky.', icon: <LayoutGrid size={20} /> },
-                    { id: 'pillar-rework' as PageKey, title: 'REWORK', text: 'Samostatná stránka programu + analýza + implementace.', icon: <Briefcase size={20} /> },
-                    { id: 'stories' as PageKey, title: 'Příběhy', text: 'Skutečné příběhy a průběžné výsledky restartu.', icon: <Quote size={20} /> },
-                    { id: 'news' as PageKey, title: 'Novinky', text: 'Aktuality a průběžné milníky projektu.', icon: <FileText size={20} /> },
-                    { id: 'zamer-uvod' as PageKey, title: 'Investiční záměr', text: 'Kompletní podklady OPZ+ v samostatných stránkách.', icon: <BarChart size={20} /> }
-                  ].map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => goToPage(item.id)}
-                      className="glass-panel p-8 rounded-[2.5rem] border-white/10 hover:border-cyan-400/30 transition-all text-left group"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-5">
-                        {item.icon}
-                      </div>
-                      <h4 className="text-2xl font-black text-white uppercase tracking-widest group-hover:text-cyan-400 transition-colors">{item.title}</h4>
-                      <p className="text-sm text-white/45 font-light leading-relaxed mt-3">{item.text}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {renderLegacyHomepageSections()}
-
-            {renderBrochureSection()}
-
-            <section className="py-24 px-6 relative">
-              <div className="max-w-4xl mx-auto glass-panel p-12 rounded-[4rem] space-y-8 relative overflow-hidden border-cyan-400/10">
-                <div className="absolute top-0 right-0 p-12 opacity-5 -rotate-12 pointer-events-none animate-pulse-glow"><Sparkles size={250} className="text-cyan-400" /></div>
-
-                <div className="space-y-4 text-center">
-                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> AI Integrační Asistent
-                  </div>
-                  <h3 className="text-4xl md:text-5xl text-white text-glow-cyan">Váš plán <span className="text-cyan-300 headline-thin">restartu</span></h3>
-                  <p className="text-white/40 font-light max-w-2xl mx-auto">Napište nám o své situaci a naše AI vám navrhne první kroky podle pilířů Integrace.</p>
-                </div>
-
-                <div className="space-y-6 relative z-10">
-                  <div className="relative group">
-                    <textarea
-                      value={userInput}
-                      onChange={(e) => setUserInput(e.target.value)}
-                      placeholder="Popište svou situaci... (např. 'Právě jsem vyšel z výkonu trestu a nemám kde bydlet')"
-                      className="w-full h-48 bg-black/40 border border-white/10 rounded-[2.5rem] p-8 text-white focus:border-cyan-400 outline-none transition-all placeholder:text-white/10 resize-none text-lg font-light leading-relaxed"
-                    />
-                    <div className="absolute bottom-6 right-6 flex gap-3">
-                      <button
-                        onClick={generateRestartPath}
-                        disabled={isLoading || !userInput.trim()}
-                        className="bg-cyan-500 text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-cyan-500/20 hover:bg-cyan-400 transition-all disabled:opacity-30 disabled:grayscale flex items-center gap-3"
-                      >
-                        {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-                        {isLoading ? 'Analyzuji...' : 'Analyzovat příběh'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {aiResponse && (
-                    <div className="bg-cyan-500/5 border border-cyan-400/20 rounded-[3rem] p-10 md:p-14 text-white/80 font-light leading-relaxed animate-in slide-in-from-bottom-8 duration-700 relative group">
-                      <div className="flex justify-between items-center mb-8 border-b border-cyan-400/10 pb-6">
-                        <div className="flex items-center gap-3 text-cyan-400">
-                          <Sparkles size={18} />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Navržený plán integrace</span>
-                        </div>
-                        <button
-                          onClick={speakPath}
-                          disabled={isSpeaking}
-                          className={`p-4 rounded-2xl transition-all ${isSpeaking ? 'bg-cyan-500 text-black animate-pulse' : 'bg-white/5 text-white/40 hover:text-cyan-400 hover:bg-white/10'}`}
-                        >
-                          <Volume2 size={20} />
-                        </button>
-                      </div>
-                      <div className="prose prose-invert max-w-none">
-                        <p className="italic font-serif text-xl md:text-2xl text-white/90 leading-relaxed">
-                          "{aiResponse}"
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            {renderHomepagePillarsSection()}
-          </>
-        );
+        return <>{renderConfiguredHomepage()}</>;
       case 'pillar-jailbreak': {
         const program = opzPrograms.find((item) => item.name === 'JAILBREAK');
         if (!program) return null;
@@ -3508,9 +3603,9 @@ const App = () => {
                   <RevealFx delay={0.08} translateY={0.72}>
                     <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
                       <MediaEnlarge
-                        src={brandAssets.homepageVisuals.silence}
-                        alt="Stačí ticho"
-                        caption="Claim vizuál Stačí ticho."
+                        src={homepageMedia.manifestSilence.src}
+                        alt={homepageMedia.manifestSilence.alt}
+                        caption={homepageMedia.manifestSilence.caption}
                         className="rounded-[2.4rem] aspect-[4/5]"
                         imgClassName="rounded-[2.4rem]"
                       />
@@ -3519,9 +3614,9 @@ const App = () => {
                   <RevealFx delay={0.16} translateY={0.84}>
                     <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
                       <MediaEnlarge
-                        src={brandAssets.homepageVisuals.everythingHasItsTime}
-                        alt="Všechno má svůj čas"
-                        caption="Claim vizuál Všechno má svůj čas."
+                        src={homepageMedia.manifestEverythingHasTime.src}
+                        alt={homepageMedia.manifestEverythingHasTime.alt}
+                        caption={homepageMedia.manifestEverythingHasTime.caption}
                         className="rounded-[2.4rem] aspect-[4/5]"
                         imgClassName="rounded-[2.4rem]"
                       />
@@ -3561,9 +3656,9 @@ const App = () => {
                     <RevealFx delay={0.1} translateY={0.7}>
                       <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
                         <MediaEnlarge
-                          src={brandAssets.homepageVisuals.challenge}
-                          alt="Výzva RESTART"
-                          caption="Silný výzvový vizuál RESTART pro přidání se k projektu."
+                          src={homepageMedia.manifestChallenge.src}
+                          alt={homepageMedia.manifestChallenge.alt}
+                          caption={homepageMedia.manifestChallenge.caption}
                           className="rounded-[2.4rem] aspect-square"
                           imgClassName="rounded-[2.4rem]"
                         />
@@ -3916,7 +4011,9 @@ const App = () => {
                     </div>
                   </div>
                   <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 flex items-center gap-6">
-                    <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-400"><Users size={32} /></div>
+                    <div className="w-16 h-16 rounded-2xl overflow-hidden border border-cyan-400/20 bg-cyan-500/10">
+                      <img src={brandAssets.branding.founderAvatar} alt="David Kozák" className="w-full h-full object-cover" />
+                    </div>
                     <div>
                       <p className="text-[10px] uppercase tracking-widest text-white/30 font-black mb-1">Zodpovědná osoba</p>
                       <p className="text-xl font-bold text-white">David Kozák</p>
@@ -4520,7 +4617,7 @@ const App = () => {
                        <div className="glass-panel p-8 rounded-[3rem] border-white/5 space-y-6">
                          <div className="flex items-center gap-6">
                            <div className="w-16 h-16 rounded-2xl overflow-hidden grayscale border-2 border-cyan-400/20">
-                             <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200" alt="David Kozák" className="w-full h-full object-cover" />
+                             <img src={brandAssets.branding.founderAvatar} alt="David Kozák" className="w-full h-full object-cover" />
                            </div>
                            <div>
                              <h4 className="text-xl font-bold text-white">David Kozák</h4>
