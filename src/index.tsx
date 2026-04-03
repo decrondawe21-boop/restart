@@ -652,6 +652,34 @@ const App = () => {
     { name: 'Dlouhodobé vybavení', value: 5, color: '#fbbf24' },
     { name: 'Zřízení územních pracovišť', value: 5, color: '#f97316' }
   ];
+  const projectContextIndicators = [
+    {
+      value: '57-75 %',
+      label: 'Míra recidivy v ČR',
+      description: 'Rozsah, ve kterém se podle dostupných studií pohybuje návrat do systému bez návazné podpory.'
+    },
+    {
+      value: '66 %',
+      label: 'UNODC pilot 2022',
+      description: 'Pilotní studie UNODC z roku 2022 uvádí recidivu v České republice až na úrovni 66 %.'
+    },
+    {
+      value: '68 500',
+      label: 'Osob bez domova',
+      description: 'Odhad MPSV a FEANTSA z roku 2018 ukazuje, jak široká je cílová skupina vyloučených osob.'
+    },
+    {
+      value: '100 000+',
+      label: 'Horní odhad rozsahu',
+      description: 'Další evropské zdroje mluví o ještě vyšším počtu lidí bez stabilního zázemí a návazné podpory.'
+    }
+  ];
+  const projectContextSources = [
+    '1. Kantová, K. (2023). Ex-Prisoners and the Labour Market in the Czech Republic.',
+    '2. UNODC (2022). Criminal Recidivism Pilot Study: Global Statistics and Trends.',
+    '3. Ministerstvo práce a sociálních věcí (MPSV), FEANTSA (2018). Odhad počtu osob bez domova v ČR.',
+    '4. OECD / Homeless World Cup Foundation (2022). Homelessness in Europe: ETHOS Light statistics.'
+  ];
   const phaseBudgetRows = [
     { phase: 'Příprava a koordinace', date: 'měsíce 1-2', budget: 150_000 },
     { phase: 'Výběr účastníků a vstupní diagnostika', date: 'měsíce 2-4', budget: 80_000 },
@@ -1215,16 +1243,24 @@ const App = () => {
   const dkiIdentityBlocks = [
     {
       title: 'Kdo jsme',
-      text: 'Jsme multidisciplinární platforma propojující umění, osobní rozvoj, transformační práci a integraci hlubokých nebo změněných stavů vědomí. Vycházíme z lidské zkušenosti a tvoříme bezpečné, esteticky silné a smysluplné prostory pro individuální i kolektivní růst.'
+      text: 'Jsme multidisciplinární platforma propojující umění, integraci psychedelických a hlubokých zážitků, osobní rozvoj a transformační práci. Vycházíme z lidské zkušenosti a tvoříme bezpečné, esteticky silné a smysluplné prostory pro individuální i kolektivní růst.'
     },
     {
       title: 'Co děláme',
-      text: 'Realizujeme projekty jako REST||ART INTEGRACE, JAILBREAK a REWORK, které kombinují facilitaci, mentoring, vzdělávání a umělecký výraz. Vytváříme formáty pro vnitřní práci, komunitní setkávání, integrační podporu i kreativní laboratoř pro nové vize.'
+      text: 'Realizujeme projekty jako REST||ART INTEGRACE, JAILBREAK nebo REWORK, které kombinují facilitaci, mentoring, vzdělávání a umělecký výraz. Vytváříme formáty pro vnitřní práci od seberozvojových retreatů po multimediální performance, komunitní kruhy a kreativní laboratoř pro nové vize.'
     },
     {
       title: 'Co nás dělá výjimečnými',
-      text: 'Propojujeme spirituální hloubku s profesionálním rámcem, alternativu s estetikou, zranitelnost se silou. Projekty vedou lidé, kteří sami žijí to, co sdílejí, a značka má přesah do ČR i zahraničí.'
+      text: 'Propojujeme spirituální hloubku s profesionálním rámcem, alternativu s estetikou a zranitelnost se silou. Projekty vedou lidé, kteří sami žijí to, co sdílejí, a značka má přesah do ČR i zahraničí.'
     }
+  ];
+
+  const dkiDistinctives = [
+    'Autenticita: Neprodáváme instantní recepty. Věříme v sílu opravdového setkání a osobního přístupu.',
+    'Propojování světů: Spojujeme spirituální hloubku s profesionálním rámcem, alternativu s estetikou a zranitelnost se silou.',
+    'Design & estetika: Každý detail našich projektů odráží úctu k vizuální kultuře a vědomému designu.',
+    'Tým a komunita: Projekty vedou zkušení facilitátoři, umělci a průvodci, kteří sami žijí to, co sdílejí.',
+    'Mezinárodní přesah: Působíme nejen v ČR, ale i v zahraničí a navazujeme partnerství napříč obory.'
   ];
 
   const pillarPageMap: Record<string, PageKey> = {
@@ -2032,9 +2068,10 @@ const App = () => {
                 jednotlivce bez budoucnosti ve stabilní součást společnosti.
               </p>
               <p className="text-lg text-white/40">
-                Nechceme se pouštět do iluze, že změníme celý systém. Chceme ale změnit způsob, jakým se k jednotlivcům na
-                jeho okraji přistupuje. Zaměřujeme se na dlouhodobé problémy, jako jsou nezaměstnanost, recidiva a
-                závislosti, a hledáme způsob, jak z nich vytvořit fungující sílu.
+                Nechceme se pouštět do iluze, že změníme celý systém. Ale chceme změnit způsob, jakým se k jednotlivcům na
+                jeho okraji přistupuje. Zaměřujeme se na dlouhodobé problémy společnosti, jako jsou nezaměstnanost,
+                recidiva, závislosti a opomíjené skupiny, a hledáme způsob, jak z nich vytvořit fungující sílu místo
+                pasivního nákladu.
               </p>
             </div>
 
@@ -2044,8 +2081,9 @@ const App = () => {
                 <h4 className="font-bold tracking-widest uppercase text-xs">Zastřešující platforma</h4>
               </div>
               <p className="text-sm text-white/40 font-light leading-relaxed">
-                REST||ART usiluje o propojení všech aktérů. Chceme vytvořit platformu, pod kterou nebude nutné bojovat o
-                dotace, ale kde bude balík koordinovaně přerozdělen podle skutečné potřeby.
+                REST||ART usiluje o propojení všech aktérů, i těch, kteří se dnes vnímají jako konkurenti. Chceme vytvořit
+                platformu, pod kterou nebude nutné bojovat o dotace, ale kde bude celý balík koordinovaně přerozdělen
+                podle skutečné potřeby, ve spolupráci a důvěře.
               </p>
             </div>
           </div>
@@ -2068,9 +2106,41 @@ const App = () => {
                   <h4 className="text-sm font-black uppercase tracking-widest text-white/80">Ambasadoři změny</h4>
                 </div>
                 <p className="text-sm text-white/30 font-light leading-relaxed">
-                  U osob se zkušeností se závislostí počítáme s jejich zaměstnáním přímo pod značkou DKI jako ambasadorů,
-                  kteří sdílejí svou zkušenost. Podmínkou je potvrzená abstinence a spolupráce se sociálními službami.
+                  U osob závislých počítáme s možností jejich zaměstnání přímo pod značkou DKI jako prezentujících osob a
+                  ambasadorů změny, kteří budou jezdit po centrech a sdílet svou zkušenost. Podmínkou je spolupráce se
+                  sociálními službami a potvrzená abstinence.
                 </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {projectContextIndicators.map((item) => (
+                <div key={item.label} className="glass-panel p-6 rounded-[2rem] border-white/10 bg-white/[0.02] space-y-3">
+                  <p className="text-3xl font-black text-white">{item.value}</p>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">{item.label}</p>
+                  <p className="text-sm text-white/35 font-light leading-relaxed">{item.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="glass-panel p-8 rounded-[2.5rem] border-white/10 bg-white/[0.02] space-y-6">
+              <div className="flex items-center gap-4 text-cyan-400">
+                <BarChart size={20} />
+                <h4 className="text-xs font-black uppercase tracking-[0.3em]">Analytické východisko</h4>
+              </div>
+              <p className="text-sm text-white/45 font-light leading-relaxed">
+                REST||ART vychází z aktuálního stavu společnosti. Míra recidivy v České republice se pohybuje mezi 57-75 %.
+                Pilotní studie UNODC z roku 2022 eviduje recidivu v ČR až 66 %. Počet osob bez domova podle MPSV a FEANTSA
+                dosahoval v roce 2018 přibližně 68 500 lidí, přičemž jiné zdroje mluví i o více než 100 000 osobách.
+              </p>
+              <div className="grid gap-3 md:grid-cols-2">
+                {projectContextSources.map((source) => (
+                  <div key={source} className="rounded-[1.6rem] border border-white/10 bg-black/20 px-5 py-4 text-sm text-white/35 font-light leading-relaxed">
+                    {source}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -2209,16 +2279,21 @@ const App = () => {
               </h2>
               <p className="text-lg text-white/40 font-light leading-relaxed">
                 V tomto prostoru lze zaměstnat osoby ve výkonu trestu, ale také civilní pracovníky z řad dlouhodobě
-                nezaměstnaných nebo lidí bez domova. Tím se propojuje několik cílových skupin v jednom provozu.
+                nezaměstnaných nebo lidí bez domova. Tím se propojuje několik cílových skupin v jednom provozu a vzniká
+                prostor pro spolupráci mezi státem, neziskovým sektorem a komerční sférou.
               </p>
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
                   <h5 className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Logistika & Bezpečnost</h5>
-                  <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťují státní složky, ÚP a věznice.</p>
+                  <p className="text-xs text-white/40 leading-relaxed font-light">Státní složky, ÚP a věznice zajišťují základní logistiku, bezpečnost a rámec pilotu.</p>
                 </div>
                 <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
                   <h5 className="text-[10px] font-black uppercase tracking-widest text-teal-400">Terénní práce</h5>
-                  <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťuje neziskový sektor.</p>
+                  <p className="text-xs text-white/40 leading-relaxed font-light">Neziskovky mohou poskytovat terénní pracovníky a návazné služby pro stabilizaci člověka.</p>
+                </div>
+                <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2 sm:col-span-2">
+                  <h5 className="text-[10px] font-black uppercase tracking-widest text-amber-300">Zaměstnavatelská vrstva</h5>
+                  <p className="text-xs text-white/40 leading-relaxed font-light">Zaměstnavatelé získávají motivovanou pracovní sílu bez potřeby zajišťovat externí kontrolní systém.</p>
                 </div>
               </div>
               <p className="text-sm text-white/20 italic font-light">
@@ -2827,12 +2902,12 @@ const App = () => {
                     O nás
                   </div>
                   <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
-                    REST<span className="text-cyan-400/60">||</span>ART <br />
-                    <span className="text-cyan-300 headline-thin">Integrace</span>
+                    DKI s.r.o. <span className="text-cyan-400/60">&</span> <br />
+                    <span className="text-cyan-300 headline-thin">REST||ART Integrace</span>
                   </h2>
                 </div>
                 <p className="text-white/40 font-light max-w-md">
-                  Propojujeme osobní rozvoj, umění, terapeutickou práci a sociální reintegraci do platformy, která staví most mezi vnitřní proměnou a každodenní realitou.
+                  REST||ART, JAILBREAK, REWORK a další podprogramy tvoří jednu značku, která propojuje vnitřní proměnu, estetiku, profesionální rámec a každodenní realitu.
                 </p>
               </div>
 
@@ -2867,7 +2942,7 @@ const App = () => {
                 <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-cyan-400/15 bg-cyan-500/[0.03] space-y-6">
                   <div className="space-y-3">
                     <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">David Kozák International s.r.o.</p>
-                    <h3 className="text-3xl text-white font-black tracking-[0.08em] uppercase">Zastřešující entita</h3>
+                    <h3 className="text-3xl text-white font-black tracking-[0.08em] uppercase">Identita značky</h3>
                   </div>
                   <p className="text-white/55 font-light leading-relaxed">
                     {publicContact.companyName} je zastřešující entita všech projektů a aktivit Davida Kozáka. Zajišťuje
@@ -2894,6 +2969,46 @@ const App = () => {
                       <p className="text-sm text-white/50 font-light leading-relaxed">{item.text}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-[1.05fr,0.95fr] gap-8 items-start">
+                <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-white/10 space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Co nás dělá výjimečnými</p>
+                    <h3 className="text-3xl text-white font-black tracking-[0.08em] uppercase">Síla značky DKI</h3>
+                  </div>
+                  <div className="space-y-4">
+                    {dkiDistinctives.map((item) => (
+                      <div key={item} className="rounded-[1.7rem] border border-white/10 bg-white/[0.03] px-5 py-5">
+                        <p className="text-sm text-white/55 font-light leading-relaxed">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-white/10 space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Obchodní činnost – DKI s.r.o.</p>
+                    <h3 className="text-3xl text-white font-black tracking-[0.08em] uppercase">Profesionální zázemí</h3>
+                  </div>
+                  <p className="text-white/55 font-light leading-relaxed">
+                    {publicContact.companyName} je rovněž obchodní společnost, která nabízí profesionální zázemí pro dočasné
+                    zaměstnávání živnostníků a specialistů do zahraničí. Díky právnímu a organizačnímu rámci umožňuje efektivní
+                    a legální spolupráci na projektech v EU i mimo ni.
+                  </p>
+                  <p className="text-white/40 font-light leading-relaxed">
+                    Specializujeme se na podporu svobodných profesionálů, kteří působí v oblastech vzdělávání, facilitace,
+                    kreativního průmyslu či osobního rozvoje. Obchodní větev značky tak doplňuje transformační a integrační
+                    projekty o reálné provozní a mezinárodní zázemí.
+                  </p>
+                  <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-500/[0.04] p-6">
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-400 font-black mb-2">Přesah značky</p>
+                    <p className="text-sm text-white/50 font-light leading-relaxed">
+                      DKI drží právní, organizační i strategickou vrstvu. REST||ART a jeho podprogramy pak nesou obsah, vizi,
+                      práci s lidmi a transformační zkušenost.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -4621,7 +4736,7 @@ const App = () => {
                       Cílem projektu REST||ART je vytvořit komplexní, propojený systém sociální reintegrace, který přetváří jednotlivce bez budoucnosti ve stabilní součást společnosti.
                     </p>
                     <p className="text-lg text-white/40">
-                      Nechceme se pouštět do iluze, že změníme celý systém. Ale chceme změnit způsob, jakým se k jednotlivcům na jeho okraji přistupuje. Zaměřujeme se na dlouhodobé problémy – nezaměstnanost, recidivu, závislosti – a hledáme způsob, jak z nich vytvořit fungující sílu.
+                      Nechceme se pouštět do iluze, že změníme celý systém. Ale chceme změnit způsob, jakým se k jednotlivcům na jeho okraji přistupuje. Zaměřujeme se na dlouhodobé problémy společnosti, jako jsou nezaměstnanost, recidiva, závislosti a opomíjené skupiny, a hledáme způsob, jak z nich vytvořit fungující sílu místo pasivního nákladu.
                     </p>
                   </div>
 
@@ -4631,7 +4746,7 @@ const App = () => {
                       <h4 className="font-bold tracking-widest uppercase text-xs">Zastřešující platforma</h4>
                     </div>
                     <p className="text-sm text-white/40 font-light leading-relaxed">
-                      REST||ART usiluje o propojení všech aktérů. Chceme vytvořit platformu, pod kterou nebude nutné bojovat o dotace, ale kde bude balík koordinovaně přerozdělen podle skutečné potřeby.
+                      REST||ART usiluje o propojení všech aktérů, i těch, kteří se dnes vnímají jako konkurenti. Chceme vytvořit platformu, pod kterou nebude nutné bojovat o dotace, ale kde bude celý balík koordinovaně přerozdělen podle skutečné potřeby, ve spolupráci a důvěře.
                     </p>
                   </div>
                 </div>
@@ -4653,8 +4768,37 @@ const App = () => {
                         <h4 className="text-sm font-black uppercase tracking-widest text-white/80">Ambasadoři změny</h4>
                       </div>
                       <p className="text-sm text-white/30 font-light leading-relaxed">
-                        U osob závislých počítáme s jejich zaměstnáním přímo pod značkou DKI jako ambasadorů, kteří sdílejí svou zkušenost. Podmínkou je potvrzená abstinence a spolupráce se sociálními službami.
+                        U osob závislých počítáme s možností jejich zaměstnání přímo pod značkou DKI jako prezentujících osob a ambasadorů změny, kteří budou jezdit po centrech a sdílet svou zkušenost. Podmínkou je spolupráce se sociálními službami a potvrzená abstinence.
                       </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-12 space-y-6">
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    {projectContextIndicators.map((item) => (
+                      <div key={item.label} className="glass-panel p-6 rounded-[2rem] border-white/10 bg-white/[0.02] space-y-3">
+                        <p className="text-3xl font-black text-white">{item.value}</p>
+                        <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">{item.label}</p>
+                        <p className="text-sm text-white/35 font-light leading-relaxed">{item.description}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="glass-panel p-8 rounded-[2.5rem] border-white/10 bg-white/[0.02] space-y-6">
+                    <div className="flex items-center gap-4 text-cyan-400">
+                      <BarChart size={20} />
+                      <h4 className="text-xs font-black uppercase tracking-[0.3em]">Analytické východisko</h4>
+                    </div>
+                    <p className="text-sm text-white/45 font-light leading-relaxed">
+                      REST||ART vychází z aktuálního stavu společnosti. Míra recidivy v České republice se pohybuje mezi 57-75 %. Pilotní studie UNODC z roku 2022 eviduje recidivu v ČR až 66 %. Počet osob bez domova podle MPSV a FEANTSA dosahoval v roce 2018 přibližně 68 500 lidí, přičemž jiné zdroje mluví i o více než 100 000 osobách.
+                    </p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {projectContextSources.map((source) => (
+                        <div key={source} className="rounded-[1.6rem] border border-white/10 bg-black/20 px-5 py-4 text-sm text-white/35 font-light leading-relaxed">
+                          {source}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -4701,20 +4845,21 @@ const App = () => {
                     <p className="text-lg text-white/40 font-light leading-relaxed">
                       Pilotní model plánujeme realizovat ve věznici Jiřice, kde je možné využít nabídku pronájmu skladové haly.
                       V tomto prostoru lze zaměstnat osoby ve výkonu trestu i civilní pracovníky z řad dlouhodobě nezaměstnaných
-                      nebo lidí bez domova, takže se propojí několik cílových skupin v jednom provozu.
+                      nebo lidí bez domova, takže se propojí několik cílových skupin v jednom provozu a vzniká prostor pro
+                      spolupráci mezi státem, neziskovým sektorem a komerční sférou.
                     </p>
                     <div className="grid sm:grid-cols-3 gap-6">
                       <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
                         <h5 className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Logistika & Bezpečnost</h5>
-                        <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťují státní složky, ÚP a věznice.</p>
+                        <p className="text-xs text-white/40 leading-relaxed font-light">Státní složky, ÚP a věznice zajišťují základní logistiku, bezpečnost a rámec pilotu.</p>
                       </div>
                       <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
                         <h5 className="text-[10px] font-black uppercase tracking-widest text-teal-400">Terénní práce</h5>
-                        <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťují neziskovky a komunitní pracovníci.</p>
+                        <p className="text-xs text-white/40 leading-relaxed font-light">Neziskovky mohou poskytovat terénní pracovníky a návazné služby pro stabilizaci člověka.</p>
                       </div>
                       <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
-                        <h5 className="text-[10px] font-black uppercase tracking-widest text-amber-300">Komerční vrstva</h5>
-                        <p className="text-xs text-white/40 leading-relaxed font-light">Partner získává motivovanou pracovní sílu bez nutnosti budovat externí kontrolní systém.</p>
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-amber-300">Zaměstnavatelská vrstva</h5>
+                        <p className="text-xs text-white/40 leading-relaxed font-light">Zaměstnavatelé získávají motivovanou pracovní sílu bez potřeby zajišťovat externí kontrolní systém.</p>
                       </div>
                     </div>
                     <p className="text-sm text-white/20 italic font-light">

@@ -6,6 +6,7 @@ import {
   ImagePlus,
   Loader2,
   LogOut,
+  Menu,
   PencilLine,
   Plus,
   RefreshCw,
@@ -13,7 +14,8 @@ import {
   ShieldCheck,
   LayoutTemplate,
   Trash2,
-  Upload
+  Upload,
+  X
 } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
@@ -103,6 +105,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [entries, setEntries] = useState<CmsEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [adminView, setAdminView] = useState<'content' | 'homepage'>('content');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeType, setActiveType] = useState<CmsEntryType>('news');
   const [editorState, setEditorState] = useState<EditableEntry>(createEmptyEntry('news'));
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -170,6 +173,25 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       setEditorState((prev) => (prev.type === activeType && !prev.id ? prev : createEmptyEntry(activeType)));
     }
   }, [activeType, filteredEntries, selectedId]);
+
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isSidebarOpen]);
 
   if (authReady && (!session || !isAdmin)) {
     return <Navigate to="/admin/login" replace />;
@@ -313,6 +335,169 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   return (
     <div className="min-h-screen px-6 py-8">
+      <div
+        className={`fixed inset-0 z-40 bg-black/70 backdrop-blur-sm transition duration-300 ${
+          isSidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
+      <aside
+        className={`fixed left-4 top-4 bottom-4 z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col rounded-[3rem] border border-white/10 bg-[#031114]/96 p-5 shadow-[0_40px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-transform duration-300 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-[120%]'
+        }`}
+      >
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-3 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">
+              <ShieldCheck size={13} />
+              Admin menu
+            </div>
+            <div>
+              <h2 className="text-2xl font-black uppercase text-white">Řídicí lišta</h2>
+              <p className="mt-2 text-sm text-white/40">Rychlé přepínání editorů, obsahu a operací bez hledání v dlouhé stránce.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(false)}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-white/65 transition hover:border-cyan-400/30 hover:text-cyan-300"
+            aria-label="Zavřít admin menu"
+          >
+            <X size={17} />
+          </button>
+        </div>
+
+        <div className="space-y-5 overflow-y-auto pr-1">
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Pracovní plochy</p>
+            <div className="mt-4 space-y-3">
+              {([
+                ['content', 'Obsahový editor', 'Aktuality, blog a publikace.'],
+                ['homepage', 'Homepage builder', 'Sekce, sloty a widgety.']
+              ] as const).map(([view, title, description]) => (
+                <button
+                  key={view}
+                  type="button"
+                  onClick={() => {
+                    setAdminView(view);
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`w-full rounded-[1.6rem] border px-4 py-4 text-left transition ${
+                    adminView === view
+                      ? 'border-cyan-400/30 bg-cyan-500/10'
+                      : 'border-white/10 bg-black/20 hover:border-cyan-400/20'
+                  }`}
+                >
+                  <p className="text-sm font-black uppercase tracking-[0.18em] text-white">{title}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/40">{description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {adminView === 'content' && (
+            <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Typ obsahu</p>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {([
+                  ['news', 'Aktuality'],
+                  ['blog', 'Blog']
+                ] as Array<[CmsEntryType, string]>).map(([type, label]) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => {
+                      setActiveType(type);
+                      setSelectedId(null);
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`rounded-[1.5rem] border px-4 py-4 text-left transition ${
+                      activeType === type
+                        ? 'border-cyan-400/30 bg-cyan-500/10 text-cyan-200'
+                        : 'border-white/10 bg-black/20 text-white/60 hover:border-cyan-400/20'
+                    }`}
+                  >
+                    <p className="text-xs font-black uppercase tracking-[0.18em]">{label}</p>
+                    <p className="mt-2 text-[11px] leading-relaxed text-white/35">
+                      {type === 'news' ? 'Krátké zprávy, výzvy a oznámení.' : 'Delší texty a rozšířený obsah.'}
+                    </p>
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleNewEntry(activeType);
+                  setIsSidebarOpen(false);
+                }}
+                className="mt-4 flex w-full items-center gap-3 rounded-[1.6rem] border border-dashed border-cyan-400/20 bg-cyan-500/5 px-4 py-4 text-left transition hover:border-cyan-400/35"
+              >
+                <FilePlus2 size={16} className="text-cyan-300" />
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Nová položka</p>
+                  <p className="mt-1 text-sm text-white/40">Okamžitě otevře prázdný editor pro {activeType === 'news' ? 'aktualitu' : 'blog'}.</p>
+                </div>
+              </button>
+            </div>
+          )}
+
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Rychlé akce</p>
+            <div className="mt-4 space-y-3">
+              <button
+                type="button"
+                onClick={() => void syncAdminEntries()}
+                className="flex w-full items-center gap-3 rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-4 text-left text-white/65 transition hover:border-cyan-400/20 hover:text-cyan-300"
+              >
+                <RefreshCw size={16} />
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em]">Obnovit data</p>
+                  <p className="mt-1 text-sm text-white/35">Natáhne čerstvý stav ze Supabase.</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className="flex w-full items-center gap-3 rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-4 text-left text-white/65 transition hover:border-cyan-400/20 hover:text-cyan-300"
+              >
+                <ShieldCheck size={16} />
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em]">{isDark ? 'Přepnout na light' : 'Přepnout na dark'}</p>
+                  <p className="mt-1 text-sm text-white/35">Rychlá změna motivu administrační vrstvy.</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-3 rounded-[1.5rem] border border-red-500/20 bg-red-500/10 px-4 py-4 text-left text-red-100 transition hover:bg-red-500/15"
+              >
+                <LogOut size={16} />
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em]">Odhlásit</p>
+                  <p className="mt-1 text-sm text-red-100/70">Bezpečně ukončí administrační relaci.</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-cyan-400/20 bg-cyan-500/5 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Stav systému</p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+                <p className="text-2xl font-black text-white">{dashboardStats.total}</p>
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/35">Záznamy</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+                <p className="text-2xl font-black text-white">{dashboardStats.published}</p>
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/35">Publikováno</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
       <div className="mx-auto max-w-[1700px] space-y-8">
         <div className="glass-panel flex flex-col gap-5 rounded-[3rem] border-white/10 p-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">
@@ -329,6 +514,14 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.22em] text-cyan-300 transition hover:border-cyan-400/35 hover:bg-cyan-500/15"
+            >
+              <Menu size={15} />
+              Lišta
+            </button>
             <button
               type="button"
               onClick={onToggleTheme}
@@ -356,23 +549,46 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         </div>
 
         <div className="glass-panel rounded-[2.8rem] border-white/10 p-3">
-          <div className="grid gap-2 md:grid-cols-2">
+          <div className="mb-4 px-3 pt-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Přepínač pracovních ploch</p>
+            <h2 className="mt-3 text-2xl font-black text-white">Editor jako dashboard</h2>
+            <p className="mt-2 max-w-3xl text-sm text-white/40">
+              Místo malých přepínačů máš teď větší pracovní karty. Přeskakuješ mezi obsahem, homepage builderem a rychlými akcemi bez ztráty kontextu.
+            </p>
+          </div>
+          <div className="grid gap-3 xl:grid-cols-3">
             {([
-              ['content', 'Obsah a články', 'Aktuality, blog a rich text editor.'],
-              ['homepage', 'Homepage builder', 'Widgety, pořadí sekcí a fixní obrazové sloty.']
-            ] as const).map(([view, title, description]) => (
+              ['content', 'Obsah a články', 'Aktuality, blog a rich text editor.', adminView === 'content' ? `Aktivní: ${activeType === 'news' ? 'Aktuality' : 'Blog'}` : `${dashboardStats.total} záznamů`],
+              ['homepage', 'Homepage builder', 'Widgety, pořadí sekcí a fixní obrazové sloty.', 'Sekce, sloty a widgety'],
+              ['create', 'Rychlý start', 'Otevři nový záznam nebo vysouvací menu s operacemi.', adminView === 'content' ? 'Nová položka / menu' : 'Menu / obnovit']
+            ] as const).map(([view, title, description, meta]) => (
               <button
                 key={view}
                 type="button"
-                onClick={() => setAdminView(view)}
+                onClick={() => {
+                  if (view === 'create') {
+                    if (adminView === 'content') {
+                      handleNewEntry(activeType);
+                    } else {
+                      setIsSidebarOpen(true);
+                    }
+                    return;
+                  }
+                  setAdminView(view);
+                }}
                 className={`rounded-[2rem] px-5 py-4 text-left transition ${
                   adminView === view
                     ? 'bg-cyan-500 text-black'
                     : 'bg-white/[0.03] text-white/70 hover:border-cyan-400/20 hover:bg-white/[0.05]'
                 }`}
               >
-                <p className="text-xs font-black uppercase tracking-[0.22em]">{title}</p>
-                <p className={`mt-2 text-sm leading-relaxed ${adminView === view ? 'text-black/70' : 'text-white/40'}`}>
+                <div className="flex items-start justify-between gap-4">
+                  <p className="text-xs font-black uppercase tracking-[0.22em]">{title}</p>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${adminView === view ? 'bg-black/10 text-black/70' : 'bg-black/20 text-white/35'}`}>
+                    {meta}
+                  </span>
+                </div>
+                <p className={`mt-3 text-sm leading-relaxed ${adminView === view ? 'text-black/70' : 'text-white/40'}`}>
                   {description}
                 </p>
               </button>
