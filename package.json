@@ -11,6 +11,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@supabase/supabase-js": "^2.101.1",
+    "@tiptap/extension-image": "^3.22.1",
+    "@tiptap/extension-link": "^3.22.1",
+    "@tiptap/pm": "^3.22.1",
+    "@tiptap/react": "^3.22.1",
+    "@tiptap/starter-kit": "^3.22.1",
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

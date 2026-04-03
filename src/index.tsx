@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './index.css';
 import BlogPage, { type BlogPost } from './pages/BlogPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminLoginPage from './pages/AdminLoginPage';
 import BlockQuote from './components/BlockQuote';
 import ContactModal from './components/ContactModal';
 import Carousel from './components/Carousel';
@@ -10,6 +13,8 @@ import MediaEnlarge from './components/MediaEnlarge';
 import ParticleBackground from './components/ParticleBackground';
 import RadialGauge from './components/RadialGauge';
 import RevealFx from './components/RevealFx';
+import { fetchPublicEntries, isCurrentUserAdmin, mapCmsEntryToBlogPost } from './lib/cms';
+import { isSupabaseConfigured, supabase } from './lib/supabase';
 import { 
   Menu, X, ArrowRight, Heart, Briefcase, DoorOpen, Home, 
   ShieldCheck, Leaf, Instagram, Facebook, Globe, Users, 
@@ -282,8 +287,14 @@ const App = () => {
     if (savedTheme === 'light') return false;
     return true;
   });
+  const [adminSession, setAdminSession] = useState<Session | null>(null);
+  const [authReady, setAuthReady] = useState(!isSupabaseConfigured);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const [publicNewsPosts, setPublicNewsPosts] = useState<BlogPost[]>([]);
+  const [publicBlogPosts, setPublicBlogPosts] = useState<BlogPost[]>([]);
 
   const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
+  const isAdminRoute = normalizedPath === '/admin' || normalizedPath.startsWith('/admin/');
   const resolvedPath = normalizedPath === pagePathMap.contacts ? pagePathMap.home : normalizedPath;
   const currentPage =
     (Object.entries(pagePathMap).find(([, path]) => path === resolvedPath)?.[0] as PageKey | undefined) ?? 'home';
@@ -330,6 +341,94 @@ const App = () => {
     window.localStorage.setItem('restart-theme', isDark ? 'dark' : 'light');
     document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
   }, [isDark]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setAuthReady(true);
+      return;
+    }
+
+    let isMounted = true;
+
+    const syncSession = async (session: Session | null) => {
+      if (!isMounted) return;
+
+      setAdminSession(session);
+
+      if (!session) {
+        setHasAdminAccess(false);
+        setAuthReady(true);
+        return;
+      }
+
+      try {
+        const access = await isCurrentUserAdmin();
+        if (isMounted) {
+          setHasAdminAccess(access);
+        }
+      } catch (error) {
+        console.error('Admin check failed', error);
+        if (isMounted) {
+          setHasAdminAccess(false);
+        }
+      } finally {
+        if (isMounted) {
+          setAuthReady(true);
+        }
+      }
+    };
+
+    supabase.auth
+      .getSession()
+      .then(({ data }) => syncSession(data.session ?? null))
+      .catch((error) => {
+        console.error('Session bootstrap failed', error);
+        if (isMounted) {
+          setAdminSession(null);
+          setHasAdminAccess(false);
+          setAuthReady(true);
+        }
+      });
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void syncSession(session);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    let isMounted = true;
+
+    const syncPublicPosts = async () => {
+      try {
+        const [newsEntries, blogEntries] = await Promise.all([
+          fetchPublicEntries('news'),
+          fetchPublicEntries('blog')
+        ]);
+
+        if (!isMounted) return;
+
+        setPublicNewsPosts(newsEntries.map(mapCmsEntryToBlogPost));
+        setPublicBlogPosts(blogEntries.map(mapCmsEntryToBlogPost));
+      } catch (error) {
+        console.error('Public CMS fetch failed', error);
+      }
+    };
+
+    void syncPublicPosts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -767,26 +866,45 @@ const App = () => {
     }
   ];
 
-  const blogPosts: BlogPost[] = [
+  const defaultNewsPosts: BlogPost[] = [
+    {
+      title: "Žádost o PP: Majer Jaroslav - REST||ART se připojuje",
+      date: "duben 2026",
+      category: "Postpenitenciární péče",
+      excerpt: "REST||ART se připojuje k žádosti o podmíněné propuštění a potvrzuje návaznou podporu po výstupu: doprovod při propuštění, zajištěné ubytování v Ústí nad Labem, předjednané pracovní uplatnění, sociální asistenci, dluhové poradenství a pravidelný mentoring v průběhu zkušební doby.",
+      contentHtml:
+        "<p>REST||ART se připojuje k žádosti o podmíněné propuštění pana Majera Jaroslava a potvrzuje připravenost převzít návaznou postpenitenciární podporu ihned po výstupu.</p><h3>Co po propuštění zajišťujeme</h3><ul><li>doprovod při výstupu a stabilizační kontakt v prvních dnech</li><li>ubytování na adrese Drážďanská 51/52, 400 07 Ústí nad Labem</li><li>předjednané pracovní uplatnění a pomoc s nástupem do režimu</li><li>sociální asistenci a orientaci v běžném fungování po výkonu trestu</li><li>dluhové poradenství a průběžný mentoring během zkušební doby</li></ul><p>Cílem je, aby propuštění nebylo jednorázovým aktem, ale reálným přechodem do stabilnějšího života. REST||ART se v tomto případě nepřipojuje jen formálně, ale deklaruje konkrétní kapacitu a odpovědnost za návaznou podporu.</p>"
+    }
+  ];
+
+  const defaultBlogPosts: BlogPost[] = [
     {
       title: "Brána na svobodu: proč práce rozhoduje o návratu do života",
       date: "říjen 2025",
       category: "Analýza",
-      excerpt: "Zaměstnání není jen příjem. Je to bod obratu, který snižuje recidivu, vrací důstojnost a dává člověku nový rytmus."
+      excerpt: "Zaměstnání není jen příjem. Je to bod obratu, který snižuje recidivu, vrací důstojnost a dává člověku nový rytmus.",
+      contentHtml:
+        "<p>Práce je v logice REST||ART víc než pracovní smlouva. Je to struktura dne, nové sociální vazby, odpovědnost a možnost znovu vidět vlastní hodnotu.</p><p>Bez pracovního ukotvení se návrat z výkonu trestu nebo z dlouhodobého vyloučení často rozpadá na sérii improvizovaných kroků. Naopak včasný vstup do smysluplné práce umí stabilizovat finance, režim i vztahy.</p>"
     },
     {
       title: "Strategická zpráva REST||ART: ekonomická efektivita versus systémová zátěž",
       date: "listopad 2025",
       category: "Strategie",
-      excerpt: "Současný systém stojí veřejné rozpočty miliardy korun, zatímco cílená reintegrace umí snížit recidivu i dlouhodobé náklady."
+      excerpt: "Současný systém stojí veřejné rozpočty miliardy korun, zatímco cílená reintegrace umí snížit recidivu i dlouhodobé náklady.",
+      contentHtml:
+        "<p>Model REST||ART stojí na jednoduchém principu: investice do včasné stabilizace a pracovní reintegrace je levnější než opakované selhání systému.</p><p>Do výpočtů vstupují náklady na výkon trestu, sociální dávky, zdravotní zátěž i ztracený ekonomický potenciál. Proto na webu pracujeme s návratností, rozpočty i měřitelnými přínosy po jednotlivých programech.</p>"
     },
     {
       title: "Tone of Voice REST||ART: důstojný, přímý a transformační jazyk",
       date: "leden 2026",
       category: "Značka",
-      excerpt: "Komunikace projektu staví na empatii, odvaze a výzvě k akci. Bez patosu, bez lítosti, s respektem ke skutečným příběhům."
+      excerpt: "Komunikace projektu staví na empatii, odvaze a výzvě k akci. Bez patosu, bez lítosti, s respektem ke skutečným příběhům.",
+      contentHtml:
+        "<p>REST||ART komunikuje přímo. Nepracuje s lítostí ani s efektními zkratkami, ale s jazykem, který nese odpovědnost, důstojnost a konkrétní nabídku změny.</p><p>Proto se v obsahu opakují silné claimy, skutečné příběhy a jasně formulované závazky. Značka nemá přikrývat problém, ale zpřítomnit možnost obratu.</p>"
     }
   ];
+  const newsPosts = publicNewsPosts.length > 0 ? publicNewsPosts : defaultNewsPosts;
+  const editorialPosts = publicBlogPosts.length > 0 ? publicBlogPosts : defaultBlogPosts;
 
   const storyHighlights = [
     {
@@ -2471,7 +2589,15 @@ const App = () => {
           </div>
         );
       case 'news':
-        return <BlogPage posts={blogPosts} />;
+        return (
+          <BlogPage
+            posts={newsPosts}
+            eyebrow="Aktuality REST||ART"
+            title="Novinky"
+            highlight="a aktuality"
+            description="Aktuální dění, postpenitenciární podpora, milníky projektu a konkrétní kroky, ke kterým se REST||ART veřejně připojuje."
+          />
+        );
       case 'projects':
         return (
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
@@ -2523,7 +2649,15 @@ const App = () => {
           </div>
         );
       case 'blog':
-        return <BlogPage posts={blogPosts} />;
+        return (
+          <BlogPage
+            posts={editorialPosts}
+            eyebrow="Blog REST||ART"
+            title="Komentáře"
+            highlight="a analýzy"
+            description="Hloubkové texty o návratnosti, práci, reintegraci a principu druhé šance v systému REST||ART."
+          />
+        );
       case 'contacts':
         return (
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
@@ -4475,6 +4609,57 @@ const App = () => {
 
     return null;
   };
+
+  if (isAdminRoute) {
+    const adminRedirect = adminSession && hasAdminAccess ? '/admin' : '/admin/login';
+
+    return (
+      <div className={`min-h-screen font-sans selection:bg-cyan-500/30 overflow-x-hidden relative antialiased transition-colors duration-500 ${isDark ? 'theme-dark bg-[#051111] text-white/90' : 'theme-light bg-[#f0fdf9] text-slate-900'}`}>
+        <ParticleBackground isDark={isDark} interactive density={1.55} className="z-0" />
+        <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
+          <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[120px]" style={{ background: isDark ? 'rgba(13,148,136,0.20)' : 'rgba(20,184,166,0.14)' }} />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[640px] h-[640px] rounded-full blur-[140px]" style={{ background: isDark ? 'rgba(6,182,212,0.12)' : 'rgba(14,116,144,0.12)' }} />
+          <img
+            src={brandAssets.treeLogo}
+            alt=""
+            className={`tree-watermark-photo ${isDark ? 'tree-watermark-photo-dark' : 'tree-watermark-photo-light'}`}
+            aria-hidden="true"
+          />
+        </div>
+
+        <div className="relative z-10">
+          <Routes>
+            <Route
+              path="/admin/login"
+              element={
+                <AdminLoginPage
+                  session={adminSession}
+                  authReady={authReady}
+                  isAdmin={hasAdminAccess}
+                  isDark={isDark}
+                  onToggleTheme={() => setIsDark((prev) => !prev)}
+                />
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminDashboardPage
+                  session={adminSession}
+                  authReady={authReady}
+                  isAdmin={hasAdminAccess}
+                  isDark={isDark}
+                  onToggleTheme={() => setIsDark((prev) => !prev)}
+                />
+              }
+            />
+            <Route path="/admin/*" element={<Navigate to={adminRedirect} replace />} />
+            <Route path="*" element={<Navigate to={adminRedirect} replace />} />
+          </Routes>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen font-sans selection:bg-cyan-500/30 overflow-x-hidden relative antialiased transition-colors duration-500 ${isDark ? 'theme-dark bg-[#051111] text-white/90' : 'theme-light bg-[#f0fdf9] text-slate-900'}`}>
