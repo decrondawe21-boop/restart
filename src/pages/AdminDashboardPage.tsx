@@ -2,6 +2,7 @@ import type { Session } from '@supabase/supabase-js';
 import {
   AlertCircle,
   FilePlus2,
+  HelpCircle,
   ImagePlus,
   Loader2,
   LogOut,
@@ -67,6 +68,27 @@ const createEmptyEntry = (type: CmsEntryType): EditableEntry => ({
   published_at: new Date().toISOString()
 });
 
+const formatAdminDate = (value: string | null | undefined) => {
+  if (!value) return 'právě teď';
+
+  return new Intl.DateTimeFormat('cs-CZ', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  }).format(new Date(value));
+};
+
+const FieldLabel: React.FC<{ label: string; hint: string }> = ({ label, hint }) => (
+  <div className="flex items-center gap-2">
+    <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">{label}</label>
+    <div className="group relative">
+      <HelpCircle size={13} className="cursor-help text-white/25 transition group-hover:text-cyan-300" />
+      <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 w-72 rounded-[1.2rem] border border-cyan-400/20 bg-[#041013]/96 px-4 py-3 text-xs font-medium leading-relaxed text-white/70 opacity-0 shadow-2xl shadow-black/30 transition duration-200 group-hover:opacity-100">
+        {hint}
+      </div>
+    </div>
+  </div>
+);
+
 const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   session,
   authReady,
@@ -121,6 +143,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       setEditorState({
         ...selectedEntry
       });
+      setAssetUrl(selectedEntry.cover_image_url ?? '');
       return;
     }
 
@@ -148,6 +171,31 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setEditorState(createEmptyEntry(type));
     setNotice('');
     setError('');
+  };
+
+  const handleDeleteEntry = async (entry: Pick<CmsEntry, 'id' | 'title' | 'type'>) => {
+    if (!window.confirm(`Opravdu chceš odstranit položku „${entry.title}“?`)) return;
+
+    setIsSaving(true);
+    setError('');
+    setNotice('');
+
+    try {
+      await deleteEntry(entry.id);
+      setEntries((prev) => prev.filter((currentEntry) => currentEntry.id !== entry.id));
+
+      if (selectedId === entry.id) {
+        setSelectedId(null);
+        setAssetUrl('');
+        setEditorState(createEmptyEntry(entry.type));
+      }
+
+      setNotice(`Položka „${entry.title}“ byla smazána.`);
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : 'Mazání selhalo.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSave = async () => {
@@ -189,23 +237,11 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   const handleDelete = async () => {
     if (!selectedId) return;
-    if (!window.confirm('Opravdu chceš tuto položku odstranit?')) return;
-
-    setIsSaving(true);
-    setError('');
-    setNotice('');
-
-    try {
-      await deleteEntry(selectedId);
-      setEntries((prev) => prev.filter((entry) => entry.id !== selectedId));
-      setSelectedId(null);
-      setEditorState(createEmptyEntry(activeType));
-      setNotice('Položka byla smazána.');
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Mazání selhalo.');
-    } finally {
-      setIsSaving(false);
-    }
+    await handleDeleteEntry({
+      id: selectedId,
+      title: editorState.title || 'bez názvu',
+      type: editorState.type
+    });
   };
 
   const handleImportFromUrl = async () => {
@@ -361,23 +397,46 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </div>
               ) : (
                 filteredEntries.map((entry) => (
-                  <button
+                  <div
                     key={entry.id}
-                    type="button"
-                    onClick={() => handleSelectEntry(entry)}
                     className={`w-full rounded-[1.8rem] border px-4 py-4 text-left transition ${
                       selectedId === entry.id
                         ? 'border-cyan-400/30 bg-cyan-500/10'
                         : 'border-white/10 bg-white/[0.03] hover:border-cyan-400/20'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">{entry.category}</p>
-                      <p className="text-[10px] uppercase tracking-[0.18em] text-white/30">{entry.status}</p>
+                    <button type="button" onClick={() => handleSelectEntry(entry)} className="w-full text-left">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">{entry.category}</p>
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-white/30">{entry.status}</p>
+                      </div>
+                      <h3 className="mt-3 text-lg font-black text-white">{entry.title}</h3>
+                      <p className="mt-2 line-clamp-3 text-sm text-white/45">{entry.excerpt}</p>
+                      <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/25">
+                        Upraveno {formatAdminDate(entry.updated_at)}
+                      </p>
+                    </button>
+                    <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectEntry(entry)}
+                        className="inline-flex items-center gap-2 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/65 transition hover:border-cyan-400/30 hover:text-cyan-300"
+                        title={`Upravit položku ${entry.title}`}
+                      >
+                        <PencilLine size={12} />
+                        Upravit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteEntry(entry)}
+                        className="inline-flex items-center gap-2 rounded-[1.2rem] border border-red-500/20 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-red-200 transition hover:bg-red-500/15"
+                        title={`Smazat položku ${entry.title}`}
+                      >
+                        <Trash2 size={12} />
+                        Smazat
+                      </button>
                     </div>
-                    <h3 className="mt-3 text-lg font-black text-white">{entry.title}</h3>
-                    <p className="mt-2 line-clamp-3 text-sm text-white/45">{entry.excerpt}</p>
-                  </button>
+                  </div>
                 ))
               )}
             </div>
@@ -393,6 +452,11 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   <h2 className="mt-2 text-3xl font-black text-white">
                     {editorState.id ? 'Obsahový editor' : 'Vytvořit novinku'}
                   </h2>
+                  <p className="mt-3 text-sm text-white/40">
+                    {editorState.id
+                      ? `Aktivně upravuješ „${editorState.title || 'bez názvu'}“. Poslední změna ${formatAdminDate((editorState as CmsEntry).updated_at)}.`
+                      : 'Vytváříš nový záznam. Po uložení se objeví v seznamu vlevo a podle stavu i na veřejném webu.'}
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <button
@@ -418,7 +482,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Nadpis</label>
+                  <FieldLabel label="Nadpis" hint="Hlavní titulek článku nebo aktuality. Použije se v kartě i v detailu po rozkliknutí." />
                   <input
                     type="text"
                     value={editorState.title}
@@ -434,7 +498,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Slug</label>
+                  <FieldLabel label="Slug" hint="URL identifikátor záznamu. Doporučeně bez diakritiky a mezer, systém ho umí generovat automaticky z nadpisu." />
                   <input
                     type="text"
                     value={editorState.slug}
@@ -444,7 +508,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Kategorie</label>
+                  <FieldLabel label="Kategorie" hint="Krátký štítek v kartě článku. Například Aktualita, Analýza, Postpenitenciární péče nebo Značka." />
                   <input
                     type="text"
                     value={editorState.category}
@@ -455,7 +519,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Typ</label>
+                    <FieldLabel label="Typ" hint="Rozlišuje, jestli se záznam objeví v sekci Aktuality nebo Blog." />
                     <select
                       value={editorState.type}
                       onChange={(event) =>
@@ -472,7 +536,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Stav</label>
+                    <FieldLabel label="Stav" hint="Draft zůstane jen v adminu. Published se propíše na veřejný web a bude veřejně čitelný přes Supabase API." />
                     <select
                       value={editorState.status}
                       onChange={(event) =>
@@ -490,7 +554,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Publikovat</label>
+                  <FieldLabel label="Publikovat" hint="Datum a čas, podle kterého se řadí veřejné články. Můžeš ho nastavit dopředu i zpětně." />
                   <input
                     type="datetime-local"
                     value={toLocalDateTime(editorState.published_at)}
@@ -505,7 +569,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Perex</label>
+                  <FieldLabel label="Perex" hint="Krátké shrnutí pro kartu článku. Zobrazí se v seznamu a na začátku detailu." />
                   <textarea
                     value={editorState.excerpt}
                     onChange={(event) => setEditorState((prev) => ({ ...prev, excerpt: event.target.value }))}
@@ -515,7 +579,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Zdroj / odkaz</label>
+                  <FieldLabel label="Zdroj / odkaz" hint="Volitelný externí odkaz na PDF, tiskovou zprávu nebo původní dokument. V detailu článku se zobrazí tlačítko Zdroj." />
                   <input
                     type="url"
                     value={editorState.source_url ?? ''}
@@ -537,6 +601,9 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       <h3 className="mt-1 text-2xl font-black text-white">Obsah článku</h3>
                     </div>
                   </div>
+                  <p className="mb-4 text-sm text-white/40">
+                    Editor podporuje nadpisy, seznamy, citace, odkazy i obrázky vkládané přes URL.
+                  </p>
                   <RichTextEditor
                     value={editorState.content_html}
                     onChange={(content) => setEditorState((prev) => ({ ...prev, content_html: content }))}
@@ -555,6 +622,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   </div>
 
                   <div className="space-y-4">
+                    <FieldLabel label="Zdrojová URL média" hint="Sem vlož veřejnou URL obrázku. Můžeš ji buď uložit do Supabase Storage, nebo použít přímo bez uploadu." />
                     <input
                       type="url"
                       value={assetUrl}
@@ -601,7 +669,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Cover URL</label>
+                      <FieldLabel label="Cover URL" hint="Finální obrázek, který se použije na veřejné kartě a v detailu článku. Může být uložený ve Storage nebo externě." />
                       <input
                         type="url"
                         value={editorState.cover_image_url ?? ''}

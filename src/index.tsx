@@ -5,9 +5,11 @@ import './index.css';
 import BlogPage, { type BlogPost } from './pages/BlogPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminLoginPage from './pages/AdminLoginPage';
+import AdminLoginDialog from './components/AdminLoginDialog';
 import BlockQuote from './components/BlockQuote';
 import ContactModal from './components/ContactModal';
 import Carousel from './components/Carousel';
+import LegalPageModal, { type LegalSection } from './components/LegalPageModal';
 import MatrixFxHero from './components/MatrixFxHero';
 import MediaEnlarge from './components/MediaEnlarge';
 import ParticleBackground from './components/ParticleBackground';
@@ -276,11 +278,112 @@ interface MenuNode {
   children?: MenuNode[];
 }
 
+type LegalPageKey = 'privacy' | 'terms' | 'cookies';
+
+const legalPageContent: Record<
+  LegalPageKey,
+  { eyebrow: string; title: string; description: string; sections: LegalSection[] }
+> = {
+  privacy: {
+    eyebrow: 'Ochrana údajů',
+    title: 'Ochrana osobních údajů',
+    description:
+      'Tato stránka shrnuje, jak REST||ART pracuje s kontaktními údaji, poptávkami, partnerskou komunikací a obsahem z administrace webu.',
+    sections: [
+      {
+        heading: 'Jaké údaje zpracováváme',
+        bullets: [
+          'identifikační a kontaktní údaje odeslané přes formuláře nebo e-mail',
+          'obsah zpráv, poptávek, žádostí o spolupráci a administrativní komunikace',
+          'technické údaje o návštěvě webu v rozsahu potřebném pro bezpečný provoz'
+        ]
+      },
+      {
+        heading: 'Účel zpracování',
+        paragraphs: [
+          'Údaje používáme výhradně pro komunikaci, zajištění provozu webu, vyřízení dotazů, správu obsahu a navazující projektovou spolupráci.',
+          'REST||ART nepoužívá osobní údaje k agresivnímu marketingu ani k jejich dalšímu prodeji třetím stranám.'
+        ]
+      },
+      {
+        heading: 'Správa a bezpečnost',
+        paragraphs: [
+          'Přístup k administraci je omezený pouze na schválené admin účty. Obsahový systém je provozovaný přes Supabase Auth, databázi a storage s řízenými oprávněními.',
+          'Pokud chceš řešit výmaz, opravu nebo export údajů, kontaktuj nás na info@david-kozak.com.'
+        ]
+      }
+    ]
+  },
+  terms: {
+    eyebrow: 'Podmínky užití',
+    title: 'Podmínky užití webu',
+    description:
+      'Web REST||ART slouží jako prezentační, informační a obsahová platforma projektu. Níže je základní rámec, ve kterém se obsah a služby používají.',
+    sections: [
+      {
+        heading: 'Používání obsahu',
+        paragraphs: [
+          'Texty, claimy, vizuály, analytické výstupy a projektové materiály jsou určeny pro informování veřejnosti, partnerů a institucí o aktivitách REST||ART.',
+          'Bez předchozí dohody není dovoleno vydávat obsah webu za vlastní nebo ho používat způsobem, který poškozuje značku nebo projekt.'
+        ]
+      },
+      {
+        heading: 'Dostupnost a změny',
+        bullets: [
+          'obsah webu se může průběžně měnit podle vývoje projektu',
+          'administrace může dočasně upravovat nebo stahovat části webu bez předchozího upozornění',
+          'veřejné informace mají informativní charakter a nenahrazují individuální smluvní ujednání'
+        ]
+      },
+      {
+        heading: 'Odpovědnost',
+        paragraphs: [
+          'REST||ART usiluje o maximální přesnost a aktuálnost. Přesto nenese odpovědnost za škody vzniklé pouze z interpretace veřejného obsahu bez návazné konzultace.',
+          'Pro oficiální spolupráci, nabídky nebo právně závazné kroky vždy používej přímý kontakt s projektem.'
+        ]
+      }
+    ]
+  },
+  cookies: {
+    eyebrow: 'Cookies',
+    title: 'Zásady cookies',
+    description:
+      'Web používá jen technicky přiměřené prvky nutné pro fungování rozhraní, přihlášení do administrace a zachování základního uživatelského nastavení.',
+    sections: [
+      {
+        heading: 'Co se ukládá',
+        bullets: [
+          'volba světlého nebo tmavého režimu v localStorage',
+          'autentizační session pro administraci spravovaná Supabase Auth',
+          'technické údaje potřebné pro bezpečnost a provoz připojených služeb'
+        ]
+      },
+      {
+        heading: 'Na co cookies nepoužíváme',
+        bullets: [
+          'neprodáváme data třetím stranám',
+          'nepoužíváme je pro agresivní reklamní targeting',
+          'bez dalšího rozšíření webu nepoužíváme rozsáhlé behaviorální trackování'
+        ]
+      },
+      {
+        heading: 'Jak můžeš nastavení ovlivnit',
+        paragraphs: [
+          'Cookies a lokální data můžeš odstranit v nastavení prohlížeče. Tím se ale můžeš odhlásit z administrace nebo přijít o uložené preference webu.',
+          'Pokud později nasadíme analytické nebo marketingové skripty, bude potřeba tuhle sekci rozšířit o podrobnější správu souhlasů.'
+        ]
+      }
+    ]
+  }
+};
+
 const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isAdminLoginDialogOpen, setIsAdminLoginDialogOpen] = useState(false);
+  const [openLegalPage, setOpenLegalPage] = useState<LegalPageKey | null>(null);
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
     const savedTheme = window.localStorage.getItem('restart-theme');
@@ -578,7 +681,7 @@ const App = () => {
   }, [currentPage]);
 
   useEffect(() => {
-    if (!isContactModalOpen && !isMenuOpen) return;
+    if (!isContactModalOpen && !isMenuOpen && !isAdminLoginDialogOpen && !openLegalPage) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -586,6 +689,8 @@ const App = () => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       if (isContactModalOpen) setIsContactModalOpen(false);
+      if (isAdminLoginDialogOpen) setIsAdminLoginDialogOpen(false);
+      if (openLegalPage) setOpenLegalPage(null);
       if (isMenuOpen) setIsMenuOpen(false);
     };
 
@@ -594,7 +699,7 @@ const App = () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [isContactModalOpen, isMenuOpen]);
+  }, [isAdminLoginDialogOpen, isContactModalOpen, isMenuOpen, openLegalPage]);
 
   // --- Gemini API Logic ---
   const fetchWithRetry = async (url: string, fetchOptions: RequestInit, maxRetries = 5) => {
@@ -4734,10 +4839,23 @@ const App = () => {
             {renderMenuNodes(navTree)}
           </div>
 
-          <div className="p-5 border-t border-white/10 flex items-center justify-center gap-6">
-            <Instagram className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
-            <Facebook className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
-            <Globe className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
+          <div className="border-t border-white/10 p-5 space-y-4">
+            <button
+              type="button"
+              onClick={() => {
+                setIsMenuOpen(false);
+                setIsAdminLoginDialogOpen(true);
+              }}
+              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-4 text-xs font-black uppercase tracking-[0.24em] text-cyan-200 transition hover:border-cyan-400/35 hover:bg-cyan-500/15"
+            >
+              <Key size={16} />
+              {adminSession && hasAdminAccess ? 'Otevřít editor webu' : 'Admin login'}
+            </button>
+            <div className="flex items-center justify-center gap-6">
+              <Instagram className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
+              <Facebook className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
+              <Globe className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
+            </div>
           </div>
         </aside>
       </div>
@@ -4751,6 +4869,20 @@ const App = () => {
       </Routes>
 
       <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
+      <AdminLoginDialog
+        isOpen={isAdminLoginDialogOpen}
+        onClose={() => setIsAdminLoginDialogOpen(false)}
+        session={adminSession}
+        isAdmin={hasAdminAccess}
+      />
+      <LegalPageModal
+        isOpen={openLegalPage !== null}
+        onClose={() => setOpenLegalPage(null)}
+        eyebrow={openLegalPage ? legalPageContent[openLegalPage].eyebrow : ''}
+        title={openLegalPage ? legalPageContent[openLegalPage].title : ''}
+        description={openLegalPage ? legalPageContent[openLegalPage].description : ''}
+        sections={openLegalPage ? legalPageContent[openLegalPage].sections : []}
+      />
 
       {/* MAGICKÝ OBRÁZEK PŘED FOOTEREM */}
       <section className="relative w-full h-[420px] md:h-[500px] overflow-hidden flex items-center justify-center my-16 group">
@@ -4807,8 +4939,19 @@ const App = () => {
           
           <div className="mt-12 flex flex-col md:flex-row justify-between items-center gap-6 px-10">
             <div className="flex gap-8">
-              {['Ochrana údajů', 'Podmínky užití', 'Cookies'].map(item => (
-                <a key={item} href="#" className="text-[9px] text-white/10 uppercase tracking-widest hover:text-white/30 transition-colors">{item}</a>
+              {([
+                ['privacy', 'Ochrana údajů'],
+                ['terms', 'Podmínky užití'],
+                ['cookies', 'Cookies']
+              ] as Array<[LegalPageKey, string]>).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setOpenLegalPage(key)}
+                  className="text-[9px] text-white/10 uppercase tracking-widest hover:text-white/30 transition-colors"
+                >
+                  {label}
+                </button>
               ))}
             </div>
             <div className="text-[9px] text-white/10 uppercase tracking-widest flex items-center gap-2">
