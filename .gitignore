@@ -12,3 +12,9 @@ yarn-error.log*
 .vscode
 .trae
 /podklady/
+
+.vercel
+.agents/
+.claude/
+skills-lock.json
+supabase/.temp/
