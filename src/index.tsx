@@ -21,10 +21,14 @@ import {
   defaultHomepageMediaSlots,
   homepageLayoutSettingKey,
   homepageMediaSlotsSettingKey,
+  homepageWidgetContentSettingKey,
   normalizeHomepageLayout,
   normalizeHomepageMediaSlots,
+  normalizeHomepageWidgetContent,
+  defaultHomepageWidgetContent,
   type HomepageSectionId
 } from './lib/siteSettings';
+import { publicContact } from './lib/publicContact';
 import { isSupabaseConfigured, supabase } from './lib/supabase';
 import { 
   Menu, X, ArrowRight, Heart, Briefcase, DoorOpen, Home, 
@@ -39,6 +43,7 @@ import {
 } from 'lucide-react';
 
 const apiKey = ""; // Klíč poskytne prostředí
+const PieChartCard = React.lazy(() => import('./components/PieChartCard'));
 
 interface Project {
   name: string;
@@ -319,7 +324,7 @@ const legalPageContent: Record<
         heading: 'Správa a bezpečnost',
         paragraphs: [
           'Přístup k administraci je omezený pouze na schválené admin účty. Obsahový systém je provozovaný přes Supabase Auth, databázi a storage s řízenými oprávněními.',
-          'Pokud chceš řešit výmaz, opravu nebo export údajů, kontaktuj nás na info@david-kozak.com.'
+          `Pokud chceš řešit výmaz, opravu nebo export údajů, kontaktuj nás na ${publicContact.email}.`
         ]
       }
     ]
@@ -407,6 +412,7 @@ const App = () => {
   const [publicBlogPosts, setPublicBlogPosts] = useState<BlogPost[]>([]);
   const [homepageLayout, setHomepageLayout] = useState(defaultHomepageLayout);
   const [homepageMediaSlots, setHomepageMediaSlots] = useState(defaultHomepageMediaSlots);
+  const [homepageWidgetContent, setHomepageWidgetContent] = useState(defaultHomepageWidgetContent);
 
   const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
   const isAdminRoute = normalizedPath === '/admin' || normalizedPath.startsWith('/admin/');
@@ -538,12 +544,17 @@ const App = () => {
       }
 
       try {
-        const records = await fetchSiteSettings([homepageLayoutSettingKey, homepageMediaSlotsSettingKey]);
+        const records = await fetchSiteSettings([
+          homepageLayoutSettingKey,
+          homepageMediaSlotsSettingKey,
+          homepageWidgetContentSettingKey
+        ]);
         if (!isMounted) return;
 
         const byKey = new Map(records.map((record) => [record.key, record.value_json]));
         setHomepageLayout(normalizeHomepageLayout(byKey.get(homepageLayoutSettingKey)));
         setHomepageMediaSlots(normalizeHomepageMediaSlots(byKey.get(homepageMediaSlotsSettingKey)));
+        setHomepageWidgetContent(normalizeHomepageWidgetContent(byKey.get(homepageWidgetContentSettingKey)));
       } catch (error) {
         console.error('Homepage settings fetch failed', error);
       }
@@ -628,6 +639,18 @@ const App = () => {
     { category: 'Rezerva', amount: 10_000, share: '5,6 %' },
     { category: 'Software a licence', amount: 8_000, share: '4,4 %' },
     { category: 'Materiál a pomůcky', amount: 5_000, share: '2,8 %' }
+  ];
+  const projectBudgetDistribution = [
+    { name: 'Mzdy a odměny (vč. mentorů)', value: 25, color: '#f59e0b' },
+    { name: 'Ubytování a podpora klientů', value: 15, color: '#f97316' },
+    { name: 'Školení a rekvalifikace', value: 10, color: '#f43f5e' },
+    { name: 'Software, licence, IT vybavení', value: 10, color: '#ec4899' },
+    { name: 'Cestovní náklady', value: 8, color: '#38bdf8' },
+    { name: 'Provoz kanceláře', value: 10, color: '#14b8a6' },
+    { name: 'Propagační materiály', value: 7, color: '#22c55e' },
+    { name: 'Spotřební materiál', value: 5, color: '#84cc16' },
+    { name: 'Dlouhodobé vybavení', value: 5, color: '#fbbf24' },
+    { name: 'Zřízení územních pracovišť', value: 5, color: '#f97316' }
   ];
   const phaseBudgetRows = [
     { phase: 'Příprava a koordinace', date: 'měsíce 1-2', budget: 150_000 },
@@ -943,12 +966,6 @@ const App = () => {
     }
   ];
 
-  const projectTimeline = phaseBudgetRows.map((item) => ({
-    phase: item.phase,
-    date: item.date,
-    budget: formatCurrency(item.budget)
-  }));
-
   const opzPrograms = [
     {
       name: "JAILBREAK",
@@ -1001,7 +1018,7 @@ const App = () => {
       category: "Postpenitenciární péče",
       excerpt: "REST||ART se připojuje k žádosti o podmíněné propuštění a potvrzuje návaznou podporu po výstupu: doprovod při propuštění, zajištěné ubytování v Ústí nad Labem, předjednané pracovní uplatnění, sociální asistenci, dluhové poradenství a pravidelný mentoring v průběhu zkušební doby.",
       contentHtml:
-        "<p>REST||ART se připojuje k žádosti o podmíněné propuštění pana Majera Jaroslava a potvrzuje připravenost převzít návaznou postpenitenciární podporu ihned po výstupu.</p><h3>Co po propuštění zajišťujeme</h3><ul><li>doprovod při výstupu a stabilizační kontakt v prvních dnech</li><li>ubytování na adrese Drážďanská 51/52, 400 07 Ústí nad Labem</li><li>předjednané pracovní uplatnění a pomoc s nástupem do režimu</li><li>sociální asistenci a orientaci v běžném fungování po výkonu trestu</li><li>dluhové poradenství a průběžný mentoring během zkušební doby</li></ul><p>Cílem je, aby propuštění nebylo jednorázovým aktem, ale reálným přechodem do stabilnějšího života. REST||ART se v tomto případě nepřipojuje jen formálně, ale deklaruje konkrétní kapacitu a odpovědnost za návaznou podporu.</p>"
+        "<p>REST||ART se připojuje k žádosti o podmíněné propuštění pana Majera Jaroslava a potvrzuje připravenost převzít návaznou postpenitenciární podporu ihned po výstupu.</p><h3>Co po propuštění zajišťujeme</h3><ul><li>doprovod při výstupu a stabilizační kontakt v prvních dnech</li><li>ubytování na adrese Drážďanská 517/52, 400 07 Ústí nad Labem</li><li>předjednané pracovní uplatnění a pomoc s nástupem do režimu</li><li>sociální asistenci a orientaci v běžném fungování po výkonu trestu</li><li>dluhové poradenství a průběžný mentoring během zkušební doby</li></ul><p>Cílem je, aby propuštění nebylo jednorázovým aktem, ale reálným přechodem do stabilnějšího života. REST||ART se v tomto případě nepřipojuje jen formálně, ale deklaruje konkrétní kapacitu a odpovědnost za návaznou podporu.</p>"
     }
   ];
 
@@ -1167,6 +1184,49 @@ const App = () => {
     }
   ];
 
+  const aboutValues = [
+    {
+      title: 'Autenticita a radikální upřímnost',
+      text: 'Nevytváříme instantní recepty. Stojíme na opravdovém setkání, lidské zkušenosti a poctivém pojmenování reality.',
+      icon: <Fingerprint size={24} />
+    },
+    {
+      title: 'Estetika a vědomý design',
+      text: 'Každý detail nese význam. Vizuální kultura, prostor a forma komunikace jsou součástí transformačního zážitku.',
+      icon: <Paintbrush size={24} />
+    },
+    {
+      title: 'Transformace a integrace',
+      text: 'Spojujeme vnitřní práci s každodenní realitou. Zážitek musí být přeložený do života, vztahů, práce a odpovědnosti.',
+      icon: <Workflow size={24} />
+    },
+    {
+      title: 'Svoboda projevu a lidský dotek',
+      text: 'Držíme bezpečný rámec, ale neztrácíme lidskost. Prostor pro svobodný výraz jde ruku v ruce s respektem a péčí.',
+      icon: <HeartHandshake size={24} />
+    },
+    {
+      title: 'Profesionalita a bezpečný rámec',
+      text: 'Alternativu nespojujeme s chaosem. Naopak ji stavíme na odpovědnosti, kvalitě vedení a jasných pravidlech.',
+      icon: <ShieldCheck size={24} />
+    }
+  ];
+
+  const dkiIdentityBlocks = [
+    {
+      title: 'Kdo jsme',
+      text: 'Jsme multidisciplinární platforma propojující umění, osobní rozvoj, transformační práci a integraci hlubokých nebo změněných stavů vědomí. Vycházíme z lidské zkušenosti a tvoříme bezpečné, esteticky silné a smysluplné prostory pro individuální i kolektivní růst.'
+    },
+    {
+      title: 'Co děláme',
+      text: 'Realizujeme projekty jako REST||ART INTEGRACE, JAILBREAK a REWORK, které kombinují facilitaci, mentoring, vzdělávání a umělecký výraz. Vytváříme formáty pro vnitřní práci, komunitní setkávání, integrační podporu i kreativní laboratoř pro nové vize.'
+    },
+    {
+      title: 'Co nás dělá výjimečnými',
+      text: 'Propojujeme spirituální hloubku s profesionálním rámcem, alternativu s estetikou, zranitelnost se silou. Projekty vedou lidé, kteří sami žijí to, co sdílejí, a značka má přesah do ČR i zahraničí.'
+    }
+  ];
+
   const pillarPageMap: Record<string, PageKey> = {
     jailbreak: 'pillar-jailbreak',
     rework: 'pillar-rework',
@@ -1209,6 +1269,135 @@ const App = () => {
     { time: '12/2026', title: 'Vyhodnocení', desc: 'Kompletace první fáze a transformace v INTEGR!A.' }
   ];
 
+  const cooperationPrinciples = [
+    'NE ve stínu grantových rivalů.',
+    'NE v systému, kde partner znamená jen „výkazově přijatelný“.',
+    'ALE v prostředí, kde partner znamená společný směr, odvahu a odpovědnost.'
+  ];
+
+  const strategicExpansionPhases = [
+    {
+      title: 'Pilotní fáze',
+      duration: '3-6 měsíců',
+      focus: 'Ústecký kraj',
+      description: 'Ověření metodiky, sběr dat, první pracovní uplatnění a aktivace partnerů ve věznicích, na ÚP i v terénních sítích.'
+    },
+    {
+      title: 'Rozvojová fáze',
+      duration: '6-12 měsíců',
+      focus: 'Jižní Čechy + další kraje',
+      description: 'Rozšíření sítě, sdílení metodiky, zapojení dalších věznic a komunitních organizací a posílení mobilního týmu.'
+    },
+    {
+      title: 'Škálovací fáze',
+      duration: 'od 2026 dál',
+      focus: 'Celá ČR',
+      description: 'REST||ART jako doporučitelná metodika pro stát, CSR strategie firem a dlouhodobé rozpočtové plánování.'
+    }
+  ];
+
+  const projectMilestonesDetailed = [
+    { time: '0. měsíc', title: 'Schválení projektu', desc: 'Formální spuštění fáze 1 a oficiální zahájení projektu.' },
+    { time: '2. měsíc', title: 'Mentoringový start', desc: 'Prvních 10 osob zapojeno do mentoringového systému.' },
+    { time: '3. měsíc', title: 'Jiřice', desc: 'Uzavření předběžné dohody s věznicí Jiřice o pronájmu skladu.' },
+    { time: '6. měsíc', title: 'Pilotní provoz', desc: 'Spuštění kombinované práce osob ve VTOS a civilních zaměstnanců.' },
+    { time: '9. měsíc', title: 'Pracovní aktivace', desc: '10 klientů převedeno do rekvalifikace a placených zakázek.' },
+    { time: '12. měsíc', title: 'Strategická memoranda', desc: 'Minimálně 3 noví partneři z firmy, neziskového sektoru a samosprávy.' },
+    { time: '18. měsíc', title: 'Stabilní bydlení a práce', desc: '25 klientů úspěšně začleněno do bydlení a nebo stabilní pracovní pozice.' },
+    { time: '24. měsíc', title: 'Druhé regionální centrum', desc: 'Otevření dalšího centra mimo Ústecký kraj, například v Jižních Čechách.' },
+    { time: '36. měsíc', title: 'Doporučený model', desc: 'Směřování k uznání REST||ART jako doporučené metodiky veřejné politiky.' }
+  ];
+
+  const successIndicatorsDetailed = [
+    { label: 'Vstupy do programu', value: 'KPI 01', icon: <Users size={16} /> },
+    { label: 'Úspěšné zaměstnání / výjezdy do zahraničí', value: 'KPI 02', icon: <Briefcase size={16} /> },
+    { label: 'Mentoring a rekvalifikace', value: 'KPI 03', icon: <Heart size={16} /> },
+    { label: 'Pozitivní změna v bydlení', value: 'KPI 04', icon: <Home size={16} /> },
+    { label: 'Snížení opakovaného VTOS', value: 'KPI 05', icon: <ShieldCheck size={16} /> },
+    { label: 'Navázání spolupráce mimo ulici a drogy', value: 'KPI 06', icon: <Activity size={16} /> }
+  ];
+
+  const competitionAnalysisRows = [
+    {
+      organization: 'Rubikon Centrum',
+      target: 'osoby po VTOS, lidé s trestní minulostí',
+      strengths: 'dlouhodobá specializace na VTOS, napojení na věznice',
+      weaknesses: 'omezený přímý dosah na pracovní trh, nižší flexibilita',
+      difference: 'REST||ART spojuje přímé zaměstnání, mentoring a návaznou stabilizaci v jednom rámci.'
+    },
+    {
+      organization: 'Romodrom',
+      target: 'romské komunity, vyloučené lokality, děti a rodiny',
+      strengths: 'lokální působnost, komunitní práce, znalost prostředí',
+      weaknesses: 'regionální izolace, slabší akční přesah mimo komunitní systém',
+      difference: 'REST||ART míří i mimo sociální systém a propojuje reintegraci s prací, bydlením a značkou odpovědnosti.'
+    },
+    {
+      organization: 'Diecézní charita ČB',
+      target: 'osoby v krizi, bez domova, po VTOS',
+      strengths: 'zázemí velké církevní organizace, systémová práce',
+      weaknesses: 'nižší medializace a konzervativnější metody',
+      difference: 'REST||ART má širší záběr, vlastní know-how, vizuální jazyk a silnější integrační branding.'
+    },
+    {
+      organization: 'Volonté',
+      target: 'neziskové projekty, sociální inovace, mentoring',
+      strengths: 'inovativnost, mentoring, síť napříč ČR',
+      weaknesses: 'více metodická než přímá práce s klienty',
+      difference: 'REST||ART stojí na provozní praxi v terénu, ne jen na metodické podpoře a síťování.'
+    },
+    {
+      organization: 'Portus Praha',
+      target: 'mládež z DD a ústavní péče',
+      strengths: 'respektovaný model práce s mládeží a odborný přístup',
+      weaknesses: 'užší fokus na jednu cílovou skupinu',
+      difference: 'REST||ART staví kontinuitu od dětských domovů přes VTOS až po dlouhodobou stabilizaci.'
+    }
+  ];
+
+  const regionalOrganizations = [
+    {
+      name: 'Rubikon Centrum – České Budějovice',
+      focus: 'osoby po VTOS, rekvalifikace, zaměstnání, mentoring',
+      website: 'rubikoncentrum.cz',
+      websiteUrl: 'https://rubikoncentrum.cz',
+      email: 'info@rubikoncentrum.cz',
+      note: 'Zkušenost s EU projekty a spoluprací s věznicemi.'
+    },
+    {
+      name: 'Romodrom, o.p.s. – Jižní Čechy',
+      focus: 'sociální služby, romské komunity, vzdělávání, reintegrace',
+      website: 'romodrom.cz',
+      websiteUrl: 'https://romodrom.cz',
+      email: 'jiznicechy@romodrom.cz',
+      note: 'Mentoring v ústavní a postinstitucionální péči.'
+    },
+    {
+      name: 'Diecézní charita České Budějovice',
+      focus: 'podpora osob bez domova, v krizi a po výkonu trestu',
+      website: 'dchcb.cz',
+      websiteUrl: 'https://www.dchcb.cz',
+      email: 'reditel@dchcb.cz',
+      note: 'Silné napojení na samosprávu a humanitní orientace.'
+    },
+    {
+      name: 'Volonté – Praha / spolupráce napříč ČR',
+      focus: 'zapojování osob s překážkami, sociální inovace',
+      website: 'volonte.cz',
+      websiteUrl: 'https://volonte.cz',
+      email: 'info@volonte.cz',
+      note: 'Otevřeni spolupráci a metodické podpoře.'
+    },
+    {
+      name: 'PORTUS PRAHA',
+      focus: 'mentoring mládeže z DD a sociální stabilizace',
+      website: 'portus.cz',
+      websiteUrl: 'https://portus.cz',
+      email: 'info@portus.cz',
+      note: 'Relevantní model pro přechod mládeže do samostatného života.'
+    }
+  ];
+
   const renderSimplePillarPage = (config: {
     badge: string;
     title: string;
@@ -1221,6 +1410,7 @@ const App = () => {
     heroImageSrc?: string;
     heroImageAlt?: string;
     quote?: string;
+    extraSections?: React.ReactNode;
     gallery?: readonly { src: string; alt: string; caption: string }[];
   }) => (
     <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
@@ -1273,6 +1463,8 @@ const App = () => {
             </div>
           )}
         </div>
+
+        {config.extraSections}
 
         {config.gallery && config.gallery.length > 0 && (
           <div className="space-y-6">
@@ -1428,32 +1620,32 @@ const App = () => {
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
         <div className="space-y-8 animate-in slide-in-from-left duration-1000">
           <div className="inline-flex items-center gap-2 text-cyan-400 font-bold text-xs tracking-widest uppercase bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-400/20">
-            David Kozák International, s.r.o.
+            {homepageWidgetContent.heroIntro.badge}
           </div>
           <h2 className="text-4xl md:text-7xl text-white leading-tight text-glow-cyan">
-            Druhou šanci si <br className="hidden md:block" /> zaslouží <span className="text-cyan-300 headline-thin">každý.</span>
+            {homepageWidgetContent.heroIntro.titleLead} <br className="hidden md:block" />
+            <span className="text-cyan-300 headline-thin">{homepageWidgetContent.heroIntro.titleAccent}</span>
           </h2>
           <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-light">
-            Homepage znovu spojuje hlavní články a zpracované sekce do jednoho proudu. Zároveň zůstává zachované
-            rozdělení do samostatných stránek a detailů v menu.
+            {homepageWidgetContent.heroIntro.description}
           </p>
           <RevealFx delay={0.12} translateY={0.55}>
             <div className="max-w-xl rounded-[2.3rem] border border-cyan-400/15 bg-cyan-500/[0.05] p-6 md:p-7 space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Motto projektu</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">{homepageWidgetContent.heroIntro.mottoEyebrow}</p>
               <p className="text-2xl md:text-3xl text-white font-serif italic leading-tight">
-                "Každý příběh má právo pokračovat."
+                {homepageWidgetContent.heroIntro.mottoQuote}
               </p>
               <p className="text-sm text-white/40 font-light leading-relaxed">
-                Druhá šance není slogan do kampaně. Je to pracovní metoda, která vrací člověka zpět do vztahů, práce a důvěry.
+                {homepageWidgetContent.heroIntro.mottoBody}
               </p>
             </div>
           </RevealFx>
           <div className="flex flex-wrap gap-4 pt-4">
             <RevealFx delay={0.18} translateY={0.7}>
-              <button onClick={() => goToPage('pillars')} className="bg-cyan-500 text-black px-10 py-5 rounded-2xl font-black text-lg hover:shadow-cyan-500/30 shadow-xl transition-all">PŘEJÍT NA PILÍŘE</button>
+              <button onClick={() => goToPage('pillars')} className="bg-cyan-500 text-black px-10 py-5 rounded-2xl font-black text-lg hover:shadow-cyan-500/30 shadow-xl transition-all">{homepageWidgetContent.heroIntro.primaryCtaLabel}</button>
             </RevealFx>
             <RevealFx delay={0.26} translateY={0.85}>
-              <button onClick={() => goToPage('about')} className="glass-panel text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/5 transition-all">O PROJEKTU</button>
+              <button onClick={() => goToPage('about')} className="glass-panel text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/5 transition-all">{homepageWidgetContent.heroIntro.secondaryCtaLabel}</button>
             </RevealFx>
           </div>
           <RevealFx delay={0.34} translateY={0.85}>
@@ -1481,7 +1673,7 @@ const App = () => {
                 className="hero-desat w-full h-[600px] object-cover opacity-60 group-hover:opacity-100 transition-all duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-transparent opacity-80" />
-              <div className="absolute bottom-10 left-10 text-white italic text-2xl font-serif drop-shadow-lg">"Každý příběh má právo pokračovat."</div>
+              <div className="absolute bottom-10 left-10 text-white italic text-2xl font-serif drop-shadow-lg">{homepageWidgetContent.heroIntro.imageQuote}</div>
             </div>
           </RevealFx>
         </div>
@@ -1508,9 +1700,9 @@ const App = () => {
     <section className="py-16 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="space-y-4 mb-10">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Rozdělení obsahu</p>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">{homepageWidgetContent.topicPages.eyebrow}</p>
           <h3 className="text-4xl md:text-6xl text-white uppercase leading-none">
-            Nové stránky <span className="text-cyan-300 headline-thin">podle tématu</span>
+            {homepageWidgetContent.topicPages.titleLead} <span className="text-cyan-300 headline-thin">{homepageWidgetContent.topicPages.titleAccent}</span>
           </h3>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1546,10 +1738,10 @@ const App = () => {
 
         <div className="space-y-4 text-center">
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> AI Integrační Asistent
+            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> {homepageWidgetContent.aiAssistant.badge}
           </div>
-          <h3 className="text-4xl md:text-5xl text-white text-glow-cyan">Váš plán <span className="text-cyan-300 headline-thin">restartu</span></h3>
-          <p className="text-white/40 font-light max-w-2xl mx-auto">Napište nám o své situaci a naše AI vám navrhne první kroky podle pilířů Integrace.</p>
+          <h3 className="text-4xl md:text-5xl text-white text-glow-cyan">{homepageWidgetContent.aiAssistant.titleLead} <span className="text-cyan-300 headline-thin">{homepageWidgetContent.aiAssistant.titleAccent}</span></h3>
+          <p className="text-white/40 font-light max-w-2xl mx-auto">{homepageWidgetContent.aiAssistant.description}</p>
         </div>
 
         <div className="space-y-6 relative z-10">
@@ -1557,7 +1749,7 @@ const App = () => {
             <textarea
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
-              placeholder="Popište svou situaci... (např. 'Právě jsem vyšel z výkonu trestu a nemám kde bydlet')"
+              placeholder={homepageWidgetContent.aiAssistant.placeholder}
               className="w-full h-48 bg-black/40 border border-white/10 rounded-[2.5rem] p-8 text-white focus:border-cyan-400 outline-none transition-all placeholder:text-white/10 resize-none text-lg font-light leading-relaxed"
             />
             <div className="absolute bottom-6 right-6 flex gap-3">
@@ -1567,7 +1759,7 @@ const App = () => {
                 className="bg-cyan-500 text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-cyan-500/20 hover:bg-cyan-400 transition-all disabled:opacity-30 disabled:grayscale flex items-center gap-3"
               >
                 {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-                {isLoading ? 'Analyzuji...' : 'Analyzovat příběh'}
+                {isLoading ? homepageWidgetContent.aiAssistant.loadingLabel : homepageWidgetContent.aiAssistant.submitLabel}
               </button>
             </div>
           </div>
@@ -1577,7 +1769,7 @@ const App = () => {
               <div className="flex justify-between items-center mb-8 border-b border-cyan-400/10 pb-6">
                 <div className="flex items-center gap-3 text-cyan-400">
                   <Sparkles size={18} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Navržený plán integrace</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{homepageWidgetContent.aiAssistant.resultLabel}</span>
                 </div>
                 <button
                   onClick={speakPath}
@@ -1704,7 +1896,7 @@ const App = () => {
               <div className="grid md:grid-cols-2 gap-4 text-xs text-white/20 uppercase tracking-widest font-black">
                 <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> David Kozák International s.r.o.</div>
                 <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> IČO: 23143614</div>
-                <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> Drážďanská 51/52, 400 07 Ústí nad Labem</div>
+                <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> {publicContact.addressLine}, {publicContact.cityLine}</div>
               </div>
             </div>
             <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 flex items-center gap-6">
@@ -2212,18 +2404,123 @@ const App = () => {
       case 'pillar-jailbreak': {
         const program = opzPrograms.find((item) => item.name === 'JAILBREAK');
         if (!program) return null;
+        const jailbreakStats = [
+          { value: '-70 %', label: 'míra recidivy u propuštěných vězňů', icon: <TrendingDown size={22} />, accent: 'text-red-400', bg: 'bg-red-500/10' },
+          { value: '583', label: 'vězňů na 100 000 obyvatel v ČR', icon: <Users size={22} />, accent: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+          { value: '108,4 %', label: 'aktuální přeplněnost věznic', icon: <AlertCircle size={22} />, accent: 'text-amber-300', bg: 'bg-amber-500/10' }
+        ] as const;
+        const jailbreakBenefits = [
+          'Snížení recidivy a opakovaného uvěznění.',
+          'Rychlejší a cílenější rehabilitace odsouzených.',
+          'Využití času ve VTOS pro přípravu na návrat.',
+          'Posílení pracovních a sociálních návyků.',
+          'Následné zaměstnání a ubytování po propuštění.',
+          'Možnost nové identity a života pro ty, kteří chtějí změnu.'
+        ] as const;
         return renderSimplePillarPage({
           badge: 'Pilíř 1 | JAILBREAK',
           title: 'JAILBREAK',
           accent: 'reintegrace po VTOS',
-          target: program.target,
-          activities: program.activities,
-          goal: program.goal,
+          target: 'Osoby po i ve výkonu trestu, případně lidé, kteří se ocitli na dně a potřebují znovu zařadit do běžného života.',
+          activities: 'Mentoring, pracovní asistence, rekvalifikace, psychosociální podpora, příprava na výstup i návazná stabilizace po propuštění.',
+          goal: 'Životní restart, snížení recidivy a bezpečný návrat do práce, bydlení a běžného fungování.',
           duration: program.duration,
           icon: <DoorOpen />,
           heroImageSrc: brandAssets.campaigns.jailbreakPoster,
           heroImageAlt: 'Plakát JAILBREAK / Second Chances',
-          quote: 'Po výkonu trestu nesmí člověk dostat jen svobodu. Musí dostat i strukturu, práci a důvěru.',
+          quote: 'Neslibujeme iluze. Nabízíme konkrétní cestu. Program funguje, protože propojuje to, co společnost potřebuje, s tím, co jednotlivci skutečně hledají.',
+          extraSections: (
+            <div className="space-y-8">
+              <div className="grid lg:grid-cols-[1.05fr,0.95fr] gap-8">
+                <div className="glass-panel p-10 rounded-[3rem] border-white/10 space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Nová kapitola života</p>
+                    <h3 className="text-3xl md:text-4xl font-black text-white uppercase tracking-[0.08em] leading-tight">
+                      O programu <span className="text-cyan-300 headline-thin">JAILBREAK</span>
+                    </h3>
+                  </div>
+                  <p className="text-white/65 font-light leading-relaxed">
+                    Projekt JAILBREAK otevírá novou kapitolu života lidem po výkonu trestu. Naší misí je nabídnout nový
+                    začátek, druhou šanci a reálný životní restart pod značkou REST||ART.
+                  </p>
+                  <p className="text-white/45 font-light leading-relaxed">
+                    Společně s partnery pomáháme s reintegrací vězněných i propuštěných osob zpět do společnosti, aby po
+                    výstupu nedostaly jen svobodu, ale i strukturu, odpovědnost, práci a návaznou oporu.
+                  </p>
+                </div>
+
+                <div className="glass-panel p-10 rounded-[3rem] border-cyan-400/20 bg-cyan-500/[0.03] space-y-6">
+                  <BlockQuote
+                    preline="Co ten název znamená"
+                    subline="Ne útěk z vězení, ale životní restart a odblokování cesty dál."
+                    author={{ name: 'REST||ART | JAILBREAK' }}
+                  >
+                    Název JAILBREAK neznamená útěk z vězení, ale nový začátek po výkonu trestu. Stejně jako v IT označuje
+                    odblokování systému, i tady jde o překročení minulosti a nalezení nové cesty.
+                  </BlockQuote>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                {jailbreakStats.map((item) => (
+                  <div key={item.label} className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-5">
+                    <div className={`w-14 h-14 rounded-2xl ${item.bg} ${item.accent} flex items-center justify-center`}>
+                      {item.icon}
+                    </div>
+                    <div className="space-y-2">
+                      <p className={`text-4xl font-black leading-none ${item.accent}`}>{item.value}</p>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/35 font-black">{item.label}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid lg:grid-cols-[1.08fr,0.92fr] gap-8">
+                <div className="glass-panel p-10 rounded-[3rem] border-white/10 space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Proč je to důležité</p>
+                    <h3 className="text-3xl font-black text-white uppercase tracking-[0.08em]">Konkrétní přínos programu</h3>
+                  </div>
+                  <p className="text-white/50 font-light leading-relaxed">
+                    Každá úspěšná reintegrace snižuje nejen náklady na vězeňství, ale i riziko další kriminality. JAILBREAK
+                    proto nestaví na frázi o druhé šanci, ale na konkrétním přechodu do práce, režimu a běžného života.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {jailbreakBenefits.map((item) => (
+                      <div key={item} className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] px-5 py-5 flex items-start gap-3">
+                        <CheckCircle size={18} className="text-cyan-400 mt-0.5 shrink-0" />
+                        <p className="text-sm text-white/65 font-light leading-relaxed">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="glass-panel p-10 rounded-[3rem] border-white/10 space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Jak to děláme</p>
+                    <h3 className="text-3xl font-black text-white uppercase tracking-[0.08em]">Mentoring, práce a opora</h3>
+                  </div>
+                  <p className="text-white/55 font-light leading-relaxed">
+                    {publicContact.companyName} zajišťuje mentoring, pracovní asistenci, rekvalifikaci a kontakt s realitou.
+                    Po výkonu trestu nabízíme práci v Německu, ubytování, psychosociální podporu a navazující stabilizační
+                    kroky. Vše na smluvním základě, bez závislosti na dotacích.
+                  </p>
+                  <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-500/[0.04] p-6 space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Kontaktní zázemí programu</p>
+                    <div className="space-y-2 text-sm text-white/60 font-light">
+                      <p className="font-semibold text-white">{publicContact.companyName}</p>
+                      <p>{publicContact.addressLine}, {publicContact.cityLine}</p>
+                      <p>
+                        <a href={`mailto:${publicContact.email}`} className="hover:text-cyan-300 transition-colors">
+                          {publicContact.email}
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ),
           gallery: brandAssets.programPosters.jailbreak
         });
       }
@@ -2313,7 +2610,7 @@ const App = () => {
                 <div className="grid md:grid-cols-2 gap-4 text-xs text-white/20 uppercase tracking-widest font-black">
                   <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> David Kozák International s.r.o.</div>
                   <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> IČO: 23143614</div>
-                  <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> Drážďanská 51/52, 400 07 Ústí nad Labem</div>
+                  <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> {publicContact.addressLine}, {publicContact.cityLine}</div>
                 </div>
               </div>
 
@@ -2535,7 +2832,7 @@ const App = () => {
                   </h2>
                 </div>
                 <p className="text-white/40 font-light max-w-md">
-                  Propojujeme důstojnost, práci, mentoring a spolupráci sektorů do jednoho funkčního modelu reintegrace.
+                  Propojujeme osobní rozvoj, umění, terapeutickou práci a sociální reintegraci do platformy, která staví most mezi vnitřní proměnou a každodenní realitou.
                 </p>
               </div>
 
@@ -2543,27 +2840,58 @@ const App = () => {
                 <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-white/10 space-y-6">
                   <h3 className="text-3xl text-white font-black tracking-[1.5px] uppercase">Naše mise</h3>
                   <p className="text-white/55 font-light leading-relaxed">
-                    Vytváříme cestu zpět pro lidi po výkonu trestu, bez domova, v závislostech nebo v dlouhodobé
-                    nezaměstnanosti. Naším cílem je důstojnost, stabilita, práce a převzetí odpovědnosti za vlastní budoucnost.
+                    Naše platforma propojuje oblasti osobního rozvoje, umění, terapeutické práce a integrace změněných stavů vědomí.
+                    Prostřednictvím projektů jako REST||ART INTEGRACE, JAILBREAK či REWORK vytváříme transformační zážitky
+                    od workshopů a retreatů po multimediální tvorbu a reálnou integrační práci.
                   </p>
                   <p className="text-white/40 font-light leading-relaxed">
-                    Nejsme izolovaný projekt. Stavíme integrační infrastrukturu, která propojuje stát, zaměstnavatele,
-                    odborníky i neziskový sektor místo roztříštěné a krátkodobé pomoci.
+                    Začali jsme jako otevřený prostor pro lidi hledající hlubší smysl, bezpečné vedení a komunitu podobně
+                    smýšlejících jedinců. Dnes tvoříme most mezi světem vnitřní práce a každodenní realitou. Věříme, že
+                    vědomý člověk mění svět kolem sebe skrze svou přítomnost, činy i vizi.
                   </p>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-6">
-                  {[
-                    { icon: <Users size={24} />, title: 'Důstojnost', text: 'Ke každému klientovi přistupujeme s respektem a vírou v jeho potenciál.' },
-                    { icon: <HeartHandshake size={24} />, title: 'Druhá šance', text: 'Příležitost není alibi. Vyžaduje motivaci, práci a osobní závazek.' },
-                    { icon: <Workflow size={24} />, title: 'Spolupráce sektorů', text: 'Funkční reintegrace vzniká jen spojením institucí, firem a terénu.' },
-                    { icon: <ShieldCheck size={24} />, title: 'Udržitelnost', text: 'Měříme stabilitu, zaměstnání a prevenci recidivy, ne jen počet kontaktů.' }
-                  ].map((item, idx) => (
-                    <div key={idx} className="glass-panel p-8 rounded-[2rem] border-white/10 space-y-4">
+                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {aboutValues.map((item) => (
+                    <div key={item.title} className="glass-panel p-8 rounded-[2rem] border-white/10 space-y-4">
                       <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
                         {item.icon}
                       </div>
                       <h4 className="text-lg font-bold text-white">{item.title}</h4>
                       <p className="text-xs text-white/45 font-light leading-relaxed">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-[0.95fr,1.05fr] gap-8 items-start">
+                <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-cyan-400/15 bg-cyan-500/[0.03] space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">David Kozák International s.r.o.</p>
+                    <h3 className="text-3xl text-white font-black tracking-[0.08em] uppercase">Zastřešující entita</h3>
+                  </div>
+                  <p className="text-white/55 font-light leading-relaxed">
+                    {publicContact.companyName} je zastřešující entita všech projektů a aktivit Davida Kozáka. Zajišťuje
+                    organizační, právní a strategický rámec pro působení v ČR i zahraničí a funguje jako inkubátor pro
+                    kreativní a transformační iniciativy.
+                  </p>
+                  <p className="text-white/40 font-light leading-relaxed">
+                    Spolupracujeme s odborníky z oblasti terapie, vzdělávání, designu a podnikání. Kromě realizace vlastních
+                    projektů vytváříme zázemí pro další rozvoj a spolupráci v souladu s vizí více vědomí, krásy a autenticity ve světě.
+                  </p>
+                  <BlockQuote
+                    preline="Identita značky"
+                    subline="Více vědomí, krásy a autenticity ve světě."
+                    author={{ name: publicContact.companyName }}
+                  >
+                    Neprodáváme instantní recepty. Tvoříme prostory, ve kterých se může potkat hloubka, estetika, bezpečí a skutečná změna.
+                  </BlockQuote>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  {dkiIdentityBlocks.map((item) => (
+                    <div key={item.title} className="glass-panel p-8 rounded-[2.4rem] border-white/10 space-y-4">
+                      <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-400 font-black">{item.title}</p>
+                      <p className="text-sm text-white/50 font-light leading-relaxed">{item.text}</p>
                     </div>
                   ))}
                 </div>
@@ -2889,22 +3217,22 @@ const App = () => {
                       <div className="grid md:grid-cols-2 gap-6 pt-4 border-t border-white/5 text-sm text-white/40 font-light">
                         <div className="space-y-1">
                           <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Sídlo</p>
-                          <p>Drážďanská 51/52<br />400 07 Ústí nad Labem</p>
+                          <p>{publicContact.addressLine}<br />{publicContact.cityLine}</p>
                         </div>
                         <div className="space-y-1 text-right">
                           <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Identifikace</p>
                           <p>IČO: 23143614<br />DIČ: CZ23143614</p>
                         </div>
                         <div className="md:col-span-2 pt-2 italic text-[10px] leading-relaxed">
-                          Zapsaná v obchodním rejstříku vedeném Krajským soudem v Ústí nad Labem, oddíl C, vložka 53832
+                          {publicContact.registrationNote}
                         </div>
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
                       {[
-                        { icon: <Phone />, label: 'Telefon', value: '+420 705 217 251', sub: 'Po-Pá: 9:00 - 17:00' },
-                        { icon: <Mail />, label: 'Email', value: 'info@david-kozak.com', sub: 'Odpovídáme do 24h' },
+                        { icon: <Phone />, label: 'Telefon', value: publicContact.phone, sub: 'Po-Pá: 9:00 - 17:00' },
+                        { icon: <Mail />, label: 'Email', value: publicContact.email, sub: 'Odpovídáme do 24h' },
                       ].map((item, i) => (
                         <div key={i} className="glass-panel p-10 rounded-[2.5rem] flex items-center gap-8 border-white/5 hover:border-cyan-400/20 transition-all group">
                           <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all">
@@ -2919,16 +3247,23 @@ const App = () => {
                       ))}
                     </div>
                     
-                    <a href="https://www.david-kozak.com" target="_blank" className="glass-panel p-10 rounded-[2.5rem] flex items-center gap-8 border-white/5 hover:border-cyan-400/20 transition-all group">
-                      <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all">
-                        <Globe />
-                      </div>
-                      <div className="flex-grow">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-1 font-black">Web</p>
-                        <p className="text-2xl font-bold text-white/90 group-hover:text-cyan-400 transition-colors">www.david-kozak.com</p>
-                      </div>
-                      <ExternalLink size={20} className="text-white/10 group-hover:text-cyan-400 transition-all" />
-                    </a>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {[
+                        { href: publicContact.primaryWebsiteUrl, value: publicContact.primaryWebsite, label: 'Web REST||ART' },
+                        { href: publicContact.secondaryWebsiteUrl, value: publicContact.secondaryWebsite, label: 'Web International' }
+                      ].map((item) => (
+                        <a key={item.value} href={item.href} target="_blank" rel="noreferrer" className="glass-panel p-10 rounded-[2.5rem] flex items-center gap-8 border-white/5 hover:border-cyan-400/20 transition-all group">
+                          <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all">
+                            <Globe />
+                          </div>
+                          <div className="flex-grow">
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-1 font-black">{item.label}</p>
+                            <p className="text-xl font-bold text-white/90 group-hover:text-cyan-400 transition-colors break-all">{item.value}</p>
+                          </div>
+                          <ExternalLink size={20} className="text-white/10 group-hover:text-cyan-400 transition-all" />
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -2986,22 +3321,51 @@ const App = () => {
                 <div className="glass-panel p-8 rounded-[2.5rem] border-white/10 w-full lg:max-w-md space-y-4">
                   <p className="text-[10px] text-cyan-400 uppercase tracking-[0.3em] font-black">Základní údaje</p>
                   <div className="space-y-3 text-sm text-white/70 font-light">
-                    <p><span className="text-white/40">Společnost:</span> DAVID KOZÁK INTERNATIONAL S.R.O.</p>
+                    <p><span className="text-white/40">Společnost:</span> {publicContact.companyName}</p>
                     <p><span className="text-white/40">Projekt:</span> REST||ART INTEGRACE</p>
+                    <p><span className="text-white/40">Pilot:</span> Ústecký kraj</p>
+                    <p><span className="text-white/40">Rozsah:</span> postupně celá ČR</p>
                     <p><span className="text-white/40">Účel:</span> Příloha k žádosti o podporu z OPZ+</p>
                   </div>
                 </div>
               </div>
 
-              <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-white/10 space-y-6">
-                <h3 className="text-2xl font-bold text-white uppercase tracking-widest">I. Úvod</h3>
-                <p className="text-white/50 font-light leading-relaxed">
-                  Projekt REST||ART INTEGRACE je zaměřen na resocializaci, rekvalifikaci a začlenění osob, které se ocitly v těžké životní situaci.
-                  Cílovou skupinou jsou zejména osoby po výkonu trestu, lidé bez domova, osoby se závislostí, dlouhodobě nezaměstnaní a mládež z ústavní péče.
-                </p>
-                <p className="text-white/50 font-light leading-relaxed">
-                  Projekt funguje v rámci obchodní společnosti a kombinuje podnikatelský přístup s měřitelným společenským dopadem.
-                </p>
+              <div className="grid lg:grid-cols-[1.05fr,0.95fr] gap-8">
+                <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-white/10 space-y-6">
+                  <h3 className="text-2xl font-bold text-white uppercase tracking-widest">I. Úvod</h3>
+                  <p className="text-white/50 font-light leading-relaxed">
+                    REST||ART není tabulka, není výkaz a není značka pro obálku žádosti. Je to odpověď na ticho v systému,
+                    který dlouhodobě přehlíží ty, kteří padli mezi institucemi, ulicí, výkonem trestu a nezaměstnaností.
+                  </p>
+                  <p className="text-white/50 font-light leading-relaxed">
+                    Projekt je zaměřen na resocializaci, rekvalifikaci a začlenění osob, které se ocitly v těžké životní situaci.
+                    Cílovou skupinou jsou zejména osoby po výkonu trestu, lidé bez domova, osoby se závislostí, dlouhodobě
+                    nezaměstnaní a mladí lidé bez stabilního zázemí.
+                  </p>
+                  <p className="text-white/50 font-light leading-relaxed">
+                    Projekt funguje v rámci obchodní společnosti a kombinuje podnikatelský přístup s měřitelným společenským
+                    dopadem, bez závislosti na jediné dotační logice.
+                  </p>
+                </div>
+                <div className="space-y-6">
+                  <div className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-4">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Osobní kontext a reálný základ</p>
+                    <p className="text-white/50 font-light leading-relaxed">
+                      Projekt vznikl díky osobní zkušenosti zakladatele a na základě skutečných příběhů lidí, kteří prošli výkonem
+                      trestu a skrze práci mimo ČR našli novou cestu.
+                    </p>
+                    <div className="grid gap-3">
+                      <div className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-5">
+                        <p className="text-sm font-bold text-white">Erik Horváth</p>
+                        <p className="text-sm text-white/45 font-light">bývalý vězeň, dnes elektrikář, abstinence a návrat k rodině</p>
+                      </div>
+                      <div className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-5">
+                        <p className="text-sm font-bold text-white">Mio Prešíč</p>
+                        <p className="text-sm text-white/45 font-light">po dvouleté práci v Německu spoluvlastník sítě automyček</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -3113,16 +3477,24 @@ const App = () => {
                     </div>
                   </RevealFx>
                   <RevealFx delay={0.18} translateY={0.9}>
-                    <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
-                      <MediaEnlarge
-                        src={brandAssets.monetization.budgetGraph}
-                        alt="Celkový rozpočet projektu REST ART Integrace"
-                        caption="Celkový rozpočet projektu rozpadnutý do hlavních investičních oblastí."
-                        className="rounded-[2.4rem]"
-                        objectFit="contain"
-                        imgClassName="rounded-[2.4rem] max-h-[320px] bg-white p-2"
+                    <React.Suspense
+                      fallback={
+                        <div className="glass-panel p-8 rounded-[3rem] border-white/10 space-y-3 min-h-[420px] flex flex-col justify-center">
+                          <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Interaktivní graf</p>
+                          <p className="text-2xl font-bold text-white">Načítám rozpočtový graf...</p>
+                          <p className="text-sm text-white/45 font-light leading-relaxed">
+                            Vizualizace nákladů se načítá samostatně, aby zbytečně nezatěžovala celý web.
+                          </p>
+                        </div>
+                      }
+                    >
+                      <PieChartCard
+                        title="Orientační rozpočet projektu REST||ART"
+                        description="Rozložení hlavních nákladových vrstev pilotní a provozní fáze podle podkladů projektu. Graf je živý, takže ho můžeme dál upravovat podle přesnějších rozpočtových verzí."
+                        data={projectBudgetDistribution}
+                        height={420}
                       />
-                    </div>
+                    </React.Suspense>
                   </RevealFx>
                   <div className="glass-panel p-6 rounded-[2.5rem] border-cyan-400/10 bg-cyan-500/[0.03] space-y-3">
                     <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Poznámka k modelu</p>
@@ -3404,27 +3776,48 @@ const App = () => {
                   Postup <span className="text-cyan-300 headline-thin">realizace</span>
                 </h2>
                 <p className="text-white/40 font-light max-w-3xl">
-                  Fázový rozpočet pro realizaci programu je spočítán na {formatCurrency(phasedImplementationBudget)} a je rozložen do osmi navazujících kroků.
+                  Zahájení projektu je plánováno na rok 2025. Do dvou měsíců od schválení záměru chceme spustit pilotní fázi
+                  a následně projekt rozvíjet po krajích až k celostátnímu modelu.
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                {projectTimeline.map((item, idx) => (
-                  <div key={idx} className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-cyan-400 uppercase tracking-[0.3em] font-black">
-                        Fáze {idx + 1}
-                      </span>
-                      <CheckCircle size={18} className="text-cyan-400/70" />
+              <div className="grid lg:grid-cols-[1.02fr,0.98fr] gap-8 items-start">
+                <div className="space-y-6">
+                  {strategicExpansionPhases.map((phase) => (
+                    <div key={phase.title} className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="text-[10px] text-cyan-400 uppercase tracking-[0.3em] font-black">{phase.focus}</p>
+                        <span className="text-[10px] uppercase tracking-widest text-white/30 font-black">{phase.duration}</span>
+                      </div>
+                      <h3 className="text-2xl font-bold text-white uppercase tracking-[0.08em]">{phase.title}</h3>
+                      <p className="text-white/50 font-light leading-relaxed">{phase.description}</p>
                     </div>
-                    <h3 className="text-2xl font-bold text-white">{item.phase}</h3>
-                    <p className="text-white/50 font-light">{item.date}</p>
-                    <div className="pt-4 border-t border-white/10">
-                      <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black mb-2">Rozpočet fáze</p>
-                      <p className="text-2xl font-black text-white">{item.budget}</p>
-                    </div>
+                  ))}
+                  <div className="glass-panel p-8 rounded-[2.5rem] border-cyan-400/10 bg-cyan-500/[0.03]">
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black mb-3">Operační rámec</p>
+                    <p className="text-white/50 font-light leading-relaxed">
+                      Samotný náběh realizace je nadále finančně veden i v interním fázovém rozpočtu. Pilotní operace počítá
+                      s rámcem {formatCurrency(phasedImplementationBudget)} pro koordinační a provozní start.
+                    </p>
                   </div>
-                ))}
+                </div>
+
+                <div className="glass-panel p-8 rounded-[3rem] border-white/10 space-y-8">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-teal-400 font-black mb-2">Milníky realizace</p>
+                    <h3 className="text-3xl font-black text-white">Časová osa projektu</h3>
+                  </div>
+                  <div className="relative space-y-7 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-white/5">
+                    {projectMilestonesDetailed.map((milestone) => (
+                      <div key={milestone.time} className="relative pl-12 group">
+                        <div className="absolute left-3 top-2 w-2 h-2 rounded-full bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)] group-hover:scale-150 transition-transform" />
+                        <div className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-1">{milestone.time}</div>
+                        <h4 className="text-sm font-bold text-white group-hover:text-teal-300 transition-colors">{milestone.title}</h4>
+                        <p className="text-xs text-white/35 font-light leading-relaxed">{milestone.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -3594,6 +3987,13 @@ const App = () => {
                       Nabízíme směr. Nabízíme koncept, který nesoupeří – ale spojuje. Možnost pracovat jako jeden tým napříč institucemi – ne pro výkaz, ale pro výsledek.
                     </p>
                   </div>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {cooperationPrinciples.map((item) => (
+                      <div key={item} className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 text-left">
+                        <p className="text-sm text-white/65 font-light leading-relaxed">{item}</p>
+                      </div>
+                    ))}
+                  </div>
                   <p className="text-white/40 text-lg">
                     REST||ART je struktura. Ale především je to morální rozhodnutí. Rozhodnutí neotáčet hlavu pryč. Rozhodnutí nezůstat potichu, když víme, že se dá konat jinak. Rozhodnutí vytvořit značku, která bude znamením podpory – a zároveň závazkem.
                   </p>
@@ -3648,6 +4048,12 @@ const App = () => {
                         Pokud sdílíte tuto vizi, přidejte se. Nemusíte mít připravený rozpočet. Stačí, že máte otevřené srdce,
                         jasný pohled a vůli táhnout.
                       </p>
+                      <div className="space-y-2 text-sm text-white/55 font-light leading-relaxed">
+                        <p>Už nechceme slyšet, že to nejde.</p>
+                        <p>Už nechceme čekat, až někdo jiný přijde s řešením.</p>
+                        <p>Už nechceme stát na straně těch, kdo jen hodnotí, ale nikdy netvoří.</p>
+                      </div>
+                      <p className="text-cyan-300/80 text-sm font-light italic">My už víme, kudy. Teď chceme, aby nás bylo víc.</p>
                       <button onClick={() => setIsContactModalOpen(true)} className="bg-white text-black px-12 py-6 rounded-2xl font-black text-xs tracking-[0.3em] uppercase hover:bg-cyan-400 transition-all shadow-2xl shadow-white/5">
                         CHCI SE PŘIDAT
                       </button>
@@ -3951,6 +4357,77 @@ const App = () => {
                   ))}
                 </div>
 
+                <div className="space-y-12 pt-10">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                    <div className="space-y-3">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Analýza konkurence</p>
+                      <h3 className="text-3xl font-black text-white uppercase tracking-[0.08em]">
+                        REST<span className="text-cyan-400/35">||</span>ART vs ostatní
+                      </h3>
+                    </div>
+                    <p className="text-sm text-white/35 font-light max-w-2xl">
+                      Tohle není blacklist. Je to mapování terénu v Jižních Čechách a širším okolí, kde se mohou organizace potkávat
+                      jako konkurence, doplněk i potenciální partner.
+                    </p>
+                  </div>
+
+                  <div className="glass-panel rounded-[3rem] overflow-hidden border-white/10">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="text-[10px] uppercase tracking-widest text-white/20 border-b border-white/5 bg-white/5">
+                            <th className="p-6 md:p-8 font-black">Organizace</th>
+                            <th className="p-6 md:p-8 font-black">Cílová skupina</th>
+                            <th className="p-6 md:p-8 font-black">Silné stránky</th>
+                            <th className="p-6 md:p-8 font-black">Slabé stránky</th>
+                            <th className="p-6 md:p-8 font-black text-cyan-400">Rozdíl oproti REST||ART</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-sm text-white/60">
+                          {competitionAnalysisRows.map((row) => (
+                            <tr key={row.organization} className="border-b border-white/5 align-top hover:bg-white/[0.02] transition-colors">
+                              <td className="p-6 md:p-8 font-black text-white">{row.organization}</td>
+                              <td className="p-6 md:p-8 font-light">{row.target}</td>
+                              <td className="p-6 md:p-8 text-white/55 font-light">{row.strengths}</td>
+                              <td className="p-6 md:p-8 text-white/40 font-light">{row.weaknesses}</td>
+                              <td className="p-6 md:p-8 text-cyan-300/90 font-light leading-relaxed">{row.difference}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-teal-400 font-black">Organizace mimo region</p>
+                      <h4 className="text-2xl font-black text-white uppercase tracking-[0.08em]">Jižní Čechy + širší okolí</h4>
+                    </div>
+                    <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {regionalOrganizations.map((item) => (
+                        <div key={item.name} className="glass-panel p-6 rounded-[2.4rem] border-white/10 space-y-5">
+                          <div className="space-y-2">
+                            <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-400 font-black">Relevantní subjekt</p>
+                            <h5 className="text-lg font-bold text-white leading-snug">{item.name}</h5>
+                          </div>
+                          <p className="text-sm text-white/50 font-light leading-relaxed">{item.focus}</p>
+                          <div className="space-y-2 text-sm">
+                            <a href={item.websiteUrl} target="_blank" rel="noreferrer" className="block text-cyan-300 hover:text-cyan-200 transition-colors">
+                              {item.website}
+                            </a>
+                            <a href={`mailto:${item.email}`} className="block text-white/65 hover:text-cyan-300 transition-colors">
+                              {item.email}
+                            </a>
+                          </div>
+                          <div className="pt-4 border-t border-white/10">
+                            <p className="text-xs text-white/35 font-light leading-relaxed">{item.note}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Tabulka Programů */}
                 <div className="space-y-12 pt-20">
                   <div className="flex items-center gap-6">
@@ -4007,7 +4484,7 @@ const App = () => {
                     <div className="grid md:grid-cols-2 gap-4 text-xs text-white/20 uppercase tracking-widest font-black">
                       <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> David Kozák International s.r.o.</div>
                       <div className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500" /> IČO: 23143614</div>
-                      <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> Drážďanská 51/52, 400 07 Ústí nad Labem</div>
+                      <div className="flex items-center gap-2 md:col-span-2"><div className="w-1 h-1 bg-cyan-500" /> {publicContact.addressLine}, {publicContact.cityLine}</div>
                     </div>
                   </div>
                   <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 flex items-center gap-6">
@@ -4222,16 +4699,22 @@ const App = () => {
                       JAILBREAK <br /><span className="text-cyan-300 headline-thin">+ REWORK + STREETWISE</span>
                     </h2>
                     <p className="text-lg text-white/40 font-light leading-relaxed">
-                      V tomto prostoru lze zaměstnat osoby ve výkonu trestu, ale také civilní pracovníky z řad dlouhodobě nezaměstnaných nebo lidí bez domova. Tím se propojuje několik cílových skupin v jednom provozu.
+                      Pilotní model plánujeme realizovat ve věznici Jiřice, kde je možné využít nabídku pronájmu skladové haly.
+                      V tomto prostoru lze zaměstnat osoby ve výkonu trestu i civilní pracovníky z řad dlouhodobě nezaměstnaných
+                      nebo lidí bez domova, takže se propojí několik cílových skupin v jednom provozu.
                     </p>
-                    <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="grid sm:grid-cols-3 gap-6">
                       <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
                         <h5 className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Logistika & Bezpečnost</h5>
-                        <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťují státní složky (ÚP, věznice).</p>
+                        <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťují státní složky, ÚP a věznice.</p>
                       </div>
                       <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
                         <h5 className="text-[10px] font-black uppercase tracking-widest text-teal-400">Terénní práce</h5>
-                        <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťuje neziskový sektor.</p>
+                        <p className="text-xs text-white/40 leading-relaxed font-light">Zajišťují neziskovky a komunitní pracovníci.</p>
+                      </div>
+                      <div className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-amber-300">Komerční vrstva</h5>
+                        <p className="text-xs text-white/40 leading-relaxed font-light">Partner získává motivovanou pracovní sílu bez nutnosti budovat externí kontrolní systém.</p>
                       </div>
                     </div>
                     <p className="text-sm text-white/20 italic font-light">
@@ -4304,14 +4787,7 @@ const App = () => {
 
                 {/* Indikátory Úspěšnosti */}
                 <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4 pt-12 border-t border-white/5">
-                  {[
-                    { label: "Počet osob", value: "KPI 01", icon: <Users size={16} /> },
-                    { label: "Zaměstnanost", value: "KPI 02", icon: <Briefcase size={16} /> },
-                    { label: "Mentoring", value: "KPI 03", icon: <Heart size={16} /> },
-                    { label: "Stabilní bydlení", value: "KPI 04", icon: <Home size={16} /> },
-                    { label: "Snížení recidivy", value: "KPI 05", icon: <ShieldCheck size={16} /> },
-                    { label: "Absence drog", value: "KPI 06", icon: <Activity size={16} /> }
-                  ].map((kpi, i) => (
+                  {successIndicatorsDetailed.map((kpi, i) => (
                     <div key={i} className="glass-panel p-6 rounded-2xl text-center space-y-3 hover:bg-cyan-500/5 transition-all">
                       <div className="text-cyan-400 mx-auto w-fit">{kpi.icon}</div>
                       <div className="text-[10px] font-black text-white/20 uppercase tracking-widest">{kpi.value}</div>
@@ -5002,34 +5478,38 @@ const App = () => {
       {/* FOOTER */}
       <footer className="py-24 relative z-10 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="glass-panel p-16 md:p-20 rounded-[4rem] flex flex-col md:flex-row justify-between items-center gap-16 bg-[#0D2F2F]/20 border-cyan-400/5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
+          <div className="glass-panel p-16 md:p-20 rounded-[4rem] flex flex-col md:flex-row justify-between items-center gap-16 bg-[#07181a]/70 border-cyan-400/10 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400/35 to-transparent" />
             
             <div className="space-y-8 text-center md:text-left relative z-10">
               <div className="space-y-4">
-                <div className="text-5xl font-black tracking-tighter text-glow-cyan leading-none">REST<span className="text-white/10 mx-1">||</span>ART</div>
-                <p className="text-[10px] text-white/30 uppercase tracking-[0.5em] font-black">Iniciativa David Kozák International</p>
+                <div className="text-5xl font-black tracking-tighter text-glow-cyan leading-none">REST<span className="text-cyan-400/35 mx-1">||</span>ART</div>
+                <p className="text-[10px] text-cyan-200/55 uppercase tracking-[0.5em] font-black">Iniciativa David Kozák International</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-white/40 text-sm font-bold">DAVID KOZÁK INTERNATIONAL S.R.O.</p>
-                <p className="text-white/20 text-[10px] leading-relaxed max-w-sm font-light">
-                  Drážďanská 51/52, 400 07 Ústí nad Labem<br />
-                  Tel: +420 705 217 251<br />
-                  IČO: 23143614 | DIČ: CZ23143614<br />
-                  Spisová značka: C 53832 u Krajského soudu v Ústí nad Labem
+              <div className="space-y-3">
+                <p className="text-cyan-100/85 text-sm font-bold">{publicContact.companyName}</p>
+                <p className="text-white/55 text-[11px] leading-relaxed max-w-md font-light">
+                  {publicContact.addressLine}, {publicContact.cityLine}<br />
+                  <a href={`mailto:${publicContact.email}`} className="hover:text-cyan-300 transition-colors">{publicContact.email}</a>
+                  {' | '}
+                  <a href={`tel:${publicContact.phone.replace(/\s+/g, '')}`} className="hover:text-cyan-300 transition-colors">{publicContact.phone}</a><br />
+                  <a href={publicContact.primaryWebsiteUrl} target="_blank" rel="noreferrer" className="hover:text-cyan-300 transition-colors">{publicContact.primaryWebsite}</a>
+                  {' | '}
+                  <a href={publicContact.secondaryWebsiteUrl} target="_blank" rel="noreferrer" className="hover:text-cyan-300 transition-colors">{publicContact.secondaryWebsite}</a><br />
+                  {publicContact.companyMeta}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-col items-center md:items-end gap-10 relative z-10">
-              <div className="flex gap-8 text-cyan-400/20">
+              <div className="flex gap-8 text-white/35">
                 <Instagram className="hover:text-cyan-400 hover:scale-110 cursor-pointer transition-all" size={32} />
                 <Facebook className="hover:text-cyan-400 hover:scale-110 cursor-pointer transition-all" size={32} />
                 <Globe className="hover:text-cyan-400 hover:scale-110 cursor-pointer transition-all" size={32} />
               </div>
               <div className="text-center md:text-right space-y-2">
-                <p className="text-[10px] text-white/10 uppercase tracking-[0.3em] font-black">© 2024 REST||ART INTEGRACE</p>
-                <p className="text-[10px] text-white/5 uppercase tracking-[0.2em]">Všechna práva vyhrazena</p>
+                <p className="text-[10px] text-cyan-100/45 uppercase tracking-[0.3em] font-black">© 2026 REST||ART INTEGRACE</p>
+                <p className="text-[10px] text-white/25 uppercase tracking-[0.2em]">Všechna práva vyhrazena</p>
               </div>
             </div>
           </div>
@@ -5045,14 +5525,14 @@ const App = () => {
                   key={key}
                   type="button"
                   onClick={() => setOpenLegalPage(key)}
-                  className="text-[9px] text-white/10 uppercase tracking-widest hover:text-white/30 transition-colors"
+                  className="text-[9px] text-white/30 uppercase tracking-widest hover:text-cyan-300 transition-colors"
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <div className="text-[9px] text-white/10 uppercase tracking-widest flex items-center gap-2">
-              Design by <span className="text-white/20 font-black">DK Studio</span>
+            <div className="text-[9px] text-white/30 uppercase tracking-widest flex items-center gap-2">
+              Design by <span className="text-cyan-200/70 font-black">DK Studio</span>
             </div>
           </div>
         </div>

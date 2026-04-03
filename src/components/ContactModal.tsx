@@ -1,5 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { publicContact } from '../lib/publicContact';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -41,15 +42,15 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
             <div className="space-y-4">
               <div className="glass-panel p-6 rounded-2xl border-white/10 space-y-2">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">Firma</p>
-                <p className="text-xl font-bold text-white">DAVID KOZÁK INTERNATIONAL S.R.O.</p>
+                <p className="text-xl font-bold text-white">{publicContact.companyName}</p>
               </div>
               <div className="glass-panel p-6 rounded-2xl border-white/10 space-y-2">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">Telefon</p>
-                <p className="text-lg font-bold text-cyan-400">+420 705 217 251</p>
+                <p className="text-lg font-bold text-cyan-400">{publicContact.phone}</p>
               </div>
               <div className="glass-panel p-6 rounded-2xl border-white/10 space-y-2">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">Email</p>
-                <p className="text-lg font-bold text-cyan-400">info@david-kozak.com</p>
+                <p className="text-lg font-bold text-cyan-400">{publicContact.email}</p>
               </div>
             </div>
 
