@@ -10,11 +10,13 @@ import BlockQuote from './components/BlockQuote';
 import ContactModal from './components/ContactModal';
 import Carousel from './components/Carousel';
 import LegalPageModal, { type LegalSection } from './components/LegalPageModal';
+import HorizontalScroller from './components/HorizontalScroller';
 import MatrixFxHero from './components/MatrixFxHero';
 import MediaEnlarge from './components/MediaEnlarge';
 import ParticleBackground from './components/ParticleBackground';
 import RadialGauge from './components/RadialGauge';
 import RevealFx from './components/RevealFx';
+import WeatherFxLeaves from './components/WeatherFxLeaves';
 import { fetchPublicEntries, fetchSiteSettings, isCurrentUserAdmin, mapCmsEntryToBlogPost } from './lib/cms';
 import {
   defaultHomepageLayout,
@@ -22,16 +24,23 @@ import {
   homepageLayoutSettingKey,
   homepageMediaSlotsSettingKey,
   homepageWidgetContentSettingKey,
+  globalNavigationSettingKey,
   globalPublicContactSettingKey,
   legalPageContentSettingKey,
+  pageIntroContentSettingKey,
   normalizeHomepageLayout,
   normalizeHomepageMediaSlots,
   normalizeHomepageWidgetContent,
   normalizePublicContactInfo,
   normalizeLegalPageContent,
+  normalizePageIntroContent,
+  normalizeSiteNavigationSettings,
   defaultHomepageWidgetContent,
   defaultLegalPageContent,
-  type HomepageSectionId
+  defaultPageIntroContent,
+  defaultSiteNavigationSettings,
+  type HomepageSectionId,
+  type NavigationItemKey
 } from './lib/siteSettings';
 import { publicContact } from './lib/publicContact';
 import { isSupabaseConfigured, supabase } from './lib/supabase';
@@ -84,6 +93,8 @@ type PageKey =
   | 'projects'
   | 'blog'
   | 'contacts'
+  | 'downloads-documents'
+  | 'downloads-programs'
   | 'zamer-uvod'
   | 'zamer-cile'
   | 'zamer-rozpocet'
@@ -108,6 +119,8 @@ const pagePathMap: Record<PageKey, string> = {
   projects: '/projekty',
   blog: '/blog',
   contacts: '/kontakty',
+  'downloads-documents': '/ke-stazeni/dokumenty',
+  'downloads-programs': '/ke-stazeni/programy',
   'zamer-uvod': '/investicni-zamer/uvod',
   'zamer-cile': '/investicni-zamer/cile',
   'zamer-rozpocet': '/investicni-zamer/rozpocet',
@@ -292,11 +305,45 @@ const brandAssets = {
 } as const;
 
 interface MenuNode {
-  key: string;
+  key: NavigationItemKey;
   label: string;
   id?: PageKey | 'contacts-modal';
   children?: MenuNode[];
 }
+
+interface HoverRevealCardProps {
+  question: string;
+  answer: string;
+  meta: string;
+}
+
+const HoverRevealCard: React.FC<HoverRevealCardProps> = ({ question, answer, meta }) => {
+  const answerId = `answer-${question.toLowerCase().replace(/[^a-z0-9]+/gi, '-')}`;
+
+  return (
+    <article
+      tabIndex={0}
+      aria-describedby={answerId}
+      className="group relative min-h-[148px] overflow-hidden rounded-[2rem] border border-red-400/10 bg-red-500/[0.03] p-6 outline-none transition duration-300 hover:-translate-y-1 hover:border-cyan-300/40 hover:bg-cyan-500/[0.08] focus:-translate-y-1 focus:border-cyan-300/45 focus:bg-cyan-500/[0.08] focus:ring-2 focus:ring-cyan-300/30"
+    >
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-400/0 via-cyan-400/[0.04] to-emerald-300/[0.08] opacity-0 transition duration-300 group-hover:opacity-100 group-focus:opacity-100 group-active:opacity-100" />
+      <div className="relative z-10 flex h-full flex-col justify-between gap-6">
+        <div className="flex items-start justify-between gap-5">
+          <p className="text-base text-white/82 font-semibold leading-snug">{question}</p>
+          <HelpCircle size={18} className="mt-0.5 shrink-0 text-cyan-300/70 transition group-hover:rotate-12 group-focus:rotate-12" />
+        </div>
+        <p className="text-[10px] uppercase tracking-[0.24em] text-white/28 font-black">Najeď / Tab</p>
+      </div>
+      <div
+        id={answerId}
+        className="absolute inset-0 z-20 flex flex-col justify-center gap-3 rounded-[2rem] border border-cyan-300/30 bg-[#052022]/96 p-6 opacity-0 shadow-[0_22px_70px_rgba(34,211,238,0.16)] backdrop-blur-xl transition duration-300 group-hover:opacity-100 group-focus:opacity-100 group-active:opacity-100"
+      >
+        <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-300 font-black">{meta}</p>
+        <p className="text-sm md:text-base text-white/82 font-light leading-relaxed">{answer}</p>
+      </div>
+    </article>
+  );
+};
 
 type LegalPageKey = 'privacy' | 'terms' | 'cookies';
 
@@ -419,6 +466,8 @@ const App = () => {
   const [homepageMediaSlots, setHomepageMediaSlots] = useState(defaultHomepageMediaSlots);
   const [homepageWidgetContent, setHomepageWidgetContent] = useState(defaultHomepageWidgetContent);
   const [siteLegalPageContent, setSiteLegalPageContent] = useState(defaultLegalPageContent);
+  const [siteNavigationSettings, setSiteNavigationSettings] = useState(defaultSiteNavigationSettings);
+  const [pageIntroContent, setPageIntroContent] = useState(defaultPageIntroContent);
 
   const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
   const isAdminRoute = normalizedPath === '/admin' || normalizedPath.startsWith('/admin/');
@@ -554,8 +603,10 @@ const App = () => {
           homepageLayoutSettingKey,
           homepageMediaSlotsSettingKey,
           homepageWidgetContentSettingKey,
+          globalNavigationSettingKey,
           globalPublicContactSettingKey,
-          legalPageContentSettingKey
+          legalPageContentSettingKey,
+          pageIntroContentSettingKey
         ]);
         if (!isMounted) return;
 
@@ -564,7 +615,9 @@ const App = () => {
         setHomepageLayout(normalizeHomepageLayout(byKey.get(homepageLayoutSettingKey)));
         setHomepageMediaSlots(normalizeHomepageMediaSlots(byKey.get(homepageMediaSlotsSettingKey)));
         setHomepageWidgetContent(normalizeHomepageWidgetContent(byKey.get(homepageWidgetContentSettingKey)));
+        setSiteNavigationSettings(normalizeSiteNavigationSettings(byKey.get(globalNavigationSettingKey)));
         setSiteLegalPageContent(normalizeLegalPageContent(byKey.get(legalPageContentSettingKey)));
+        setPageIntroContent(normalizePageIntroContent(byKey.get(pageIntroContentSettingKey)));
       } catch (error) {
         console.error('Homepage settings fetch failed', error);
       }
@@ -883,7 +936,7 @@ const App = () => {
     { name: "Aplikace firemní", url: "https://appka.david-kozak.com", desc: "Vlastní firemní aplikace pro mobilní zařízení.", icon: <Smartphone /> }
   ];
 
-  const navTree: MenuNode[] = [
+  const navTreeTemplate: MenuNode[] = [
     { key: 'home', label: 'Domů', id: 'home' },
     {
       key: 'about-root',
@@ -919,6 +972,15 @@ const App = () => {
     },
     { key: 'projects', label: 'Projekty', id: 'projects' },
     {
+      key: 'downloads-root',
+      label: 'Ke stažení',
+      id: 'downloads-documents',
+      children: [
+        { key: 'downloads-documents', label: 'Dokumenty', id: 'downloads-documents' },
+        { key: 'downloads-programs', label: 'Programy', id: 'downloads-programs' }
+      ]
+    },
+    {
       key: 'invest-root',
       label: 'Investiční záměr',
       id: 'zamer-uvod',
@@ -932,11 +994,39 @@ const App = () => {
     }
   ];
 
+  const navTree = React.useMemo(() => {
+    const settingsByKey = new Map(siteNavigationSettings.menuItems.map((item) => [item.key, item]));
+
+    const applyMenuSettings = (nodes: MenuNode[]): MenuNode[] =>
+      nodes.flatMap((node) => {
+        const currentSetting = settingsByKey.get(node.key);
+        const isVisible = currentSetting?.visible !== false;
+        if (!isVisible) {
+          return [];
+        }
+
+        return [
+          {
+            ...node,
+            label: currentSetting?.label?.trim() || node.label,
+            children: node.children ? applyMenuSettings(node.children) : undefined
+          }
+        ];
+      });
+
+    return applyMenuSettings(navTreeTemplate);
+  }, [siteNavigationSettings.menuItems]);
+
   useEffect(() => {
     const activePathKeys = findMenuPath(navTree, currentPage);
     if (!activePathKeys) return;
     setExpandedMenuKeys((prev) => [...new Set([...prev, ...activePathKeys])]);
   }, [currentPage]);
+
+  const footerLegalLinks = siteNavigationSettings.footerLinks.filter((item) => item.visible);
+  const socialLinks = siteNavigationSettings.socialLinks.filter(
+    (item) => item.visible && item.url.trim().length > 0
+  );
 
   const routablePages: PageKey[] = [
     'home',
@@ -954,6 +1044,8 @@ const App = () => {
     'news',
     'projects',
     'blog',
+    'downloads-documents',
+    'downloads-programs',
     'zamer-uvod',
     'zamer-cile',
     'zamer-rozpocet',
@@ -1838,22 +1930,680 @@ const App = () => {
   );
 
   const renderConfiguredHomepage = () => {
-    const sectionRenderers: Record<HomepageSectionId, () => React.JSX.Element> = {
-      'header-reveal': renderHomepageHeaderSection,
-      'hero-intro': renderHomepageHeroIntroSection,
-      stats: renderHomepageStatsSection,
-      'topic-pages': renderHomepageTopicPagesSection,
-      'legacy-storyline': renderLegacyHomepageSections,
-      brochures: renderBrochureSection,
-      'ai-assistant': renderHomepageAiAssistantSection,
-      pillars: renderHomepagePillarsSection
+    const landingPrograms = [
+      {
+        title: 'JAILBREAK',
+        description:
+          'Resocializace osob po výkonu trestu. Pomáháme lidem vrátit se zpět do společnosti, najít práci, stabilitu a důstojnost.',
+        icon: <DoorOpen />,
+        image: brandAssets.programIcons.jailbreak,
+        page: 'pillar-jailbreak' as PageKey
+      },
+      {
+        title: 'REWORK',
+        description:
+          'Rekvalifikace a pracovní integrace. Dáváme lidem nové dovednosti, návyky a reálnou šanci na stabilní zaměstnání.',
+        icon: <Briefcase />,
+        image: brandAssets.programIcons.rework,
+        page: 'pillar-rework' as PageKey
+      },
+      {
+        title: 'STREETWISE',
+        description:
+          'Pomoc lidem bez domova. Mapujeme jejich situaci, vytváříme individuální plán a pomáháme jim vrátit se zpět do života.',
+        icon: <Home />,
+        image: brandAssets.programIcons.streetwise,
+        page: 'pillar-streetwise' as PageKey
+      },
+      {
+        title: 'RESET',
+        description:
+          'Podpora osob závislých a lidí na hraně systému. Nový začátek bez závislosti, krok za krokem.',
+        icon: <RefreshCw />,
+        image: brandAssets.programIcons.reset,
+        page: 'pillar-reset' as PageKey
+      },
+      {
+        title: 'MÍSTO ZLOMU',
+        description:
+          'Práce s mládeží z dětských domovů. Prevence pádu do systému, motivace a směr.',
+        icon: <Flag />,
+        image: brandAssets.programIcons.bodzlomu,
+        page: 'pillar-mistozlomu' as PageKey
+      },
+      {
+        title: 'STABILIZACE',
+        description:
+          'Dlouhodobá podpora po změně. Aby se lidé nevrátili zpět tam, odkud odešli.',
+        icon: <ShieldCheck />,
+        image: brandAssets.programIcons.stabilizace,
+        page: 'pillar-stabilizace' as PageKey
+      }
+    ];
+
+    const impactItems = [
+      { label: 'snížení recidivy', value: `-${recidivismDelta} p. b.`, icon: <TrendingDown /> },
+      { label: 'návrat do práce', value: 'reálný režim', icon: <Briefcase /> },
+      { label: 'úspora / člověk / rok', value: formatCurrency(annualSavingsPerPerson), icon: <Wallet /> },
+      { label: 'začlenění do společnosti', value: 'stabilní opora', icon: <Users /> }
+    ];
+
+    const partnerItems = [
+      'zapojení do CSR projektů',
+      'možnost zaměstnávání lidí z programu',
+      'partnerství v rámci REST||ART INTEGRACE',
+      'společný dopad s reálnými výsledky'
+    ];
+
+    const supportItems = [
+      { title: 'Jednorázový dar', text: 'Rychlá podpora konkrétní práce v terénu a startu změny.', icon: <Heart /> },
+      { title: 'Pravidelná podpora', text: 'Stabilní základ pro mentoring, práci s klienty a dlouhodobý doprovod.', icon: <RefreshCw /> },
+      { title: 'Partnerství', text: 'Strategická spolupráce pro firmy, instituce a odpovědné značky.', icon: <Building2 /> }
+    ];
+
+    const problemQuestionCards = [
+      {
+        question: 'Kolik stojí jeden člověk ve vězení?',
+        meta: 'Model / osoba / rok',
+        answer: `Konzervativní model REST||ART počítá s částkou ${formatCurrency(annualSystemCostModel)} ročně. Oficiální rozpočtové údaje Vězeňské služby ukazují, že systém se pohybuje ve stovkách tisíc korun na osobu a rok.`
+      },
+      {
+        question: 'Kolik stojí jeho návrat zpět do systému?',
+        meta: 'Návrat problému',
+        answer: `Když se člověk vrátí do vězení, náklad se neopakuje jen finančně. Ztrácí se práce, bydlení, vztahy i důvěra a stát znovu platí následky místo příčin.`
+      },
+      {
+        question: 'A kolik by stálo dát mu skutečnou druhou šanci?',
+        meta: 'Reintegrace / osoba / rok',
+        answer: `Naše pracovní kalkulace počítá s částkou ${formatCurrency(annualReintegrationCost)} na osobu a rok. Rozdíl proti selhávajícímu scénáři je přibližně ${formatCurrency(annualSavingsPerPerson)} ročně.`
+      }
+    ];
+
+    const homepageDigest = [
+      ...newsPosts.slice(0, 2).map((post) => ({ ...post, typeLabel: 'Novinka', page: 'news' as PageKey })),
+      ...editorialPosts.slice(0, 2).map((post) => ({ ...post, typeLabel: 'Blog', page: 'blog' as PageKey }))
+    ];
+
+    const scrollToSection = (id: string) => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    return homepageLayout
-      .filter((section) => section.visible)
-      .map((section) => (
-        <React.Fragment key={section.id}>{sectionRenderers[section.id]()}</React.Fragment>
-      ));
+    return (
+      <>
+        {renderHomepageHeaderSection()}
+
+        <section className="relative min-h-screen px-6 pt-32 pb-20 flex items-center overflow-hidden">
+          <div className="absolute inset-0 -z-10">
+            <img
+              src={brandAssets.programsOverview}
+              alt=""
+              className="w-full h-full object-cover opacity-20"
+              aria-hidden="true"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#051111] via-[#051111]/90 to-[#051111]/35" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-[#051111]/80" />
+          </div>
+          <WeatherFxLeaves
+            colors={isDark ? ['#bbf7d0', '#99f6e4', '#86efac'] : ['#047857', '#059669', '#10b981']}
+            intensity={115}
+            speed={0.42}
+            angle={5}
+            fadeStart={0.5}
+            fadeEnd={0.78}
+            style={{ position: 'fixed', zIndex: 1, mixBlendMode: isDark ? 'screen' : 'multiply', opacity: isDark ? 0.7 : 0.42 }}
+          />
+
+          <div className="relative z-10 max-w-7xl mx-auto grid lg:grid-cols-[1.08fr,0.92fr] gap-12 items-center w-full min-w-0">
+            <div className="space-y-9 min-w-0 w-full max-w-[330px] md:max-w-none">
+              <div className="space-y-5">
+                <p className="text-cyan-400 font-black text-xs tracking-[0.32em] uppercase">RESTART INTEGRACE</p>
+                <h1 className="max-w-full break-words text-2xl md:text-7xl xl:text-8xl text-white leading-[1.12] md:leading-[0.96] text-glow-cyan">
+                  Dáváme druhou šanci <br className="md:hidden" />
+                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-emerald-300 to-lime-200 drop-shadow-[0_0_22px_rgba(52,211,153,0.42)]">
+                    tam, kde to systém vzdal.
+                  </span>
+                </h1>
+              </div>
+
+              <div className="grid xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.82fr)] gap-8 items-start">
+                <div className="space-y-6 min-w-0">
+                  <div className="space-y-5 max-w-3xl">
+                    <div className="inline-flex max-w-full flex-col gap-2 rounded-[1.5rem] border border-emerald-300/20 bg-emerald-400/[0.06] px-5 py-4 shadow-[0_0_28px_rgba(52,211,153,0.12)]">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-emerald-300 font-black">Motto projektu</p>
+                      <p className="text-xl md:text-3xl text-white font-serif italic leading-tight">"Každý příběh má právo pokračovat."</p>
+                      <p className="text-sm md:text-base text-white/58 font-light leading-relaxed">
+                        Druhá šance není slogan do kampaně. Je to pracovní metoda, která vrací člověka zpět do vztahů, práce a důvěry.
+                      </p>
+                    </div>
+                    <p className="text-lg md:text-3xl text-white/80 font-serif italic leading-snug">
+                      Spojujeme lidi, obnovujeme důvěru.
+                    </p>
+                    <p className="text-sm md:text-2xl text-white/65 font-light leading-relaxed">
+                      Nejsme projekt, který mluví o změně. <br className="md:hidden" />
+                      Jsme systém, který ji vytváří.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4 pt-2 max-w-full sm:max-w-none">
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection('podpora')}
+                      className="inline-flex w-full sm:w-auto items-center justify-center gap-3 bg-cyan-500 text-black px-6 sm:px-8 py-5 rounded-2xl font-black text-[11px] sm:text-sm uppercase tracking-[0.16em] sm:tracking-[0.2em] hover:bg-cyan-300 transition-all shadow-xl shadow-cyan-500/20"
+                    >
+                      Podpořit projekt
+                      <Heart size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection('partneri')}
+                      className="inline-flex w-full sm:w-auto items-center justify-center gap-3 glass-panel text-white px-6 sm:px-8 py-5 rounded-2xl font-black text-[11px] sm:text-sm uppercase tracking-[0.16em] sm:tracking-[0.2em] hover:bg-white/10 transition-all"
+                    >
+                      Navázat spolupráci
+                      <ArrowRight size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative group max-w-2xl xl:max-w-none">
+                  <RevealFx delay={0.12} translateY={0.7}>
+                    <div className="relative rounded-[3rem] overflow-hidden shadow-2xl transform -rotate-3 group-hover:rotate-0 transition-all duration-700 border-[12px] border-white/5 bg-white/5">
+                      <img
+                        src={homepageMedia.heroMainImage.src}
+                        alt={homepageMedia.heroMainImage.alt}
+                        className="hero-desat w-full h-[300px] md:h-[360px] xl:h-[410px] object-cover opacity-70 group-hover:opacity-100 transition-all duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-transparent opacity-80" />
+                      <div className="absolute bottom-7 left-7 right-7 text-white italic text-xl md:text-2xl font-serif drop-shadow-lg">
+                        "Každý příběh má právo pokračovat."
+                      </div>
+                    </div>
+                  </RevealFx>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid xl:grid-cols-[260px_minmax(0,1fr)] gap-6 min-w-0 w-full max-w-[calc(100vw-3rem)] lg:max-w-none items-start">
+              <div className="grid gap-4 xl:sticky xl:top-28">
+                {homeStatItems.map((item, idx) => (
+                  <div key={item.label} className="glass-panel px-7 py-6 rounded-[2rem] border-white/10 flex xl:flex-col items-center xl:items-start justify-between gap-5">
+                    <p className="text-4xl md:text-5xl font-black text-glow-cyan leading-none">
+                      {animatedStats[idx]}{item.suffix}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-black text-right xl:text-left max-w-[220px]">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-6 min-w-0">
+                <div className="glass-panel p-5 rounded-[3.2rem] border-cyan-400/15 overflow-hidden">
+                  <div className="relative rounded-[2.6rem] overflow-hidden bg-black/40 min-h-[320px]">
+                    <img
+                      src={brandAssets.branding.logoPrimary}
+                      alt="RESTART Integrace"
+                      className="absolute inset-0 m-auto w-[78%] max-h-[72%] object-contain opacity-90"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/85 to-transparent">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-300 font-black mb-3">Core message</p>
+                      <p className="text-lg md:text-2xl text-white font-serif italic leading-tight">Druhá šance není slogan. Je to pracovní metoda.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <MatrixFxHero
+                  isDark={isDark}
+                  darkLogoSrc={brandAssets.branding.logoAlt}
+                  lightLogoSrc={brandAssets.branding.logoPrimary}
+                  darkLogoAlt="REST||ART logo pro tmavé téma"
+                  lightLogoAlt="REST||ART logo pro světlé téma"
+                  revealFrom="bottom"
+                  label="Restart"
+                  description="Restartuj své myšlení, Daruj Druhou šanci!"
+                  bulge={{ type: 'ripple', duration: 4, intensity: 15, repeat: true }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-cyan-950/[0.06] to-transparent">
+          <div className="max-w-7xl mx-auto space-y-7">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
+              <div className="space-y-3">
+                <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Aktuálně</p>
+                <h2 className="text-3xl md:text-5xl font-black text-white uppercase leading-none">Novinky a blog</h2>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => goToPage('news')}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200 transition hover:border-cyan-300/40"
+                >
+                  Všechny novinky
+                  <ArrowRight size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToPage('blog')}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/70 transition hover:border-cyan-300/30 hover:text-cyan-200"
+                >
+                  Blog
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {homepageDigest.map((post) => (
+                <button
+                  key={`${post.typeLabel}-${post.title}`}
+                  type="button"
+                  onClick={() => goToPage(post.page)}
+                  className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.035] text-left transition hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-white/[0.055]"
+                >
+                  <div className="relative h-32 overflow-hidden bg-cyan-950/30">
+                    <img
+                      src={post.imageUrl || brandAssets.branding.logoPrimary}
+                      alt=""
+                      className="h-full w-full object-cover opacity-70 transition duration-500 group-hover:scale-105 group-hover:opacity-100"
+                      aria-hidden="true"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-transparent to-transparent" />
+                    <span className="absolute left-4 top-4 rounded-full bg-black/45 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-200 backdrop-blur">
+                      {post.typeLabel}
+                    </span>
+                  </div>
+                  <div className="space-y-3 p-5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">{post.date}</p>
+                    <h3 className="line-clamp-2 min-h-[3.2rem] text-base font-black uppercase leading-tight text-white group-hover:text-cyan-200">
+                      {post.title}
+                    </h3>
+                    <p className="line-clamp-2 text-sm font-light leading-relaxed text-white/45">{post.excerpt}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-black/[0.08] to-transparent">
+          <div className="max-w-7xl mx-auto space-y-12">
+            <div className="space-y-5 max-w-5xl">
+              <p className="text-[10px] uppercase tracking-[0.32em] text-red-400 font-black">Realita bez filtru</p>
+              <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-[0.98]">
+                Problém, který nejde schovat do statistik.
+              </h2>
+            </div>
+            <div className="space-y-8 text-xl text-white/62 font-light leading-relaxed max-w-6xl">
+              <p>
+                Žijeme ve společnosti, která se označuje za vyspělou. Přesto kolem nás roste počet lidí bez domova,
+                závislých a těch, kteří se opakovaně vracejí do vězení.
+              </p>
+              <div className="grid md:grid-cols-3 gap-4">
+                {problemQuestionCards.map((item) => (
+                  <HoverRevealCard
+                    key={item.question}
+                    question={item.question}
+                    meta={item.meta}
+                    answer={item.answer}
+                  />
+                ))}
+              </div>
+              <p>
+                Každý den investujeme miliardy do řešení následků. Ale minimum do řešení příčin.
+              </p>
+              <p className="text-2xl text-cyan-200 font-serif italic">
+                RESTART INTEGRACE vznikl jako odpověď na tuto nerovnováhu.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-cyan-950/[0.08] to-transparent">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.05fr,0.95fr] gap-10 items-center">
+            <div className="space-y-7">
+              <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Řešení</p>
+              <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                Není to klasická nezisková organizace.
+              </h2>
+              <p className="text-xl text-white/60 font-light leading-relaxed">
+                RESTART INTEGRACE je strukturovaný systém programů, který propojuje lidi, firmy a příležitosti.
+                Pracuje s reálnými příběhy, ne statistikami na papíře.
+              </p>
+              <BlockQuote
+                preline="Směr změny"
+                subline="Odpovědnost místo závislosti. Vlastní ekonomická aktivita místo závislosti pouze na dotacích."
+                author={{ name: 'RESTART INTEGRACE' }}
+              >
+                Neřešíme problém. Měníme jeho směr.
+              </BlockQuote>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              {[
+                { title: 'Propojení', text: 'lidé, firmy a příležitosti', icon: <Workflow /> },
+                { title: 'Příběhy', text: 'reálné osudy místo prázdných tabulek', icon: <Fingerprint /> },
+                { title: 'Odpovědnost', text: 'podpora bez vytváření závislosti', icon: <ShieldCheck /> },
+                { title: 'Udržitelnost', text: 'vlastní ekonomická aktivita', icon: <Rocket /> }
+              ].map((item) => (
+                <div key={item.title} className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-5">
+                  <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                    {React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 22 })}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white uppercase tracking-[0.08em]">{item.title}</h3>
+                    <p className="text-sm text-white/45 font-light leading-relaxed mt-2">{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-emerald-950/[0.07] to-transparent">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-[1fr,0.95fr] gap-10 items-center">
+            <div className="space-y-7">
+              <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Značka druhé šance</p>
+              <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                Toto není další projekt.
+              </h2>
+              <p className="text-xl text-white/58 font-light leading-relaxed">
+                REST||ART je odpověď na ticho v systému, který roky přehlíží ty, kteří padli. Značka musí nést stejnou
+                sílu jako samotná práce: jasný postoj, estetiku, důstojnost a odvahu spojovat.
+              </p>
+              <BlockQuote
+                preline="Brand message"
+                subline="Propojení lidí, firem, institucí a příběhů v jednom systému."
+                author={{ name: 'REST||ART' }}
+              >
+                Spojujeme lidi, obnovujeme důvěru.
+              </BlockQuote>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-5">
+              <RevealFx delay={0.08} translateY={0.72}>
+                <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                  <MediaEnlarge
+                    src={homepageMedia.manifestSilence.src}
+                    alt={homepageMedia.manifestSilence.alt}
+                    caption={homepageMedia.manifestSilence.caption}
+                    className="rounded-[2.4rem] aspect-[4/5]"
+                    imgClassName="rounded-[2.4rem]"
+                  />
+                </div>
+              </RevealFx>
+              <RevealFx delay={0.16} translateY={0.84}>
+                <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                  <MediaEnlarge
+                    src={homepageMedia.manifestEverythingHasTime.src}
+                    alt={homepageMedia.manifestEverythingHasTime.alt}
+                    caption={homepageMedia.manifestEverythingHasTime.caption}
+                    className="rounded-[2.4rem] aspect-[4/5]"
+                    imgClassName="rounded-[2.4rem]"
+                  />
+                </div>
+              </RevealFx>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 px-6 relative bg-gradient-to-b from-transparent via-black/[0.08] to-transparent">
+          <div className="max-w-7xl mx-auto space-y-12">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-white/10 pb-10">
+              <div className="space-y-4">
+                <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Programy</p>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Šest cest, jeden systém.
+                </h2>
+              </div>
+              <p className="text-white/45 font-light max-w-xl">
+                Každý program řeší jiný bod zlomu. Dohromady tvoří návaznou cestu od krize přes práci až po dlouhodobou stabilizaci.
+              </p>
+            </div>
+
+            <HorizontalScroller
+              ariaLabel="Programy REST||ART"
+              viewportClassName="px-1"
+            >
+              {landingPrograms.map((program, index) => (
+                <button
+                  key={program.title}
+                  type="button"
+                  onClick={() => goToPage(program.page)}
+                  className="glass-panel snap-start shrink-0 w-[82vw] sm:w-[420px] lg:w-[390px] p-7 rounded-[2.5rem] border-white/10 hover:border-cyan-400/35 hover:-translate-y-1 focus:border-cyan-400/40 focus:outline-none focus:ring-2 focus:ring-cyan-300/30 transition-all text-left group min-h-[330px] flex flex-col"
+                >
+                  <div className="flex items-start justify-between gap-4 mb-8">
+                    <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-400/15 overflow-hidden flex items-center justify-center">
+                      <img src={program.image} alt="" className="w-full h-full object-cover" aria-hidden="true" />
+                    </div>
+                    <span className="text-[10px] text-white/20 uppercase tracking-[0.28em] font-black">0{index + 1}</span>
+                  </div>
+                  <h3 className="text-2xl font-black text-white uppercase tracking-[0.08em] group-hover:text-cyan-300 transition-colors">
+                    {program.title}
+                  </h3>
+                  <p className="text-sm text-white/48 font-light leading-relaxed mt-4 flex-grow">{program.description}</p>
+                  <div className="pt-6 flex items-center justify-between text-[10px] uppercase tracking-[0.22em] font-black text-cyan-400">
+                    Detail programu
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+              ))}
+            </HorizontalScroller>
+          </div>
+        </section>
+
+        <section className="py-24 px-6 relative overflow-hidden">
+          <div className="max-w-7xl mx-auto space-y-14">
+            <div className="grid lg:grid-cols-[0.9fr,1.1fr] gap-10 items-end">
+              <div className="space-y-4">
+                <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Dopad</p>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">Měřitelná změna.</h2>
+              </div>
+              <p className="text-xl text-white/60 font-light leading-relaxed">
+                Naším cílem není „pomáhat“. Naším cílem je měřitelná změna: nižší recidiva, návrat lidí do práce,
+                nižší náklady na veřejné finance a stabilní začlenění do společnosti.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
+              {impactItems.map((item) => (
+                <div key={item.label} className="glass-panel p-7 rounded-[2.2rem] border-white/10 space-y-5">
+                  <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                    {React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 22 })}
+                  </div>
+                  <p className="text-3xl font-black text-white leading-none">{item.value}</p>
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-white/35 font-black">{item.label}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="glass-panel p-8 md:p-12 rounded-[3rem] border-cyan-400/15 bg-cyan-500/[0.03] grid lg:grid-cols-[1fr,0.75fr] gap-8 items-center">
+              <p className="text-2xl md:text-3xl text-white font-serif italic leading-snug">
+                Každý člověk, který se nevrátí zpět do systému, znamená nejen ušetřené náklady,
+                ale především zachráněný životní příběh.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="rounded-[2rem] border border-red-400/15 bg-red-500/[0.04] p-6">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-red-300 font-black mb-2">Náklad systému / rok</p>
+                  <p className="text-3xl font-black text-white">{formatCurrency(annualSystemCostModel)}</p>
+                </div>
+                <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-500/[0.04] p-6">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-cyan-300 font-black mb-2">Reintegrace / rok</p>
+                  <p className="text-3xl font-black text-white">{formatCurrency(annualReintegrationCost)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="partneri" className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-teal-950/[0.07] to-transparent scroll-mt-24">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-[0.9fr,1.1fr] gap-12 items-start">
+            <div className="space-y-7">
+              <p className="text-[10px] uppercase tracking-[0.32em] text-teal-400 font-black">Pro partnery</p>
+              <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                Spolupráce s námi není charita.
+              </h2>
+              <p className="text-xl text-white/60 font-light leading-relaxed">
+                Je to investice do funkční změny. Firmám a institucím nabízíme smysluplné zapojení, které má jasný rámec,
+                reálný dopad a konkrétní výsledky.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsContactModalOpen(true)}
+                className="inline-flex items-center gap-3 bg-white text-black px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-cyan-300 transition-all"
+              >
+                Staňte se součástí systému
+                <ArrowRight size={18} />
+              </button>
+            </div>
+            <div className="grid md:grid-cols-2 gap-5">
+              {partnerItems.map((item) => (
+                <div key={item} className="glass-panel p-7 rounded-[2.2rem] border-white/10 flex items-start gap-4">
+                  <CheckCircle className="text-teal-400 shrink-0 mt-1" size={22} />
+                  <p className="text-lg text-white/72 font-light leading-snug">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-orange-950/[0.06] to-transparent">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.02fr,0.98fr] gap-12 items-start">
+            <RevealFx delay={0.05} translateY={0.8}>
+              <div className="glass-panel p-4 rounded-[3rem] border-white/10 overflow-hidden">
+                <MediaEnlarge
+                  src={homepageMedia.whyNotNonProfit.src}
+                  alt={homepageMedia.whyNotNonProfit.alt}
+                  caption={homepageMedia.whyNotNonProfit.caption}
+                  className="rounded-[2.5rem]"
+                  imgClassName="rounded-[2.5rem] max-h-[640px]"
+                />
+              </div>
+            </RevealFx>
+
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <p className="text-[10px] uppercase tracking-[0.32em] text-orange-300 font-black">Monetizace a partnerství</p>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Proč nejsme <br /><span className="text-orange-300 headline-thin">jen neziskovka</span>
+                </h2>
+                <p className="text-white/50 font-light leading-relaxed max-w-2xl">
+                  Financování skládáme z úspor pro stát, firemních partnerství, pravidelné podpory a reinvestice výnosů
+                  zpět do lidí. Vizuální identita a vlastní ekonomická aktivita zůstávají součástí důvěryhodnosti projektu.
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-[240px,1fr] gap-4 items-stretch">
+                <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-white/5">
+                  <MediaEnlarge
+                    src={brandAssets.branding.doorMotto}
+                    alt="Slogan projektu REST||ART"
+                    caption="Štítek s mottem projektu REST||ART."
+                    className="h-full"
+                    imgClassName="h-full max-h-[380px]"
+                  />
+                </div>
+                <div className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-24 h-24 md:w-28 md:h-28 shrink-0 rounded-[2rem] bg-cyan-500/10 border border-cyan-400/20 overflow-hidden p-3 shadow-[0_18px_50px_rgba(0,242,234,0.12)]">
+                      <img
+                        src={brandAssets.branding.logoAlt}
+                        alt="Alternativní logo REST||ART"
+                        className="w-full h-full object-contain scale-[1.08]"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Design systému</p>
+                      <p className="text-2xl text-white font-serif italic">Důvěra musí být vidět.</p>
+                    </div>
+                  </div>
+                  <p className="text-white/50 font-light leading-relaxed">
+                    Vizuální jazyk REST||ART nemá být dekorace. Je to důkaz, že i sociální integrace může působit profesionálně,
+                    odvážně a s respektem k člověku.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="podpora" className="py-24 px-6 relative scroll-mt-24">
+          <div className="max-w-7xl mx-auto space-y-12">
+            <div className="grid lg:grid-cols-[1fr,0.8fr] gap-10 items-end">
+              <div className="space-y-5">
+                <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Podpořte nás</p>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Vaše podpora není dar.
+                </h2>
+                <p className="text-2xl text-cyan-200 font-serif italic">Je to podíl na změně.</p>
+              </div>
+              <p className="text-lg text-white/55 font-light leading-relaxed">
+                Každý projekt potřebuje zdroje. Ale ne každý projekt je dokáže proměnit ve změnu.
+                Vyberte si, jak se zapojit.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {supportItems.map((item) => (
+                <div key={item.title} className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-6">
+                  <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                    {React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 24 })}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-[0.08em]">{item.title}</h3>
+                    <p className="text-sm text-white/45 font-light leading-relaxed mt-3">{item.text}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsContactModalOpen(true)}
+                    className="inline-flex items-center gap-3 text-cyan-300 text-[10px] uppercase tracking-[0.22em] font-black hover:text-cyan-100 transition-colors"
+                  >
+                    Domluvit zapojení
+                    <ArrowRight size={15} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {renderBrochureSection()}
+        {renderHomepageAiAssistantSection()}
+
+        <section className="py-24 px-6 relative bg-black/35">
+          <div className="max-w-7xl mx-auto glass-panel p-8 md:p-12 rounded-[3rem] border-cyan-400/15 grid lg:grid-cols-[1fr,0.9fr] gap-10 items-center">
+            <div className="space-y-5">
+              <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Kontakt</p>
+              <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                Každá spolupráce začíná jedním rozhovorem.
+              </h2>
+              <p className="text-lg text-white/50 font-light">Ozvěte se. Projdeme možnosti podpory, partnerství i konkrétní zapojení.</p>
+            </div>
+            <div className="space-y-5">
+              <div className="rounded-[2rem] bg-white/[0.04] border border-white/10 p-6">
+                <p className="text-xl font-black text-white">David Kozák International s.r.o.</p>
+                <p className="text-cyan-300 font-semibold mt-1">RESTART INTEGRACE</p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <a href="mailto:info@david-kozak.com" className="glass-panel p-5 rounded-[1.7rem] border-white/10 hover:border-cyan-400/30 transition-colors">
+                  <Mail className="text-cyan-400 mb-4" size={22} />
+                  <p className="text-sm text-white font-semibold">info@david-kozak.com</p>
+                </a>
+                <a href="tel:+420775189574" className="glass-panel p-5 rounded-[1.7rem] border-white/10 hover:border-cyan-400/30 transition-colors">
+                  <Phone className="text-cyan-400 mb-4" size={22} />
+                  <p className="text-sm text-white font-semibold">+420 775 189 574</p>
+                </a>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsContactModalOpen(true)}
+                className="w-full inline-flex items-center justify-center gap-3 bg-cyan-500 text-black px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-cyan-300 transition-all"
+              >
+                Otevřít kontaktní formulář
+                <MessageSquare size={18} />
+              </button>
+            </div>
+          </div>
+        </section>
+      </>
+    );
   };
 
   const renderLegacyHomepageSections = () => (
@@ -2909,15 +3659,15 @@ const App = () => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-white/10 pb-12">
                 <div className="space-y-5">
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                    O nás
+                    {pageIntroContent.about.eyebrow}
                   </div>
                   <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
-                    DKI s.r.o. <span className="text-cyan-400/60">&</span> <br />
-                    <span className="text-cyan-300 headline-thin">REST||ART Integrace</span>
+                    {pageIntroContent.about.titleLead} <br />
+                    <span className="text-cyan-300 headline-thin">{pageIntroContent.about.titleAccent}</span>
                   </h2>
                 </div>
                 <p className="text-white/40 font-light max-w-md">
-                  REST||ART, JAILBREAK, REWORK a další podprogramy tvoří jednu značku, která propojuje vnitřní proměnu, estetiku, profesionální rámec a každodenní realitu.
+                  {pageIntroContent.about.description}
                 </p>
               </div>
 
@@ -3019,6 +3769,41 @@ const App = () => {
                       práci s lidmi a transformační zkušenost.
                     </p>
                   </div>
+                </div>
+              </div>
+
+              <div className="glass-panel p-8 md:p-12 rounded-[3rem] border-white/10 bg-black/20 space-y-10">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 border-b border-white/10 pb-8">
+                  <div className="space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Páteř naší práce</p>
+                    <h3 className="text-3xl md:text-4xl font-black text-white uppercase leading-none">
+                      Morální <span className="text-cyan-300 headline-thin">kodex</span>
+                    </h3>
+                  </div>
+                  <p className="text-sm text-white/40 font-light leading-relaxed max-w-md">
+                    Kodex je závazek vůči každému, kdo s námi vstupuje do kontaktu: klientovi, kolegovi, partnerovi i podporovateli.
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
+                  {[
+                    { title: 'Člověk na prvním místě', text: 'Každý má právo na druhou šanci bez předsudků a stigmat.', icon: <HeartHandshake /> },
+                    { title: 'Čest a respekt', text: 'Komunikujeme otevřeně, s důstojností a odpovědností.', icon: <Scale /> },
+                    { title: 'Spolupráce místo soupeření', text: 'Propojujeme sektory, odborníky i příležitosti.', icon: <Workflow /> },
+                    { title: 'Zodpovědná pomoc', text: 'Nenabízíme alibi, ale prostor pro růst a změnu.', icon: <ShieldCheck /> },
+                    { title: 'Smysl a efektivita', text: 'Kombinujeme lidskost, data a udržitelné kroky.', icon: <Zap /> },
+                    { title: 'Příběh před statistikou', text: 'Člověk není číslo. Každý má jméno, kontext a důvod.', icon: <Fingerprint /> },
+                    { title: 'Kultura důvěry', text: 'To, co říkáme navenek, musí platit i uvnitř týmu.', icon: <Eye /> },
+                    { title: 'Inovace a růst', text: 'Kreativitu bereme jako nástroj obnovy jednotlivce i systému.', icon: <Lightbulb /> }
+                  ].map((item) => (
+                    <div key={item.title} className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 space-y-4">
+                      <div className="w-11 h-11 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                        {React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 21 })}
+                      </div>
+                      <h4 className="text-base font-black text-white leading-snug">{item.title}</h4>
+                      <p className="text-xs text-white/45 font-light leading-relaxed">{item.text}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -3141,11 +3926,12 @@ const App = () => {
             <div className="max-w-7xl mx-auto space-y-14">
               <div className="space-y-5 border-b border-white/10 pb-10">
                 <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                  Pilíře
+                  {pageIntroContent.pillars.eyebrow}
                 </div>
                 <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
-                  Šest pilířů <span className="text-cyan-300 headline-thin">integrace</span>
+                  {pageIntroContent.pillars.titleLead} <span className="text-cyan-300 headline-thin">{pageIntroContent.pillars.titleAccent}</span>
                 </h2>
+                <p className="max-w-3xl text-sm text-white/40">{pageIntroContent.pillars.description}</p>
               </div>
 
               <div className="space-y-8">
@@ -3178,6 +3964,48 @@ const App = () => {
                   );
                 })}
               </div>
+
+              <div className="grid lg:grid-cols-[0.95fr,1.05fr] gap-8 items-start">
+                <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-cyan-400/15 bg-cyan-500/[0.03] space-y-5">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Servis pro účastníky</p>
+                  <h3 className="text-3xl font-black text-white uppercase leading-none">Jedna cesta místo roztříštěné pomoci</h3>
+                  <p className="text-white/50 font-light leading-relaxed">
+                    Programy nejsou izolované služby. Každý účastník dostává návaznou podporu podle situace: diagnostiku,
+                    mentoring, práci s dluhy, pracovní nácvik, bydlení, komunitu a dlouhodobou stabilizaci po změně.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {['vstupní mapování', 'individuální plán', 'pracovní nácvik', 'dlouhodobý doprovod'].map((item) => (
+                      <div key={item} className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-5 py-4 text-sm text-white/60 font-bold">
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-white/10 space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Síť partnerství</p>
+                    <h3 className="text-3xl font-black text-white uppercase leading-none">Stát, firmy, neziskový sektor a regiony</h3>
+                  </div>
+                  <p className="text-white/50 font-light leading-relaxed">
+                    REST||ART má fungovat jako zastřešující platforma, která propojuje vězeňskou službu, úřady práce,
+                    zaměstnavatele, odborníky, sociální služby a partnery z byznysu.
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {[
+                      { title: 'Veřejný sektor', text: 'instituce, úřady, kraje a obce' },
+                      { title: 'Zaměstnavatelé', text: 'pracovní místa, praxe a rekvalifikace' },
+                      { title: 'Odborná síť', text: 'terapie, dluhy, bydlení a právní pomoc' },
+                      { title: 'Strategičtí partneři', text: 'CSR, financování a měřitelný dopad' }
+                    ].map((item) => (
+                      <div key={item.title} className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-5 space-y-2">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-cyan-400 font-black">{item.title}</p>
+                        <p className="text-sm text-white/45 font-light leading-relaxed">{item.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -3188,11 +4016,21 @@ const App = () => {
             <div className="max-w-7xl mx-auto space-y-14">
               <div className="space-y-5 border-b border-white/10 pb-10">
                 <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                  Příběhy
+                  {pageIntroContent.stories.eyebrow}
                 </div>
                 <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
-                  Skutečné <span className="text-cyan-300 headline-thin">restarty</span>
+                  {pageIntroContent.stories.titleLead} <span className="text-cyan-300 headline-thin">{pageIntroContent.stories.titleAccent}</span>
                 </h2>
+                <p className="max-w-3xl text-sm text-white/40">{pageIntroContent.stories.description}</p>
+              </div>
+
+              <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-emerald-400/10 bg-emerald-500/[0.03] space-y-4">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-emerald-400 font-black">Důkaz, že to jde</p>
+                <h3 className="text-3xl font-black text-white uppercase leading-none">Skutečné příběhy změny</h3>
+                <p className="text-white/50 font-light leading-relaxed max-w-4xl">
+                  Změna vychází zevnitř. REST||ART staví na motivaci, odpovědnosti a inspiraci skrze lidi, kteří už svou cestu našli.
+                  Příběhy nejsou reklama. Jsou důkaz, že druhá šance může fungovat, když má člověk práci, vedení a důvěru.
+                </p>
               </div>
 
               <RevealFx delay={0.05} translateY={0.8}>
@@ -3245,10 +4083,10 @@ const App = () => {
         return (
           <BlogPage
             posts={newsPosts}
-            eyebrow="Aktuality REST||ART"
-            title="Novinky"
-            highlight="a aktuality"
-            description="Aktuální dění, postpenitenciární podpora, milníky projektu a konkrétní kroky, ke kterým se REST||ART veřejně připojuje."
+            eyebrow={pageIntroContent.news.eyebrow}
+            title={pageIntroContent.news.titleLead}
+            highlight={pageIntroContent.news.titleAccent}
+            description={pageIntroContent.news.description}
           />
         );
       case 'projects':
@@ -3262,14 +4100,15 @@ const App = () => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-cyan-400/10 pb-16">
                 <div className="space-y-6">
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                    Ecosystem David Kozák
+                    {pageIntroContent.projects.eyebrow}
                   </div>
-                  <h2 className="text-4xl md:text-6xl text-white uppercase text-glow-cyan leading-tight">Vizionář <br /><span className="text-cyan-300 headline-thin">& Design</span></h2>
+                  <h2 className="text-4xl md:text-6xl text-white uppercase text-glow-cyan leading-tight">{pageIntroContent.projects.titleLead} <br /><span className="text-cyan-300 headline-thin">{pageIntroContent.projects.titleAccent}</span></h2>
                 </div>
                 <a href="https://davidkozak.social" target="_blank" className="group bg-white text-black px-10 py-5 rounded-2xl flex items-center gap-3 hover:bg-cyan-400 transition-all text-xs font-black tracking-widest uppercase shadow-xl shadow-cyan-500/10">
                   Portfolio Majitele <ExternalLink size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                 </a>
               </div>
+              <p className="max-w-3xl text-sm text-white/40">{pageIntroContent.projects.description}</p>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {kozakProjects.map((p, idx) => (
@@ -3305,12 +4144,142 @@ const App = () => {
         return (
           <BlogPage
             posts={editorialPosts}
-            eyebrow="Blog REST||ART"
-            title="Komentáře"
-            highlight="a analýzy"
-            description="Hloubkové texty o návratnosti, práci, reintegraci a principu druhé šance v systému REST||ART."
+            eyebrow={pageIntroContent.blog.eyebrow}
+            title={pageIntroContent.blog.titleLead}
+            highlight={pageIntroContent.blog.titleAccent}
+            description={pageIntroContent.blog.description}
           />
         );
+      case 'downloads-documents': {
+        const documentDownloads = [
+          {
+            title: 'Registrační formulář',
+            type: 'PDF / DOCX',
+            description: 'Vstupní formulář pro zapojení do programu a první administrativní krok.'
+          },
+          {
+            title: 'Grafy dopadu',
+            type: 'PDF / PNG',
+            description: 'Přehled nákladů, recidivy, návratnosti a měřitelných cílů projektu.'
+          },
+          {
+            title: 'Výroční zprávy',
+            type: 'PDF',
+            description: 'Archiv výročních zpráv, souhrnů a veřejných výstupů REST||ART INTEGRACE.'
+          },
+          {
+            title: 'Další dokumenty',
+            type: 'Složka',
+            description: 'Prostor pro metodiky, partnerské podklady, prezentace a další veřejné materiály.'
+          }
+        ];
+
+        return (
+          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[560px] h-[560px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="max-w-7xl mx-auto space-y-12">
+              <div className="grid lg:grid-cols-[0.9fr,1.1fr] gap-10 items-end border-b border-white/10 pb-12">
+                <div className="space-y-5">
+                  <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Ke stažení</p>
+                  <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">
+                    Dokumenty
+                  </h2>
+                </div>
+                <p className="text-xl text-white/50 font-light leading-relaxed">
+                  Registrační formuláře, grafy, výroční zprávy a další podklady budou soustředěné na jednom místě.
+                  Položky jsou připravené pro napojení na správu souborů v admin panelu.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
+                {documentDownloads.map((item) => (
+                  <article key={item.title} className="glass-panel p-7 rounded-[2.4rem] border-white/10 hover:border-cyan-400/25 transition-all">
+                    <div className="mb-7 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-500/10 text-cyan-300">
+                      <FileText size={24} />
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-300 font-black">{item.type}</p>
+                    <h3 className="mt-3 text-2xl font-black text-white uppercase leading-tight">{item.title}</h3>
+                    <p className="mt-4 text-sm text-white/48 font-light leading-relaxed">{item.description}</p>
+                    <div className="mt-7 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">
+                      Soubor bude doplněn
+                      <ArrowDownRight size={14} />
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+      case 'downloads-programs': {
+        const programDownloads = [
+          {
+            title: 'Programový balíček REST||ART',
+            type: 'ZIP / EXE',
+            description: 'Prostor pro instalační soubory, interní nástroje nebo distribuční balíčky.'
+          },
+          {
+            title: 'JAILBREAK podklady',
+            type: 'PDF / ZIP',
+            description: 'Materiály a pracovní soubory pro program resocializace po výkonu trestu.'
+          },
+          {
+            title: 'REWORK podklady',
+            type: 'PDF / XLSX',
+            description: 'Rekvalifikační materiály, pracovní rámce a soubory pro partnerské firmy.'
+          },
+          {
+            title: 'STREETWISE / RESET / STABILIZACE',
+            type: 'Složka',
+            description: 'Prostor pro programové materiály, metodiky a balíčky ke stažení.'
+          }
+        ];
+
+        return (
+          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-[560px] h-[560px] bg-emerald-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="max-w-7xl mx-auto space-y-12">
+              <div className="grid lg:grid-cols-[0.9fr,1.1fr] gap-10 items-end border-b border-white/10 pb-12">
+                <div className="space-y-5">
+                  <p className="text-[10px] uppercase tracking-[0.32em] text-emerald-300 font-black">Ke stažení</p>
+                  <h2 className="text-5xl md:text-7xl font-black text-white uppercase leading-none">
+                    Programy
+                  </h2>
+                </div>
+                <p className="text-xl text-white/50 font-light leading-relaxed">
+                  Samostatná knihovna programových souborů, balíčků a nástrojů. Veřejná stránka už počítá i s typy
+                  souborů jako EXE, ZIP, PDF nebo XLSX.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
+                {programDownloads.map((item) => (
+                  <article key={item.title} className="glass-panel p-7 rounded-[2.4rem] border-white/10 hover:border-emerald-400/25 transition-all">
+                    <div className="mb-7 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-400/15 bg-emerald-500/10 text-emerald-300">
+                      <Monitor size={24} />
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-emerald-300 font-black">{item.type}</p>
+                    <h3 className="mt-3 text-2xl font-black text-white uppercase leading-tight">{item.title}</h3>
+                    <p className="mt-4 text-sm text-white/48 font-light leading-relaxed">{item.description}</p>
+                    <div className="mt-7 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">
+                      Připraveno pro upload
+                      <ArrowDownRight size={14} />
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div className="glass-panel rounded-[2.5rem] border-emerald-400/15 bg-emerald-500/[0.04] p-8">
+                <p className="text-[10px] uppercase tracking-[0.28em] text-emerald-300 font-black">Admin napojení</p>
+                <p className="mt-3 text-lg text-white/58 font-light leading-relaxed">
+                  Tato stránka je připravená jako samostatná sekce pro budoucí správu souborů z admin panelu:
+                  název, popis, typ souboru, veřejná dostupnost a odkaz ke stažení.
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      }
       case 'contacts':
         return (
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
@@ -3322,11 +4291,11 @@ const App = () => {
                 <div className="space-y-16">
                   <div className="space-y-6">
                     <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                      Jsme tu pro vás
+                      {pageIntroContent.contacts.eyebrow}
                     </div>
-                    <h2 className="text-5xl md:text-[4.5rem] text-white uppercase text-glow-cyan leading-[0.9]">Kontaktujte <br /><span className="text-cyan-300 headline-thin">nás</span></h2>
+                    <h2 className="text-5xl md:text-[4.5rem] text-white uppercase text-glow-cyan leading-[0.9]">{pageIntroContent.contacts.titleLead} <br /><span className="text-cyan-300 headline-thin">{pageIntroContent.contacts.titleAccent}</span></h2>
                     <p className="text-xl text-white/40 font-light max-w-md leading-relaxed">
-                      Máte dotaz nebo se chcete zapojit? Napište nám nebo zavolejte. Každý kontakt je krokem k lepší budoucnosti.
+                      {pageIntroContent.contacts.description}
                     </p>
                   </div>
 
@@ -3336,7 +4305,7 @@ const App = () => {
                         <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center"><Landmark size={32} /></div>
                         <div>
                           <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-1 font-black">Firma</p>
-                          <p className="text-2xl font-bold text-white/90">DAVID KOZÁK INTERNATIONAL S.R.O.</p>
+                          <p className="text-2xl font-bold text-white/90">{publicContact.companyNameUpper}</p>
                         </div>
                       </div>
                       <div className="grid md:grid-cols-2 gap-6 pt-4 border-t border-white/5 text-sm text-white/40 font-light">
@@ -3489,6 +4458,40 @@ const App = () => {
                         <p className="text-sm text-white/45 font-light">po dvouleté práci v Německu spoluvlastník sítě automyček</p>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-panel p-8 md:p-12 rounded-[3rem] border-white/10 bg-black/20 space-y-8">
+                <div className="space-y-4">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Anotace projektu</p>
+                  <h3 className="text-3xl md:text-4xl font-black text-white uppercase leading-none">
+                    Komplexní program sociálního začlenění a profesní obnovy
+                  </h3>
+                </div>
+                <div className="grid lg:grid-cols-[1fr,0.8fr] gap-8 items-start">
+                  <div className="space-y-5 text-white/52 font-light leading-relaxed">
+                    <p>
+                      REST||ART INTEGRACE je určen lidem ohroženým sociálním vyloučením: osobám po výkonu trestu,
+                      lidem bez domova, závislým, dlouhodobě nezaměstnaným a mladým lidem bez stabilního zázemí.
+                    </p>
+                    <p>
+                      Cílem není jednorázová pomoc, ale vybudování systému, který kombinuje stabilizaci, pracovní integraci,
+                      mentoring, rekvalifikaci a měřitelný návrat do společnosti.
+                    </p>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {[
+                      { label: 'Navýšení kapacity', value: '+50 účastníků / rok' },
+                      { label: 'Nová místa', value: '10 pracovních míst' },
+                      { label: 'Pilot', value: 'Ústecký kraj' },
+                      { label: 'Model', value: 'sociálně odpovědné podnikání' }
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-5 space-y-2">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-cyan-400 font-black">{item.label}</p>
+                        <p className="text-lg font-black text-white">{item.value}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -3663,6 +4666,30 @@ const App = () => {
                   </table>
                 </div>
               </div>
+
+              <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-white/10 space-y-6">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                  <div className="space-y-2">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Provozní rozpočet</p>
+                    <h3 className="text-3xl font-black text-white uppercase leading-none">Roční rámec pro stabilní provoz</h3>
+                  </div>
+                  <p className="text-3xl font-black text-white text-glow-cyan">{formatCurrency(annualPilotOperationBudget)}</p>
+                </div>
+                <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+                  {[
+                    { label: 'Programové moduly', value: formatCurrency(allProgramBudgets), text: 'šest pilířů v základním režimu' },
+                    { label: 'Kancelář a energie', value: formatCurrency(officeAndEnergyBudget), text: 'zázemí, provoz a infrastruktura' },
+                    { label: 'Fázový start', value: formatCurrency(phasedImplementationBudget), text: 'koordinační a náběhová fáze' },
+                    { label: 'Vícezdrojový model', value: 'vlastní výnosy + partneři', text: 'menší závislost na dotacích' }
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 space-y-3">
+                      <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-400 font-black">{item.label}</p>
+                      <p className="text-xl font-black text-white leading-tight">{item.value}</p>
+                      <p className="text-sm text-white/40 font-light leading-relaxed">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -3696,6 +4723,40 @@ const App = () => {
                     <p className="text-white/50 font-light leading-relaxed">{benefit.description}</p>
                   </div>
                 ))}
+              </div>
+
+              <div className="grid lg:grid-cols-[0.9fr,1.1fr] gap-8 items-start">
+                <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-red-500/10 bg-red-500/[0.025] space-y-5">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-red-400 font-black">Cesta k recidivě</p>
+                  <h3 className="text-3xl font-black text-white uppercase leading-none">Kde to začíná</h3>
+                  <p className="text-white/48 font-light leading-relaxed">
+                    Mladý člověk bez zázemí, propuštěný vězeň bez práce nebo člověk po léčbě bez návazné podpory se často
+                    vrací do stejného prostředí, které ho do krize dostalo. Bez jednoho cíle, jednoho plánu a návazné práce
+                    systém jen čeká na další selhání.
+                  </p>
+                </div>
+                <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-cyan-400/10 bg-cyan-500/[0.03] space-y-6">
+                  <div className="space-y-2">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Klíčová čísla</p>
+                    <h3 className="text-3xl font-black text-white uppercase leading-none">Ekonomika vs. reintegrace</h3>
+                  </div>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {[
+                      { label: 'Systém / osoba / rok', value: formatCurrency(annualSystemCostModel) },
+                      { label: 'Reintegrace / osoba / rok', value: formatCurrency(annualReintegrationCost) },
+                      { label: 'Úspora / osoba / rok', value: formatCurrency(annualSavingsPerPerson) }
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-5 space-y-2">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-white/30 font-black">{item.label}</p>
+                        <p className="text-2xl font-black text-white leading-none">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-white/45 font-light leading-relaxed">
+                    Smysl investice není jen úspora. Každý stabilizovaný člověk znamená menší tlak na věznice,
+                    sociální systém, obce, rodiny i zaměstnavatele.
+                  </p>
+                </div>
               </div>
 
               <div className="grid lg:grid-cols-2 gap-8">
@@ -5434,6 +6495,17 @@ const App = () => {
     </div>
   );
 
+  const renderSocialIcon = (key: string, size = 20) => {
+    switch (key) {
+      case 'instagram':
+        return <Instagram size={size} />;
+      case 'facebook':
+        return <Facebook size={size} />;
+      default:
+        return <Globe size={size} />;
+    }
+  };
+
   const ContactModalRoute = () => {
     useEffect(() => {
       setIsContactModalOpen(true);
@@ -5580,9 +6652,19 @@ const App = () => {
               {adminSession && hasAdminAccess ? 'Otevřít editor webu' : 'Admin login'}
             </button>
             <div className="flex items-center justify-center gap-6">
-              <Instagram className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
-              <Facebook className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
-              <Globe className="text-white/35 hover:text-cyan-400 cursor-pointer transition-colors" size={20} />
+              {socialLinks.map((item) => (
+                <a
+                  key={item.key}
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={item.label}
+                  title={item.label}
+                  className="text-white/35 hover:text-cyan-400 transition-colors"
+                >
+                  {renderSocialIcon(item.key, 20)}
+                </a>
+              ))}
             </div>
           </div>
         </aside>
@@ -5639,7 +6721,7 @@ const App = () => {
             <div className="space-y-8 text-center md:text-left relative z-10">
               <div className="space-y-4">
                 <div className="text-5xl font-black tracking-tighter text-glow-cyan leading-none">REST<span className="text-cyan-400/35 mx-1">||</span>ART</div>
-                <p className="text-[10px] text-cyan-200/55 uppercase tracking-[0.5em] font-black">Iniciativa David Kozák International</p>
+                <p className="text-[10px] text-cyan-200/55 uppercase tracking-[0.5em] font-black">{siteNavigationSettings.footerTagline}</p>
               </div>
               <div className="space-y-3">
                 <p className="text-cyan-100/85 text-sm font-bold">{publicContact.companyName}</p>
@@ -5658,36 +6740,42 @@ const App = () => {
 
             <div className="flex flex-col items-center md:items-end gap-10 relative z-10">
               <div className="flex gap-8 text-white/35">
-                <Instagram className="hover:text-cyan-400 hover:scale-110 cursor-pointer transition-all" size={32} />
-                <Facebook className="hover:text-cyan-400 hover:scale-110 cursor-pointer transition-all" size={32} />
-                <Globe className="hover:text-cyan-400 hover:scale-110 cursor-pointer transition-all" size={32} />
+                {socialLinks.map((item) => (
+                  <a
+                    key={item.key}
+                    href={item.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={item.label}
+                    title={item.label}
+                    className="hover:text-cyan-400 hover:scale-110 transition-all"
+                  >
+                    {renderSocialIcon(item.key, 32)}
+                  </a>
+                ))}
               </div>
               <div className="text-center md:text-right space-y-2">
-                <p className="text-[10px] text-cyan-100/45 uppercase tracking-[0.3em] font-black">© 2026 REST||ART INTEGRACE</p>
-                <p className="text-[10px] text-white/25 uppercase tracking-[0.2em]">Všechna práva vyhrazena</p>
+                <p className="text-[10px] text-cyan-100/45 uppercase tracking-[0.3em] font-black">{siteNavigationSettings.footerCopyright}</p>
+                <p className="text-[10px] text-white/25 uppercase tracking-[0.2em]">{siteNavigationSettings.footerRights}</p>
               </div>
             </div>
           </div>
           
           <div className="mt-12 flex flex-col md:flex-row justify-between items-center gap-6 px-10">
             <div className="flex gap-8">
-              {([
-                ['privacy', 'Ochrana údajů'],
-                ['terms', 'Podmínky užití'],
-                ['cookies', 'Cookies']
-              ] as Array<[LegalPageKey, string]>).map(([key, label]) => (
+              {footerLegalLinks.map((item) => (
                 <button
-                  key={key}
+                  key={item.key}
                   type="button"
-                  onClick={() => setOpenLegalPage(key)}
+                  onClick={() => setOpenLegalPage(item.key)}
                   className="text-[9px] text-white/30 uppercase tracking-widest hover:text-cyan-300 transition-colors"
                 >
-                  {label}
+                  {item.label}
                 </button>
               ))}
             </div>
             <div className="text-[9px] text-white/30 uppercase tracking-widest flex items-center gap-2">
-              Design by <span className="text-cyan-200/70 font-black">DK Studio</span>
+              Design by <span className="text-cyan-200/70 font-black">{siteNavigationSettings.footerDesignCredit}</span>
             </div>
           </div>
         </div>

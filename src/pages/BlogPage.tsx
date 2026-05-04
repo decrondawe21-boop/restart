@@ -164,7 +164,7 @@ const BlogPage: React.FC<BlogPageProps> = ({
                 <p className="max-w-3xl text-base font-light leading-relaxed text-white/55">{selectedPost.excerpt}</p>
 
                 <div
-                  className="prose prose-invert max-w-none text-white/75 [&_a]:text-cyan-300 [&_blockquote]:border-cyan-400/30 [&_blockquote]:text-white/65 [&_h2]:text-white [&_h3]:text-white [&_li]:text-white/75"
+                  className="prose prose-invert max-w-none text-white/75 [&_a]:text-cyan-300 [&_blockquote]:border-cyan-400/30 [&_blockquote]:text-white/65 [&_code]:text-cyan-100 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_hr]:border-white/10 [&_iframe]:aspect-video [&_iframe]:h-auto [&_iframe]:w-full [&_iframe]:rounded-[1.5rem] [&_iframe]:border [&_iframe]:border-white/10 [&_img]:rounded-[1.5rem] [&_img]:border [&_img]:border-white/10 [&_li]:text-white/75 [&_pre]:rounded-[1.5rem] [&_pre]:border [&_pre]:border-cyan-400/15 [&_pre]:bg-black/45 [&_pre]:p-5"
                   dangerouslySetInnerHTML={{
                     __html:
                       selectedPostHtml && selectedPostHtml !== '<p></p>'

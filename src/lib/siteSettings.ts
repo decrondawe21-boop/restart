@@ -6,7 +6,37 @@ export const homepageMediaSlotsSettingKey = 'homepage_media_slots';
 export const homepageWidgetContentSettingKey = 'homepage_widget_content';
 export const globalPublicContactSettingKey = 'global_public_contact';
 export const legalPageContentSettingKey = 'legal_page_content';
+export const globalNavigationSettingKey = 'global_navigation';
+export const pageIntroContentSettingKey = 'page_intro_content';
 export type LegalPageKey = 'privacy' | 'terms' | 'cookies';
+export type SocialLinkKey = 'instagram' | 'facebook' | 'globe';
+export type PageIntroKey = 'about' | 'pillars' | 'stories' | 'news' | 'blog' | 'projects' | 'contacts';
+export type NavigationItemKey =
+  | 'home'
+  | 'about-root'
+  | 'about-stories'
+  | 'about-news'
+  | 'about-blog'
+  | 'about-contacts'
+  | 'downloads-root'
+  | 'downloads-documents'
+  | 'downloads-programs'
+  | 'pillars-root'
+  | 'pillar-jailbreak'
+  | 'pillar-rework'
+  | 'pillar-rework-analyza'
+  | 'pillar-rework-implementace'
+  | 'pillar-streetwise'
+  | 'pillar-reset'
+  | 'pillar-mistozlomu'
+  | 'pillar-stabilizace'
+  | 'projects'
+  | 'invest-root'
+  | 'zamer-cile'
+  | 'zamer-rozpocet'
+  | 'zamer-prinos'
+  | 'zamer-harmonogram'
+  | 'zamer-programy';
 
 export type HomepageSectionId =
   | 'header-reveal'
@@ -153,6 +183,96 @@ export interface SiteLegalPageEntry {
 
 export type LegalPageContentSettings = Record<LegalPageKey, SiteLegalPageEntry>;
 
+export interface NavigationItemDefinition {
+  key: NavigationItemKey;
+  label: string;
+  description: string;
+  group: string;
+  depth: number;
+}
+
+export interface NavigationItemSetting {
+  key: NavigationItemKey;
+  label: string;
+  visible: boolean;
+}
+
+export interface FooterLegalLinkSetting {
+  key: LegalPageKey;
+  label: string;
+  visible: boolean;
+}
+
+export interface SocialLinkSetting {
+  key: SocialLinkKey;
+  label: string;
+  url: string;
+  visible: boolean;
+}
+
+export interface SiteNavigationSettings {
+  menuItems: NavigationItemSetting[];
+  footerLinks: FooterLegalLinkSetting[];
+  socialLinks: SocialLinkSetting[];
+  footerTagline: string;
+  footerCopyright: string;
+  footerRights: string;
+  footerDesignCredit: string;
+}
+
+export interface PageIntroDefinition {
+  key: PageIntroKey;
+  label: string;
+  description: string;
+}
+
+export interface PageIntroEntry {
+  eyebrow: string;
+  titleLead: string;
+  titleAccent: string;
+  description: string;
+}
+
+export type PageIntroContentSettings = Record<PageIntroKey, PageIntroEntry>;
+
+export const navigationItemDefinitions: NavigationItemDefinition[] = [
+  { key: 'home', label: 'Domů', description: 'Úvodní vstup na homepage.', group: 'Hlavní menu', depth: 0 },
+  { key: 'about-root', label: 'O nás', description: 'Základní rozcestník identitní a obsahové vrstvy.', group: 'Hlavní menu', depth: 0 },
+  { key: 'about-stories', label: 'Příběhy', description: 'Skutečné příběhy a restarty.', group: 'O nás', depth: 1 },
+  { key: 'about-news', label: 'Novinky a aktuality', description: 'Krátké novinky a veřejná oznámení.', group: 'O nás', depth: 1 },
+  { key: 'about-blog', label: 'Blog / Archiv', description: 'Komentáře, analýzy a archivnější texty.', group: 'O nás', depth: 1 },
+  { key: 'about-contacts', label: 'Kontakty (mini okno)', description: 'Kontakt otevřený jako modal.', group: 'O nás', depth: 1 },
+  { key: 'downloads-root', label: 'Ke stažení', description: 'Veřejná knihovna souborů ke stažení.', group: 'Hlavní menu', depth: 0 },
+  { key: 'downloads-documents', label: 'Dokumenty', description: 'Registrační formulář, grafy, výroční zprávy a další dokumenty.', group: 'Ke stažení', depth: 1 },
+  { key: 'downloads-programs', label: 'Programy', description: 'Instalační soubory, nástroje a programové balíčky.', group: 'Ke stažení', depth: 1 },
+  { key: 'pillars-root', label: 'Pilíře', description: 'Přehled šesti pilířů integrace.', group: 'Hlavní menu', depth: 0 },
+  { key: 'pillar-jailbreak', label: 'JAILBREAK', description: 'Detail programu JAILBREAK.', group: 'Pilíře', depth: 1 },
+  { key: 'pillar-rework', label: 'REWORK', description: 'Detail programu REWORK.', group: 'Pilíře', depth: 1 },
+  { key: 'pillar-rework-analyza', label: 'Analýza trhu', description: 'Podstránka REWORK analýza trhu.', group: 'REWORK', depth: 2 },
+  { key: 'pillar-rework-implementace', label: 'Implementace', description: 'Podstránka REWORK implementace.', group: 'REWORK', depth: 2 },
+  { key: 'pillar-streetwise', label: 'STREETWISE', description: 'Detail programu STREETWISE.', group: 'Pilíře', depth: 1 },
+  { key: 'pillar-reset', label: 'RESET', description: 'Detail programu RESET.', group: 'Pilíře', depth: 1 },
+  { key: 'pillar-mistozlomu', label: 'MÍSTO ZLOMU', description: 'Detail programu MÍSTO ZLOMU.', group: 'Pilíře', depth: 1 },
+  { key: 'pillar-stabilizace', label: 'STABILIZACE', description: 'Detail programu STABILIZACE.', group: 'Pilíře', depth: 1 },
+  { key: 'projects', label: 'Projekty', description: 'Ecosystem a další projekty Davida Kozáka.', group: 'Hlavní menu', depth: 0 },
+  { key: 'invest-root', label: 'Investiční záměr', description: 'Rozcestník investičního rámce projektu.', group: 'Hlavní menu', depth: 0 },
+  { key: 'zamer-cile', label: 'Hlavní cíle investice', description: 'Strategické cíle investice.', group: 'Investiční záměr', depth: 1 },
+  { key: 'zamer-rozpocet', label: 'Výše investice', description: 'Rozpočet, náklady a struktura výdajů.', group: 'Investiční záměr', depth: 1 },
+  { key: 'zamer-prinos', label: 'Návratnost a přínos', description: 'Dopad, ROI a návratnost.', group: 'Investiční záměr', depth: 1 },
+  { key: 'zamer-harmonogram', label: 'Harmonogram', description: 'Časový plán a fáze realizace.', group: 'Investiční záměr', depth: 1 },
+  { key: 'zamer-programy', label: 'Přehled programů OPZ+', description: 'Přehled programových linií.', group: 'Investiční záměr', depth: 1 }
+];
+
+export const pageIntroDefinitions: PageIntroDefinition[] = [
+  { key: 'about', label: 'O nás', description: 'Hlavní identitní vstup pro značku DKI a REST||ART.' },
+  { key: 'pillars', label: 'Pilíře', description: 'Úvodní nadpis a popis sekce pilířů.' },
+  { key: 'stories', label: 'Příběhy', description: 'Header příběhů a skutečných restartů.' },
+  { key: 'news', label: 'Aktuality', description: 'Header stránky Novinky a aktuality.' },
+  { key: 'blog', label: 'Blog', description: 'Header stránky Blog / Archiv.' },
+  { key: 'projects', label: 'Projekty', description: 'Header stránky Projekty a ecosystem.' },
+  { key: 'contacts', label: 'Kontakty', description: 'Header kontaktní stránky.' }
+];
+
 export const homepageMediaSlotDefinitions: HomepageMediaSlotDefinition[] = [
   {
     id: 'hero-main-image',
@@ -256,6 +376,75 @@ export const defaultHomepageWidgetContent: HomepageWidgetContentSettings = {
 
 export const defaultPublicContactInfo: PublicContactInfo = {
   ...publicContact
+};
+
+export const defaultSiteNavigationSettings: SiteNavigationSettings = {
+  menuItems: navigationItemDefinitions.map(({ key, label }) => ({
+    key,
+    label,
+    visible: true
+  })),
+  footerLinks: [
+    { key: 'privacy', label: 'Ochrana údajů', visible: true },
+    { key: 'terms', label: 'Podmínky užití', visible: true },
+    { key: 'cookies', label: 'Cookies', visible: true }
+  ],
+  socialLinks: [
+    { key: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/', visible: true },
+    { key: 'facebook', label: 'Facebook', url: 'https://www.facebook.com/', visible: true },
+    { key: 'globe', label: 'Web REST||ART', url: publicContact.primaryWebsiteUrl, visible: true }
+  ],
+  footerTagline: 'Iniciativa David Kozák International',
+  footerCopyright: '© 2026 REST||ART INTEGRACE',
+  footerRights: 'Všechna práva vyhrazena',
+  footerDesignCredit: 'DK Studio'
+};
+
+export const defaultPageIntroContent: PageIntroContentSettings = {
+  about: {
+    eyebrow: 'O nás',
+    titleLead: 'DKI s.r.o. &',
+    titleAccent: 'REST||ART Integrace',
+    description:
+      'REST||ART, JAILBREAK, REWORK a další podprogramy tvoří jednu značku, která propojuje vnitřní proměnu, estetiku, profesionální rámec a každodenní realitu.'
+  },
+  pillars: {
+    eyebrow: 'Pilíře',
+    titleLead: 'Šest pilířů',
+    titleAccent: 'integrace',
+    description: 'Každý pilíř představuje klíčovou fázi integrace, která zajišťuje udržitelnou životní změnu.'
+  },
+  stories: {
+    eyebrow: 'Příběhy',
+    titleLead: 'Skutečné',
+    titleAccent: 'restarty',
+    description: 'Příběhy lidí, kteří prošli pádem, změnou a reálným návratem do práce, důvěry a života.'
+  },
+  news: {
+    eyebrow: 'Aktuality REST||ART',
+    titleLead: 'Novinky',
+    titleAccent: 'a aktuality',
+    description:
+      'Aktuální dění, postpenitenciární podpora, milníky projektu a konkrétní kroky, ke kterým se REST||ART veřejně připojuje.'
+  },
+  blog: {
+    eyebrow: 'Blog REST||ART',
+    titleLead: 'Komentáře',
+    titleAccent: 'a analýzy',
+    description: 'Hloubkové texty o návratnosti, práci, reintegraci a principu druhé šance v systému REST||ART.'
+  },
+  projects: {
+    eyebrow: 'Ecosystem David Kozák',
+    titleLead: 'Vizionář',
+    titleAccent: '& Design',
+    description: 'Síť navazujících projektů, platforem a digitálních výstupů, které rozšiřují značku DKI mimo samotný REST||ART.'
+  },
+  contacts: {
+    eyebrow: 'Jsme tu pro vás',
+    titleLead: 'Kontaktujte',
+    titleAccent: 'nás',
+    description: 'Máte dotaz nebo se chcete zapojit? Napište nám nebo zavolejte. Každý kontakt je krokem k lepší budoucnosti.'
+  }
 };
 
 export const defaultLegalPageContent: LegalPageContentSettings = {
@@ -488,6 +677,88 @@ export const normalizePublicContactInfo = (value: unknown): PublicContactInfo =>
     registrationNote: asNonEmptyString(source.registrationNote, defaultPublicContactInfo.registrationNote),
     companyMeta: asNonEmptyString(source.companyMeta, defaultPublicContactInfo.companyMeta)
   };
+};
+
+export const normalizeSiteNavigationSettings = (value: unknown): SiteNavigationSettings => {
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const rawMenuItems = Array.isArray(source.menuItems) ? source.menuItems : [];
+  const rawFooterLinks = Array.isArray(source.footerLinks) ? source.footerLinks : [];
+  const rawSocialLinks = Array.isArray(source.socialLinks) ? source.socialLinks : [];
+
+  const menuItems = navigationItemDefinitions.map(({ key, label }) => {
+    const entry =
+      rawMenuItems.find(
+        (item): item is { key: NavigationItemKey; label?: unknown; visible?: unknown } =>
+          Boolean(item) && typeof item === 'object' && (item as { key?: unknown }).key === key
+      ) ?? null;
+
+    return {
+      key,
+      label: asNonEmptyString(entry?.label, label),
+      visible: entry?.visible !== false
+    };
+  });
+
+  const footerLinks = (['privacy', 'terms', 'cookies'] as LegalPageKey[]).map((key) => {
+    const fallback = defaultSiteNavigationSettings.footerLinks.find((item) => item.key === key)!;
+    const entry =
+      rawFooterLinks.find(
+        (item): item is { key: LegalPageKey; label?: unknown; visible?: unknown } =>
+          Boolean(item) && typeof item === 'object' && (item as { key?: unknown }).key === key
+      ) ?? null;
+
+    return {
+      key,
+      label: asNonEmptyString(entry?.label, fallback.label),
+      visible: entry?.visible !== false
+    };
+  });
+
+  const socialLinks = (['instagram', 'facebook', 'globe'] as SocialLinkKey[]).map((key) => {
+    const fallback = defaultSiteNavigationSettings.socialLinks.find((item) => item.key === key)!;
+    const entry =
+      rawSocialLinks.find(
+        (item): item is { key: SocialLinkKey; label?: unknown; url?: unknown; visible?: unknown } =>
+          Boolean(item) && typeof item === 'object' && (item as { key?: unknown }).key === key
+      ) ?? null;
+
+    return {
+      key,
+      label: asNonEmptyString(entry?.label, fallback.label),
+      url: asNonEmptyString(entry?.url, fallback.url),
+      visible: entry?.visible !== false
+    };
+  });
+
+  return {
+    menuItems,
+    footerLinks,
+    socialLinks,
+    footerTagline: asNonEmptyString(source.footerTagline, defaultSiteNavigationSettings.footerTagline),
+    footerCopyright: asNonEmptyString(source.footerCopyright, defaultSiteNavigationSettings.footerCopyright),
+    footerRights: asNonEmptyString(source.footerRights, defaultSiteNavigationSettings.footerRights),
+    footerDesignCredit: asNonEmptyString(source.footerDesignCredit, defaultSiteNavigationSettings.footerDesignCredit)
+  };
+};
+
+export const normalizePageIntroContent = (value: unknown): PageIntroContentSettings => {
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const normalizedEntries = {} as PageIntroContentSettings;
+
+  pageIntroDefinitions.forEach(({ key }) => {
+    const fallback = defaultPageIntroContent[key];
+    const entrySource =
+      source[key] && typeof source[key] === 'object' ? (source[key] as Record<string, unknown>) : {};
+
+    normalizedEntries[key] = {
+      eyebrow: asNonEmptyString(entrySource.eyebrow, fallback.eyebrow),
+      titleLead: asNonEmptyString(entrySource.titleLead, fallback.titleLead),
+      titleAccent: asNonEmptyString(entrySource.titleAccent, fallback.titleAccent),
+      description: asNonEmptyString(entrySource.description, fallback.description)
+    };
+  });
+
+  return normalizedEntries;
 };
 
 const normalizeLegalSection = (value: unknown, fallback?: SiteLegalSection): SiteLegalSection => {

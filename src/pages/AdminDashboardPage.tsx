@@ -215,6 +215,74 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setError('');
   };
 
+  const adminPageGroups = [
+    {
+      title: 'Obsah',
+      items: [
+        {
+          label: 'Aktuality',
+          description: 'Miniatury novinek, veřejná stránka a krátká oznámení.',
+          active: adminView === 'content' && activeType === 'news',
+          action: () => {
+            setAdminView('content');
+            setActiveType('news');
+            setSelectedId(null);
+          }
+        },
+        {
+          label: 'Blog',
+          description: 'Delší články, editorial a texty mimo homepage.',
+          active: adminView === 'content' && activeType === 'blog',
+          action: () => {
+            setAdminView('content');
+            setActiveType('blog');
+            setSelectedId(null);
+          }
+        }
+      ]
+    },
+    {
+      title: 'Homepage',
+      items: [
+        {
+          label: 'Sekce homepage',
+          description: 'Pořadí bloků, widgety a hlavní stránka.',
+          active: adminView === 'homepage',
+          action: () => setAdminView('homepage')
+        },
+        {
+          label: 'Hero a média',
+          description: 'Obrazové sloty, MatrixFx a vizuální prvky homepage.',
+          active: adminView === 'homepage',
+          action: () => setAdminView('homepage')
+        }
+      ]
+    },
+    {
+      title: 'Web',
+      items: [
+        {
+          label: 'Navigace a menu',
+          description: 'Hlavní menu, submenu a viditelnost položek.',
+          active: adminView === 'site',
+          action: () => setAdminView('site')
+        },
+        {
+          label: 'Ke stažení',
+          description: 'Dokumenty, programové balíčky a prostor pro soubory.',
+          active: adminView === 'site',
+          action: () => setAdminView('site')
+        },
+        {
+          label: 'Kontakty a legal',
+          description: 'Kontakt, footer, ochrana osobních údajů a podmínky.',
+          active: adminView === 'site',
+          action: () => setAdminView('site')
+        }
+      ]
+    }
+  ];
+
   const handleDeleteEntry = async (entry: Pick<CmsEntry, 'id' | 'title' | 'type'>) => {
     if (!window.confirm(`Opravdu chceš odstranit položku „${entry.title}“?`)) return;
 
@@ -376,7 +444,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               {([
                 ['content', 'Obsahový editor', 'Aktuality, blog a publikace.'],
                 ['homepage', 'Homepage builder', 'Sekce, sloty a widgety.'],
-                ['site', 'Globální nastavení', 'Kontakty, footer a právní overlaye.']
+                ['site', 'Globální nastavení', 'Kontakty, navigace, footer, média a právní overlaye.']
               ] as const).map(([view, title, description]) => (
                 <button
                   key={view}
@@ -394,6 +462,35 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   <p className="text-sm font-black uppercase tracking-[0.18em] text-white">{title}</p>
                   <p className="mt-2 text-sm leading-relaxed text-white/40">{description}</p>
                 </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-500/[0.04] p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Stránky a submenu</p>
+            <div className="mt-4 space-y-5">
+              {adminPageGroups.map((group) => (
+                <div key={group.title} className="space-y-2">
+                  <p className="px-1 text-[10px] font-black uppercase tracking-[0.22em] text-white/28">{group.title}</p>
+                  {group.items.map((item) => (
+                    <button
+                      key={`${group.title}-${item.label}`}
+                      type="button"
+                      onClick={() => {
+                        item.action();
+                        setIsSidebarOpen(false);
+                      }}
+                      className={`w-full rounded-[1.4rem] border px-4 py-3 text-left transition ${
+                        item.active
+                          ? 'border-cyan-400/30 bg-cyan-500/10 text-cyan-100'
+                          : 'border-white/10 bg-black/20 text-white/60 hover:border-cyan-400/20 hover:text-cyan-200'
+                      }`}
+                    >
+                      <p className="text-xs font-black uppercase tracking-[0.17em]">{item.label}</p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-white/35">{item.description}</p>
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
@@ -562,7 +659,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             {([
               ['content', 'Obsah a články', 'Aktuality, blog a rich text editor.', adminView === 'content' ? `Aktivní: ${activeType === 'news' ? 'Aktuality' : 'Blog'}` : `${dashboardStats.total} záznamů`],
               ['homepage', 'Homepage builder', 'Widgety, pořadí sekcí a fixní obrazové sloty.', 'Sekce, sloty a widgety'],
-              ['site', 'Globální nastavení', 'Kontakty, footer a právní overlaye.', 'Kontakty a legal'],
+              ['site', 'Globální nastavení', 'Kontakty, navigace, footer, média a právní overlaye.', 'Web a legal'],
               ['create', 'Rychlý start', 'Otevři nový záznam nebo vysouvací menu s operacemi.', adminView === 'content' ? 'Nová položka / menu' : 'Menu / obnovit']
             ] as const).map(([view, title, description, meta]) => (
               <button
@@ -599,6 +696,40 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
         </div>
 
+        <div className="glass-panel rounded-[2.8rem] border-cyan-400/15 bg-cyan-500/[0.03] p-6">
+          <div className="mb-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Admin menu + submenu</p>
+            <h2 className="mt-3 text-2xl font-black text-white">Stránky oddělené podle účelu</h2>
+            <p className="mt-2 max-w-3xl text-sm text-white/40">
+              Základní členění adminu je připravené podle veřejného webu: obsah, homepage, navigace, Ke stažení a legal.
+            </p>
+          </div>
+          <div className="grid gap-4 xl:grid-cols-3">
+            {adminPageGroups.map((group) => (
+              <div key={group.title} className="rounded-[2rem] border border-white/10 bg-black/20 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/30">{group.title}</p>
+                <div className="mt-4 grid gap-2">
+                  {group.items.map((item) => (
+                    <button
+                      key={`${group.title}-dashboard-${item.label}`}
+                      type="button"
+                      onClick={item.action}
+                      className={`rounded-[1.4rem] px-4 py-3 text-left transition ${
+                        item.active ? 'bg-cyan-500 text-black' : 'bg-white/[0.035] text-white/65 hover:bg-white/[0.06] hover:text-cyan-200'
+                      }`}
+                    >
+                      <p className="text-xs font-black uppercase tracking-[0.18em]">{item.label}</p>
+                      <p className={`mt-1 text-[11px] leading-relaxed ${item.active ? 'text-black/65' : 'text-white/35'}`}>
+                        {item.description}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="glass-panel rounded-[2.8rem] border-white/10 p-6">
           <div className="mb-5">
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Co chcete udělat?</p>
@@ -631,8 +762,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 action: () => setAdminView('homepage')
               },
               {
-                title: 'Upravit kontakty a footer',
-                description: 'Přepne tě na veřejné kontakty, footer a právní texty.',
+                title: 'Upravit webové nastavení',
+                description: 'Přepne tě na kontakty, menu, footer, média a právní texty.',
                 action: () => setAdminView('site')
               }
             ].map((item) => (
@@ -661,7 +792,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   {adminView === 'homepage'
                     ? 'Tady dává MatrixFx smysl jako vizuální identita dashboardu, ne pod formuláři. Homepage builder tak má vlastní orientační vrstvu a přehled klíčových stavů.'
                     : adminView === 'site'
-                      ? 'Admin už neřídí jen články. Přibyla vrstva pro kontakty, footer a právní overlaye, takže web má centrální řídicí panel i pro veřejné systémové informace.'
+                      ? 'Admin už neřídí jen články. Přibyla vrstva pro kontakty, menu, footer, média, další page headery a právní overlaye, takže web má centrální řídicí panel i pro veřejné systémové informace.'
                       : 'Admin panel má nově i dashboard vrstvu. Vidíš rychlý stav obsahu, publikace a můžeš se rychle rozhodnout, co upravit dál.'}
                 </p>
               </div>
@@ -765,7 +896,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 adminView === 'homepage'
                   ? 'Přesouvej sekce, měň pevné sloty a postupně objektivizuj homepage do editovatelných widgetů.'
                   : adminView === 'site'
-                    ? 'Spravuj kontakty, footer a právní stránky v jednom panelu bez sahání do kódu.'
+                    ? 'Spravuj kontakty, menu, footer, média a právní stránky v jednom panelu bez sahání do kódu.'
                     : 'Spravuj aktuality, blog a veřejný obsah v jednom prostředí se silnější vizuální identitou.'
               }
               bulge={{ type: 'ripple', duration: 4, intensity: 14, repeat: true }}
@@ -1076,7 +1207,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   </div>
 
                   <div className="space-y-4">
-                    <FieldLabel label="Zdrojová URL média" hint="Sem vlož veřejnou URL obrázku. Můžeš ji buď uložit do Supabase Storage, nebo použít přímo bez uploadu." />
+                    <FieldLabel label="Zdrojová URL média" hint="Použij veřejnou URL obrázku. Můžeš ji buď uložit do Supabase Storage, nebo použít přímo bez uploadu." />
                     <input
                       type="url"
                       value={assetUrl}

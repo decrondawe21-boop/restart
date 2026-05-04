@@ -41,6 +41,16 @@ export interface SiteSetting {
   updated_at: string;
 }
 
+export interface MediaLibraryAsset {
+  name: string;
+  path: string;
+  url: string;
+  folder: string;
+  created_at?: string;
+  updated_at?: string;
+  size?: number;
+}
+
 const contentTable = 'cms_entries';
 const siteSettingsTable = 'site_settings';
 const mediaBucket = 'cms-media';
@@ -147,6 +157,35 @@ export const saveSiteSetting = async (key: string, valueJson: unknown) => {
 
   if (error) throw error;
   return data as SiteSetting;
+};
+
+export const getMediaPublicUrl = (path: string) =>
+  supabase.storage.from(mediaBucket).getPublicUrl(path).data.publicUrl;
+
+export const listMediaLibraryAssets = async (folder = 'media-library') => {
+  const { data, error } = await supabase.storage.from(mediaBucket).list(folder, {
+    limit: 100,
+    sortBy: { column: 'created_at', order: 'desc' }
+  });
+
+  if (error) throw error;
+
+  return (data ?? [])
+    .filter((item) => item.name && item.id)
+    .map((item) => ({
+      name: item.name,
+      path: folder ? `${folder}/${item.name}` : item.name,
+      url: getMediaPublicUrl(folder ? `${folder}/${item.name}` : item.name),
+      folder,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      size: item.metadata?.size
+    })) as MediaLibraryAsset[];
+};
+
+export const deleteMediaLibraryAsset = async (path: string) => {
+  const { error } = await supabase.storage.from(mediaBucket).remove([path]);
+  if (error) throw error;
 };
 
 export const saveEntry = async (entry: CmsEntryInput) => {
