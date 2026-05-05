@@ -109,6 +109,7 @@ const textareaToArray = (value: string) =>
 const mediaFolders = [
   { key: 'media-library', label: 'Media library' },
   { key: 'homepage', label: 'Homepage sloty' },
+  { key: 'gallery', label: 'Galerie' },
   { key: 'cms/news', label: 'Aktuality' },
   { key: 'cms/blog', label: 'Blog' }
 ] as const;

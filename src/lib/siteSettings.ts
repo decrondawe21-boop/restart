@@ -8,9 +8,18 @@ export const globalPublicContactSettingKey = 'global_public_contact';
 export const legalPageContentSettingKey = 'legal_page_content';
 export const globalNavigationSettingKey = 'global_navigation';
 export const pageIntroContentSettingKey = 'page_intro_content';
+export const galleryGroupsSettingKey = 'gallery_groups';
 export type LegalPageKey = 'privacy' | 'terms' | 'cookies';
 export type SocialLinkKey = 'instagram' | 'facebook' | 'globe';
-export type PageIntroKey = 'about' | 'pillars' | 'stories' | 'news' | 'blog' | 'projects' | 'contacts';
+export type PageIntroKey =
+  | 'about'
+  | 'pillars'
+  | 'stories'
+  | 'news'
+  | 'blog'
+  | 'gallery'
+  | 'projects'
+  | 'contacts';
 export type NavigationItemKey =
   | 'home'
   | 'about-root'
@@ -18,6 +27,7 @@ export type NavigationItemKey =
   | 'about-news'
   | 'about-blog'
   | 'about-contacts'
+  | 'gallery'
   | 'downloads-root'
   | 'downloads-documents'
   | 'downloads-programs'
@@ -235,6 +245,24 @@ export interface PageIntroEntry {
 
 export type PageIntroContentSettings = Record<PageIntroKey, PageIntroEntry>;
 
+export interface GalleryImageItem {
+  id: string;
+  url: string;
+  alt: string;
+  caption: string;
+}
+
+export interface GalleryGroup {
+  id: string;
+  title: string;
+  eventDate: string;
+  description: string;
+  published: boolean;
+  images: GalleryImageItem[];
+}
+
+export type GalleryGroupsSettings = GalleryGroup[];
+
 export const navigationItemDefinitions: NavigationItemDefinition[] = [
   { key: 'home', label: 'Domů', description: 'Úvodní vstup na homepage.', group: 'Hlavní menu', depth: 0 },
   { key: 'about-root', label: 'O nás', description: 'Základní rozcestník identitní a obsahové vrstvy.', group: 'Hlavní menu', depth: 0 },
@@ -242,6 +270,7 @@ export const navigationItemDefinitions: NavigationItemDefinition[] = [
   { key: 'about-news', label: 'Novinky a aktuality', description: 'Krátké novinky a veřejná oznámení.', group: 'O nás', depth: 1 },
   { key: 'about-blog', label: 'Blog / Archiv', description: 'Komentáře, analýzy a archivnější texty.', group: 'O nás', depth: 1 },
   { key: 'about-contacts', label: 'Kontakty (mini okno)', description: 'Kontakt otevřený jako modal.', group: 'O nás', depth: 1 },
+  { key: 'gallery', label: 'Galerie', description: 'Veřejná galerie fotek rozdělená podle data a tématu.', group: 'Hlavní menu', depth: 0 },
   { key: 'downloads-root', label: 'Ke stažení', description: 'Veřejná knihovna souborů ke stažení.', group: 'Hlavní menu', depth: 0 },
   { key: 'downloads-documents', label: 'Dokumenty', description: 'Registrační formulář, grafy, výroční zprávy a další dokumenty.', group: 'Ke stažení', depth: 1 },
   { key: 'downloads-programs', label: 'Programy', description: 'Instalační soubory, nástroje a programové balíčky.', group: 'Ke stažení', depth: 1 },
@@ -269,6 +298,7 @@ export const pageIntroDefinitions: PageIntroDefinition[] = [
   { key: 'stories', label: 'Příběhy', description: 'Header příběhů a skutečných restartů.' },
   { key: 'news', label: 'Aktuality', description: 'Header stránky Novinky a aktuality.' },
   { key: 'blog', label: 'Blog', description: 'Header stránky Blog / Archiv.' },
+  { key: 'gallery', label: 'Galerie', description: 'Header veřejné galerie.' },
   { key: 'projects', label: 'Projekty', description: 'Header stránky Projekty a ecosystem.' },
   { key: 'contacts', label: 'Kontakty', description: 'Header kontaktní stránky.' }
 ];
@@ -400,6 +430,8 @@ export const defaultSiteNavigationSettings: SiteNavigationSettings = {
   footerDesignCredit: 'DK Studio'
 };
 
+export const defaultGalleryGroups: GalleryGroupsSettings = [];
+
 export const defaultPageIntroContent: PageIntroContentSettings = {
   about: {
     eyebrow: 'O nás',
@@ -432,6 +464,12 @@ export const defaultPageIntroContent: PageIntroContentSettings = {
     titleLead: 'Komentáře',
     titleAccent: 'a analýzy',
     description: 'Hloubkové texty o návratnosti, práci, reintegraci a principu druhé šance v systému REST||ART.'
+  },
+  gallery: {
+    eyebrow: 'Galerie REST||ART',
+    titleLead: 'Fotografie',
+    titleAccent: 'z projektu',
+    description: 'Skupiny fotek podle data a tématu. Veřejný vizuální archiv akcí, materiálů a momentů z integrační práce.'
   },
   projects: {
     eyebrow: 'Ecosystem David Kozák',
@@ -759,6 +797,51 @@ export const normalizePageIntroContent = (value: unknown): PageIntroContentSetti
   });
 
   return normalizedEntries;
+};
+
+const parseGalleryDate = (value: string) => {
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
+export const sortGalleryGroups = (groups: GalleryGroupsSettings): GalleryGroupsSettings =>
+  [...groups].sort((left, right) => {
+    const dateDelta = parseGalleryDate(right.eventDate) - parseGalleryDate(left.eventDate);
+    if (dateDelta !== 0) return dateDelta;
+    return left.title.localeCompare(right.title, 'cs');
+  });
+
+export const normalizeGalleryGroups = (value: unknown): GalleryGroupsSettings => {
+  if (!Array.isArray(value)) {
+    return defaultGalleryGroups;
+  }
+
+  const normalized = value
+    .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    .map((item, index) => {
+      const images = Array.isArray(item.images)
+        ? item.images
+            .filter((image): image is Record<string, unknown> => Boolean(image) && typeof image === 'object')
+            .map((image, imageIndex) => ({
+              id: asNonEmptyString(image.id, `gallery-image-${index + 1}-${imageIndex + 1}`),
+              url: typeof image.url === 'string' ? image.url : '',
+              alt: typeof image.alt === 'string' ? image.alt : '',
+              caption: typeof image.caption === 'string' ? image.caption : ''
+            }))
+            .filter((image) => image.url.trim().length > 0)
+        : [];
+
+      return {
+        id: asNonEmptyString(item.id, `gallery-group-${index + 1}`),
+        title: asNonEmptyString(item.title, `Galerie ${index + 1}`),
+        eventDate: typeof item.eventDate === 'string' ? item.eventDate : '',
+        description: typeof item.description === 'string' ? item.description : '',
+        published: item.published === true,
+        images
+      };
+    });
+
+  return sortGalleryGroups(normalized);
 };
 
 const normalizeLegalSection = (value: unknown, fallback?: SiteLegalSection): SiteLegalSection => {

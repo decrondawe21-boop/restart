@@ -20,6 +20,7 @@ import {
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import GlobalSettingsPanel from '../components/admin/GlobalSettingsPanel';
+import GalleryManagerPanel from '../components/admin/GalleryManagerPanel';
 import HomepageBuilderPanel from '../components/admin/HomepageBuilderPanel';
 import MatrixFxHero from '../components/MatrixFxHero';
 import RichTextEditor from '../components/admin/RichTextEditor';
@@ -105,7 +106,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [entries, setEntries] = useState<CmsEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [adminView, setAdminView] = useState<'content' | 'homepage' | 'site'>('content');
+  const [adminView, setAdminView] = useState<'content' | 'homepage' | 'site' | 'gallery'>('content');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeType, setActiveType] = useState<CmsEntryType>('news');
   const [editorState, setEditorState] = useState<EditableEntry>(createEmptyEntry('news'));
@@ -236,6 +237,15 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           action: () => {
             setAdminView('content');
             setActiveType('blog');
+            setSelectedId(null);
+          }
+        },
+        {
+          label: 'Galerie',
+          description: 'Skupiny fotek, datum, publikace a veřejná galerie.',
+          active: adminView === 'gallery',
+          action: () => {
+            setAdminView('gallery');
             setSelectedId(null);
           }
         }
@@ -443,6 +453,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             <div className="mt-4 space-y-3">
               {([
                 ['content', 'Obsahový editor', 'Aktuality, blog a publikace.'],
+                ['gallery', 'Galerie', 'Skupiny fotek, datum, popisy a publikace.'],
                 ['homepage', 'Homepage builder', 'Sekce, sloty a widgety.'],
                 ['site', 'Globální nastavení', 'Kontakty, navigace, footer, média a právní overlaye.']
               ] as const).map(([view, title, description]) => (
@@ -786,13 +797,21 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Dashboard</p>
                 <h2 className="mt-2 text-3xl font-black text-white">
-                  {adminView === 'homepage' ? 'Řízení homepage' : adminView === 'site' ? 'Řízení webu' : 'Obsahový přehled'}
+                  {adminView === 'homepage'
+                    ? 'Řízení homepage'
+                    : adminView === 'site'
+                      ? 'Řízení webu'
+                      : adminView === 'gallery'
+                        ? 'Řízení galerie'
+                        : 'Obsahový přehled'}
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm text-white/40">
                   {adminView === 'homepage'
                     ? 'Tady dává MatrixFx smysl jako vizuální identita dashboardu, ne pod formuláři. Homepage builder tak má vlastní orientační vrstvu a přehled klíčových stavů.'
                     : adminView === 'site'
                       ? 'Admin už neřídí jen články. Přibyla vrstva pro kontakty, menu, footer, média, další page headery a právní overlaye, takže web má centrální řídicí panel i pro veřejné systémové informace.'
+                      : adminView === 'gallery'
+                        ? 'Galerie má vlastní správu skupin, dat, popisků a publikace. Tady už neřešíš články, ale čistě vizuální archiv projektu.'
                       : 'Admin panel má nově i dashboard vrstvu. Vidíš rychlý stav obsahu, publikace a můžeš se rychle rozhodnout, co upravit dál.'}
                 </p>
               </div>
@@ -803,6 +822,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     ? 'Homepage Builder'
                     : adminView === 'site'
                       ? 'Globální Nastavení'
+                      : adminView === 'gallery'
+                        ? 'Galerie'
                       : activeType === 'news'
                         ? 'Aktuality'
                         : 'Blog'}
@@ -897,6 +918,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   ? 'Přesouvej sekce, měň pevné sloty a postupně objektivizuj homepage do editovatelných widgetů.'
                   : adminView === 'site'
                     ? 'Spravuj kontakty, menu, footer, média a právní stránky v jednom panelu bez sahání do kódu.'
+                    : adminView === 'gallery'
+                      ? 'Spravuj skupiny fotek, data, popisy a publikaci galerie v jednom místě.'
                     : 'Spravuj aktuality, blog a veřejný obsah v jednom prostředí se silnější vizuální identitou.'
               }
               bulge={{ type: 'ripple', duration: 4, intensity: 14, repeat: true }}
@@ -908,6 +931,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <HomepageBuilderPanel />
         ) : adminView === 'site' ? (
           <GlobalSettingsPanel isDark={isDark} />
+        ) : adminView === 'gallery' ? (
+          <GalleryManagerPanel />
         ) : (
           <div className="grid gap-8 xl:grid-cols-[360px,1fr]">
           <div className="xl:col-span-2 grid gap-4 md:grid-cols-3">

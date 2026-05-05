@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import './index.css';
 import BlogPage, { type BlogPost } from './pages/BlogPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import GalleryPage from './pages/GalleryPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminLoginDialog from './components/AdminLoginDialog';
 import BlockQuote from './components/BlockQuote';
@@ -21,15 +22,18 @@ import { fetchPublicEntries, fetchSiteSettings, isCurrentUserAdmin, mapCmsEntryT
 import {
   defaultHomepageLayout,
   defaultHomepageMediaSlots,
+  defaultGalleryGroups,
   homepageLayoutSettingKey,
   homepageMediaSlotsSettingKey,
   homepageWidgetContentSettingKey,
+  galleryGroupsSettingKey,
   globalNavigationSettingKey,
   globalPublicContactSettingKey,
   legalPageContentSettingKey,
   pageIntroContentSettingKey,
   normalizeHomepageLayout,
   normalizeHomepageMediaSlots,
+  normalizeGalleryGroups,
   normalizeHomepageWidgetContent,
   normalizePublicContactInfo,
   normalizeLegalPageContent,
@@ -90,6 +94,7 @@ type PageKey =
   | 'pillar-stabilizace'
   | 'stories'
   | 'news'
+  | 'gallery'
   | 'projects'
   | 'blog'
   | 'contacts'
@@ -116,6 +121,7 @@ const pagePathMap: Record<PageKey, string> = {
   'pillar-stabilizace': '/pilire/stabilizace',
   stories: '/pribehy',
   news: '/novinky',
+  gallery: '/galerie',
   projects: '/projekty',
   blog: '/blog',
   contacts: '/kontakty',
@@ -462,6 +468,7 @@ const App = () => {
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [publicNewsPosts, setPublicNewsPosts] = useState<BlogPost[]>([]);
   const [publicBlogPosts, setPublicBlogPosts] = useState<BlogPost[]>([]);
+  const [publicGalleryGroups, setPublicGalleryGroups] = useState(defaultGalleryGroups);
   const [homepageLayout, setHomepageLayout] = useState(defaultHomepageLayout);
   const [homepageMediaSlots, setHomepageMediaSlots] = useState(defaultHomepageMediaSlots);
   const [homepageWidgetContent, setHomepageWidgetContent] = useState(defaultHomepageWidgetContent);
@@ -603,6 +610,7 @@ const App = () => {
           homepageLayoutSettingKey,
           homepageMediaSlotsSettingKey,
           homepageWidgetContentSettingKey,
+          galleryGroupsSettingKey,
           globalNavigationSettingKey,
           globalPublicContactSettingKey,
           legalPageContentSettingKey,
@@ -615,6 +623,7 @@ const App = () => {
         setHomepageLayout(normalizeHomepageLayout(byKey.get(homepageLayoutSettingKey)));
         setHomepageMediaSlots(normalizeHomepageMediaSlots(byKey.get(homepageMediaSlotsSettingKey)));
         setHomepageWidgetContent(normalizeHomepageWidgetContent(byKey.get(homepageWidgetContentSettingKey)));
+        setPublicGalleryGroups(normalizeGalleryGroups(byKey.get(galleryGroupsSettingKey)));
         setSiteNavigationSettings(normalizeSiteNavigationSettings(byKey.get(globalNavigationSettingKey)));
         setSiteLegalPageContent(normalizeLegalPageContent(byKey.get(legalPageContentSettingKey)));
         setPageIntroContent(normalizePageIntroContent(byKey.get(pageIntroContentSettingKey)));
@@ -949,6 +958,7 @@ const App = () => {
         { key: 'about-contacts', label: 'Kontakty (mini okno)', id: 'contacts-modal' }
       ]
     },
+    { key: 'gallery', label: 'Galerie', id: 'gallery' },
     {
       key: 'pillars-root',
       label: 'Pilíře',
@@ -1042,6 +1052,7 @@ const App = () => {
     'pillar-stabilizace',
     'stories',
     'news',
+    'gallery',
     'projects',
     'blog',
     'downloads-documents',
@@ -4087,6 +4098,16 @@ const App = () => {
             title={pageIntroContent.news.titleLead}
             highlight={pageIntroContent.news.titleAccent}
             description={pageIntroContent.news.description}
+          />
+        );
+      case 'gallery':
+        return (
+          <GalleryPage
+            groups={publicGalleryGroups}
+            eyebrow={pageIntroContent.gallery.eyebrow}
+            title={pageIntroContent.gallery.titleLead}
+            highlight={pageIntroContent.gallery.titleAccent}
+            description={pageIntroContent.gallery.description}
           />
         );
       case 'projects':
