@@ -1,9 +1,14 @@
 import type { Session } from '@supabase/supabase-js';
 import {
   AlertCircle,
+  ChevronDown,
+  ChevronRight,
   FilePlus2,
+  FileText,
   HelpCircle,
+  House,
   ImagePlus,
+  LayoutDashboard,
   Loader2,
   LogOut,
   Menu,
@@ -11,18 +16,21 @@ import {
   Plus,
   RefreshCw,
   Save,
+  Settings2,
   ShieldCheck,
-  LayoutTemplate,
   Trash2,
+  TrendingUp,
   Upload,
   X
 } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import GlobalSettingsPanel from '../components/admin/GlobalSettingsPanel';
+import AdminInfoTooltip from '../components/admin/AdminInfoTooltip';
+import AdminStickyActionBar from '../components/admin/AdminStickyActionBar';
+import GlobalSettingsPanel, { type SitePanel } from '../components/admin/GlobalSettingsPanel';
 import GalleryManagerPanel from '../components/admin/GalleryManagerPanel';
 import HomepageBuilderPanel from '../components/admin/HomepageBuilderPanel';
-import MatrixFxHero from '../components/MatrixFxHero';
+import InvestmentSettingsPanel from '../components/admin/InvestmentSettingsPanel';
 import RichTextEditor from '../components/admin/RichTextEditor';
 import {
   deleteEntry,
@@ -36,6 +44,7 @@ import {
   uploadImageFileToStorage,
   uploadImageFromUrlToStorage
 } from '../lib/cms';
+import type { HomepageMediaSlotId, HomepageWidgetId, PageIntroKey } from '../lib/siteSettings';
 import { supabase } from '../lib/supabase';
 
 interface AdminDashboardPageProps {
@@ -48,6 +57,29 @@ interface AdminDashboardPageProps {
 
 interface EditableEntry extends CmsEntryInput {
   id?: string;
+}
+
+type AdminView = 'content' | 'homepage' | 'site' | 'gallery' | 'investment';
+type SidebarGroupId =
+  | 'homepage'
+  | 'about'
+  | 'gallery'
+  | 'downloads'
+  | 'pillars'
+  | 'projects'
+  | 'investment'
+  | 'legal'
+  | 'general';
+
+interface HomepageFocusState {
+  mode: 'media' | 'widget';
+  slotId: HomepageMediaSlotId;
+  widgetId: HomepageWidgetId;
+}
+
+interface SiteFocusState {
+  panel: SitePanel;
+  pageIntro: PageIntroKey;
 }
 
 const toLocalDateTime = (value: string | null | undefined) => {
@@ -106,8 +138,18 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [entries, setEntries] = useState<CmsEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [adminView, setAdminView] = useState<'content' | 'homepage' | 'site' | 'gallery'>('content');
+  const [adminView, setAdminView] = useState<AdminView>('content');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [expandedSidebarGroup, setExpandedSidebarGroup] = useState<SidebarGroupId>('about');
+  const [homepageFocus, setHomepageFocus] = useState<HomepageFocusState>({
+    mode: 'media',
+    slotId: 'hero-main-image',
+    widgetId: 'hero-intro'
+  });
+  const [siteFocus, setSiteFocus] = useState<SiteFocusState>({
+    panel: 'contact',
+    pageIntro: 'about'
+  });
   const [activeType, setActiveType] = useState<CmsEntryType>('news');
   const [editorState, setEditorState] = useState<EditableEntry>(createEmptyEntry('news'));
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -115,6 +157,43 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
+
+  const pageIntroLabels: Record<PageIntroKey, string> = {
+    about: 'O nás',
+    pillars: 'Pilíře',
+    stories: 'Příběhy',
+    news: 'Aktuality',
+    blog: 'Blog / archiv',
+    gallery: 'Galerie',
+    projects: 'Projekty',
+    contacts: 'Kontakty'
+  };
+
+  const legalLabels: Record<Extract<SitePanel, 'privacy' | 'terms' | 'cookies'>, string> = {
+    privacy: 'Ochrana údajů',
+    terms: 'Podmínky užití',
+    cookies: 'Cookies'
+  };
+
+  const getSidebarGroupForView = () => {
+    if (adminView === 'homepage') return 'homepage';
+    if (adminView === 'gallery') return 'gallery';
+    if (adminView === 'investment') return 'investment';
+    if (adminView === 'content') return 'about';
+
+    if (siteFocus.panel === 'pages') {
+      if (siteFocus.pageIntro === 'pillars') return 'pillars';
+      if (siteFocus.pageIntro === 'projects') return 'projects';
+      if (siteFocus.pageIntro === 'gallery') return 'gallery';
+      return 'about';
+    }
+
+    if (siteFocus.panel === 'privacy' || siteFocus.panel === 'terms' || siteFocus.panel === 'cookies') {
+      return 'legal';
+    }
+
+    return 'general';
+  };
 
   const syncAdminEntries = async () => {
     setIsLoading(true);
@@ -146,6 +225,40 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     [activeType, entries]
   );
 
+  const selectedEntry = useMemo(
+    () => entries.find((entry) => entry.id === selectedId) ?? null,
+    [entries, selectedId]
+  );
+
+  const editorHasUnsavedChanges = useMemo(() => {
+    if (selectedEntry) {
+      return (
+        editorState.title !== selectedEntry.title ||
+        editorState.slug !== selectedEntry.slug ||
+        editorState.category !== selectedEntry.category ||
+        editorState.excerpt !== selectedEntry.excerpt ||
+        editorState.content_html !== selectedEntry.content_html ||
+        (editorState.cover_image_url ?? '') !== (selectedEntry.cover_image_url ?? '') ||
+        (editorState.source_url ?? '') !== (selectedEntry.source_url ?? '') ||
+        editorState.status !== selectedEntry.status ||
+        editorState.type !== selectedEntry.type ||
+        editorState.published_at !== selectedEntry.published_at
+      );
+    }
+
+    const defaultCategory = editorState.type === 'news' ? 'Aktualita' : 'Blog';
+    return (
+      editorState.title.trim().length > 0 ||
+      editorState.slug.trim().length > 0 ||
+      editorState.category !== defaultCategory ||
+      editorState.excerpt.trim().length > 0 ||
+      editorState.content_html !== '<p></p>' ||
+      Boolean(editorState.cover_image_url?.trim()) ||
+      Boolean(editorState.source_url?.trim()) ||
+      editorState.status !== 'draft'
+    );
+  }, [editorState, selectedEntry]);
+
   const dashboardStats = useMemo(() => {
     const publishedCount = entries.filter((entry) => entry.status === 'published').length;
     const draftCount = entries.filter((entry) => entry.status === 'draft').length;
@@ -175,6 +288,10 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       setEditorState((prev) => (prev.type === activeType && !prev.id ? prev : createEmptyEntry(activeType)));
     }
   }, [activeType, filteredEntries, selectedId]);
+
+  useEffect(() => {
+    setExpandedSidebarGroup(getSidebarGroupForView());
+  }, [adminView, activeType, siteFocus.pageIntro, siteFocus.panel]);
 
   useEffect(() => {
     if (!isSidebarOpen) return;
@@ -216,82 +333,317 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setError('');
   };
 
+  const openContentEditor = (type: CmsEntryType) => {
+    setAdminView('content');
+    setActiveType(type);
+    setSelectedId(null);
+    setNotice('');
+    setError('');
+  };
+
+  const openHomepageBuilder = (target?: Partial<HomepageFocusState>) => {
+    setAdminView('homepage');
+    setHomepageFocus((prev) => ({
+      ...prev,
+      ...target
+    }));
+    setNotice('');
+    setError('');
+  };
+
+  const openSiteEditor = (panel: SitePanel, pageIntro?: PageIntroKey) => {
+    setAdminView('site');
+    setSiteFocus((prev) => ({
+      panel,
+      pageIntro: pageIntro ?? prev.pageIntro
+    }));
+    setNotice('');
+    setError('');
+  };
+
+  const openGalleryManager = () => {
+    setAdminView('gallery');
+    setSelectedId(null);
+    setNotice('');
+    setError('');
+  };
+
+  const openInvestmentEditor = () => {
+    setAdminView('investment');
+    setNotice('');
+    setError('');
+  };
+
   const adminPageGroups = [
     {
-      title: 'Obsah',
+      id: 'homepage',
+      title: 'Homepage',
+      summary: 'Hero, widgety a pořadí bloků úvodní stránky.',
+      icon: <House size={16} className="text-cyan-300" />,
       items: [
+        {
+          label: 'Pořadí sekcí',
+          summary: 'Zapnutí, vypnutí a řazení homepage bloků.',
+          active: adminView === 'homepage',
+          action: () => openHomepageBuilder({ mode: 'media' })
+        },
+        {
+          label: 'Hero / média',
+          summary: 'Hlavní hero obrázek a další vizuální sloty.',
+          active: adminView === 'homepage' && homepageFocus.mode === 'media',
+          action: () => openHomepageBuilder({ mode: 'media', slotId: 'hero-main-image' })
+        },
+        {
+          label: 'Widgety',
+          summary: 'Texty, CTA a obsahové widgety homepage.',
+          active: adminView === 'homepage' && homepageFocus.mode === 'widget',
+          action: () => openHomepageBuilder({ mode: 'widget', widgetId: 'hero-intro' })
+        }
+      ]
+    },
+    {
+      id: 'about',
+      title: 'O nás',
+      summary: 'Hlavní stránka, příběhy, novinky, blog a kontakty.',
+      icon: <FileText size={16} className="text-cyan-300" />,
+      items: [
+        {
+          label: 'O nás',
+          summary: 'Header a úvodní text stránky O nás.',
+          active: adminView === 'site' && siteFocus.panel === 'pages' && siteFocus.pageIntro === 'about',
+          action: () => openSiteEditor('pages', 'about')
+        },
+        {
+          label: 'Příběhy',
+          summary: 'Header a text stránky Skutečné restarty.',
+          active: adminView === 'site' && siteFocus.panel === 'pages' && siteFocus.pageIntro === 'stories',
+          action: () => openSiteEditor('pages', 'stories')
+        },
         {
           label: 'Aktuality',
-          description: 'Miniatury novinek, veřejná stránka a krátká oznámení.',
+          summary: 'Editor novinek a krátkých oznámení.',
           active: adminView === 'content' && activeType === 'news',
-          action: () => {
-            setAdminView('content');
-            setActiveType('news');
-            setSelectedId(null);
-          }
+          action: () => openContentEditor('news')
         },
         {
-          label: 'Blog',
-          description: 'Delší články, editorial a texty mimo homepage.',
+          label: 'Blog / archiv',
+          summary: 'Delší články, komentáře a archiv textů.',
           active: adminView === 'content' && activeType === 'blog',
-          action: () => {
-            setAdminView('content');
-            setActiveType('blog');
-            setSelectedId(null);
-          }
+          action: () => openContentEditor('blog')
         },
         {
-          label: 'Galerie',
-          description: 'Skupiny fotek, datum, publikace a veřejná galerie.',
+          label: 'Kontakty',
+          summary: 'Kontaktní údaje, formulář a footer.',
+          active: adminView === 'site' && siteFocus.panel === 'contact',
+          action: () => openSiteEditor('contact')
+        }
+      ]
+    },
+    {
+      id: 'gallery',
+      title: 'Galerie',
+      summary: 'Veřejný header galerie a správa složek s fotkami.',
+      icon: <ImagePlus size={16} className="text-cyan-300" />,
+      items: [
+        {
+          label: 'Header stránky',
+          summary: 'Nadpis a popis veřejné galerie.',
+          active: adminView === 'site' && siteFocus.panel === 'pages' && siteFocus.pageIntro === 'gallery',
+          action: () => openSiteEditor('pages', 'gallery')
+        },
+        {
+          label: 'Složky a fotky',
+          summary: 'Skupiny, datum, popisy a obrázky galerie.',
           active: adminView === 'gallery',
-          action: () => {
-            setAdminView('gallery');
-            setSelectedId(null);
-          }
+          action: () => openGalleryManager()
         }
       ]
     },
     {
-      title: 'Homepage',
+      id: 'downloads',
+      title: 'Ke stažení',
+      summary: 'Dokumenty, názvy menu a soubory pro download.',
+      icon: <Upload size={16} className="text-cyan-300" />,
       items: [
         {
-          label: 'Sekce homepage',
-          description: 'Pořadí bloků, widgety a hlavní stránka.',
-          active: adminView === 'homepage',
-          action: () => setAdminView('homepage')
+          label: 'Dokumenty',
+          summary: 'Názvy a viditelnost odkazů v menu ke stažení.',
+          active: adminView === 'site' && siteFocus.panel === 'navigation',
+          action: () => openSiteEditor('navigation')
         },
         {
-          label: 'Hero a média',
-          description: 'Obrazové sloty, MatrixFx a vizuální prvky homepage.',
-          active: adminView === 'homepage',
-          action: () => setAdminView('homepage')
+          label: 'Programy',
+          summary: 'Soubory a assety používané v download sekci.',
+          active: adminView === 'site' && siteFocus.panel === 'media',
+          action: () => openSiteEditor('media')
         }
       ]
     },
     {
-      title: 'Web',
+      id: 'pillars',
+      title: 'Pilíře',
+      summary: 'Header pilířů a navigace programových detailů.',
+      icon: <ShieldCheck size={16} className="text-cyan-300" />,
       items: [
         {
-          label: 'Navigace a menu',
-          description: 'Hlavní menu, submenu a viditelnost položek.',
-          active: adminView === 'site',
-          action: () => setAdminView('site')
+          label: 'Header sekce',
+          summary: 'Úvodní nadpis a popis stránky Pilíře.',
+          active: adminView === 'site' && siteFocus.panel === 'pages' && siteFocus.pageIntro === 'pillars',
+          action: () => openSiteEditor('pages', 'pillars')
         },
         {
-          label: 'Ke stažení',
-          description: 'Dokumenty, programové balíčky a prostor pro soubory.',
-          active: adminView === 'site',
-          action: () => setAdminView('site')
+          label: 'Navigace pilířů',
+          summary: 'JAILBREAK, REWORK a další položky v menu.',
+          active: adminView === 'site' && siteFocus.panel === 'navigation',
+          action: () => openSiteEditor('navigation')
+        }
+      ]
+    },
+    {
+      id: 'projects',
+      title: 'Projekty',
+      summary: 'Header projektové stránky a navazující assety.',
+      icon: <LayoutDashboard size={16} className="text-cyan-300" />,
+      items: [
+        {
+          label: 'Header stránky',
+          summary: 'Titulek a popis stránky Projekty.',
+          active: adminView === 'site' && siteFocus.panel === 'pages' && siteFocus.pageIntro === 'projects',
+          action: () => openSiteEditor('pages', 'projects')
         },
         {
-          label: 'Kontakty a legal',
-          description: 'Kontakt, footer, ochrana osobních údajů a podmínky.',
-          active: adminView === 'site',
-          action: () => setAdminView('site')
+          label: 'Media knihovna',
+          summary: 'Obrázky a assety pro projektové výstupy.',
+          active: adminView === 'site' && siteFocus.panel === 'media',
+          action: () => openSiteEditor('media')
+        }
+      ]
+    },
+    {
+      id: 'investment',
+      title: 'Investiční záměr',
+      summary: 'Úvodní kontext, ROI a veřejný přínos projektu.',
+      icon: <TrendingUp size={16} className="text-cyan-300" />,
+      items: [
+        {
+          label: 'Úvod a kontext',
+          summary: 'Header, úvodní bloky a osobní kontext projektu.',
+          active: adminView === 'site' && siteFocus.panel === 'pages',
+          action: () => openSiteEditor('pages', 'projects')
+        },
+        {
+          label: 'Návratnost a přínos',
+          summary: 'Velké částky, scénáře úspor a ROI výpočty.',
+          active: adminView === 'investment',
+          action: () => openInvestmentEditor()
+        }
+      ]
+    },
+    {
+      id: 'legal',
+      title: 'Legal',
+      summary: 'Právní overlaye otevřené nad veřejnou stránkou.',
+      icon: <ShieldCheck size={16} className="text-cyan-300" />,
+      items: [
+        {
+          label: 'Ochrana údajů',
+          summary: 'Texty a body GDPR / ochrany osobních údajů.',
+          active: adminView === 'site' && siteFocus.panel === 'privacy',
+          action: () => openSiteEditor('privacy')
+        },
+        {
+          label: 'Podmínky užití',
+          summary: 'Pravidla používání obsahu a webu.',
+          active: adminView === 'site' && siteFocus.panel === 'terms',
+          action: () => openSiteEditor('terms')
+        },
+        {
+          label: 'Cookies',
+          summary: 'Cookie notice a související textace.',
+          active: adminView === 'site' && siteFocus.panel === 'cookies',
+          action: () => openSiteEditor('cookies')
+        }
+      ]
+    },
+    {
+      id: 'general',
+      title: 'Obecné nastavení',
+      summary: 'Kontakty, navigace, page headery a media knihovna.',
+      icon: <Settings2 size={16} className="text-cyan-300" />,
+      items: [
+        {
+          label: 'Kontakty a footer',
+          summary: 'Telefon, e-mail, adresa a footerové údaje.',
+          active: adminView === 'site' && siteFocus.panel === 'contact',
+          action: () => openSiteEditor('contact')
+        },
+        {
+          label: 'Navigace menu',
+          summary: 'Názvy, viditelnost a struktura veřejného menu.',
+          active: adminView === 'site' && siteFocus.panel === 'navigation',
+          action: () => openSiteEditor('navigation')
+        },
+        {
+          label: 'Page headery',
+          summary: 'Nadpisy a popisy hlavních veřejných stránek.',
+          active: adminView === 'site' && siteFocus.panel === 'pages',
+          action: () => openSiteEditor('pages', siteFocus.pageIntro)
+        },
+        {
+          label: 'Media knihovna',
+          summary: 'Sdílené assety pro homepage, CMS a další stránky.',
+          active: adminView === 'site' && siteFocus.panel === 'media',
+          action: () => openSiteEditor('media')
         }
       ]
     }
   ];
+
+  const activeModeLabel =
+    adminView === 'homepage'
+      ? homepageFocus.mode === 'widget'
+        ? 'Homepage · Widgety'
+        : 'Homepage · Hero / média'
+      : adminView === 'investment'
+        ? 'Investiční záměr'
+      : adminView === 'site'
+          ? siteFocus.panel === 'pages'
+            ? `Header: ${pageIntroLabels[siteFocus.pageIntro]}`
+            : siteFocus.panel === 'contact'
+              ? 'Kontakty a footer'
+              : siteFocus.panel === 'navigation'
+                ? 'Navigace webu'
+                : siteFocus.panel === 'media'
+                  ? 'Media knihovna'
+                  : legalLabels[siteFocus.panel]
+          : adminView === 'gallery'
+            ? 'Galerie'
+            : activeType === 'news'
+              ? 'Aktuality'
+              : 'Blog';
+
+  const activeModeDescription =
+    adminView === 'homepage'
+      ? homepageFocus.mode === 'widget'
+        ? 'Upravuješ texty, CTA a widgetové bloky homepage.'
+        : 'Upravuješ vizuální sloty, hero a další média úvodní stránky.'
+      : adminView === 'investment'
+        ? 'Velké částky, scénáře úspor a text návratnosti.'
+        : adminView === 'site'
+          ? siteFocus.panel === 'pages'
+            ? `Právě řešíš header a popis stránky „${pageIntroLabels[siteFocus.pageIntro]}“.`
+            : siteFocus.panel === 'contact'
+              ? 'Veřejné kontakty, formulář, adresa a footerové informace.'
+              : siteFocus.panel === 'navigation'
+                ? 'Viditelnost, názvy a struktura veřejného menu i footeru.'
+                : siteFocus.panel === 'media'
+                  ? 'Sdílené assety pro homepage, obsah a další části webu.'
+                  : `Právě upravuješ overlay „${legalLabels[siteFocus.panel]}“.`
+          : adminView === 'gallery'
+            ? 'Skupiny fotek, datum, popisy a publikace.'
+            : activeType === 'news'
+              ? 'Krátké novinky, výzvy a veřejná oznámení.'
+              : 'Delší články, editorial a rozšířený obsah.';
 
   const handleDeleteEntry = async (entry: Pick<CmsEntry, 'id' | 'title' | 'type'>) => {
     if (!window.confirm(`Opravdu chceš odstranit položku „${entry.title}“?`)) return;
@@ -413,7 +765,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen px-6 py-8">
+    <div className="admin-workspace min-h-screen px-6 py-8">
       <div
         className={`fixed inset-0 z-40 bg-black/70 backdrop-blur-sm transition duration-300 ${
           isSidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
@@ -422,7 +774,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       />
 
       <aside
-        className={`fixed left-4 top-4 bottom-4 z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col rounded-[3rem] border border-white/10 bg-[#031114]/96 p-5 shadow-[0_40px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-transform duration-300 ${
+        className={`fixed left-4 top-4 bottom-4 z-50 flex w-[min(52vw,760px)] max-w-[calc(100vw-2rem)] flex-col rounded-[3rem] border border-white/10 bg-[#031114]/96 p-5 shadow-[0_40px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-transform duration-300 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-[120%]'
         }`}
       >
@@ -430,11 +782,11 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-3 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">
               <ShieldCheck size={13} />
-              Admin menu
+              Menu
             </div>
             <div>
-              <h2 className="text-2xl font-black uppercase text-white">Řídicí lišta</h2>
-              <p className="mt-2 text-sm text-white/40">Rychlé přepínání editorů, obsahu a operací bez hledání v dlouhé stránce.</p>
+              <h2 className="text-2xl font-black uppercase text-white">Správa webu</h2>
+              <p className="mt-2 text-sm text-white/40">Menu teď kopíruje veřejný web a otevírá rovnou správný editor.</p>
             </div>
           </div>
           <button
@@ -447,162 +799,107 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </button>
         </div>
 
-        <div className="space-y-5 overflow-y-auto pr-1">
-          <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Pracovní plochy</p>
-            <div className="mt-4 space-y-3">
-              {([
-                ['content', 'Obsahový editor', 'Aktuality, blog a publikace.'],
-                ['gallery', 'Galerie', 'Skupiny fotek, datum, popisy a publikace.'],
-                ['homepage', 'Homepage builder', 'Sekce, sloty a widgety.'],
-                ['site', 'Globální nastavení', 'Kontakty, navigace, footer, média a právní overlaye.']
-              ] as const).map(([view, title, description]) => (
-                <button
-                  key={view}
-                  type="button"
-                  onClick={() => {
-                    setAdminView(view);
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`w-full rounded-[1.6rem] border px-4 py-4 text-left transition ${
-                    adminView === view
-                      ? 'border-cyan-400/30 bg-cyan-500/10'
-                      : 'border-white/10 bg-black/20 hover:border-cyan-400/20'
+        <div className="space-y-4 overflow-y-auto pr-1">
+          <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-500/[0.04] p-4">
+            <div className="flex items-center gap-3">
+              <LayoutDashboard size={16} className="text-cyan-300" />
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Aktivní část</p>
+                <p className="mt-1 text-sm font-black uppercase tracking-[0.18em] text-white">{activeModeLabel}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {adminPageGroups.map((group) => {
+              const isOpen = expandedSidebarGroup === group.id;
+              const hasActiveItem = group.items.some((item) => item.active);
+
+              return (
+                <div
+                  key={group.id}
+                  className={`rounded-[1.5rem] border p-2.5 transition ${
+                    hasActiveItem ? 'border-cyan-400/20 bg-cyan-500/[0.05]' : 'border-white/10 bg-white/[0.03]'
                   }`}
                 >
-                  <p className="text-sm font-black uppercase tracking-[0.18em] text-white">{title}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-white/40">{description}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-500/[0.04] p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Stránky a submenu</p>
-            <div className="mt-4 space-y-5">
-              {adminPageGroups.map((group) => (
-                <div key={group.title} className="space-y-2">
-                  <p className="px-1 text-[10px] font-black uppercase tracking-[0.22em] text-white/28">{group.title}</p>
-                  {group.items.map((item) => (
-                    <button
-                      key={`${group.title}-${item.label}`}
-                      type="button"
-                      onClick={() => {
-                        item.action();
-                        setIsSidebarOpen(false);
-                      }}
-                      className={`w-full rounded-[1.4rem] border px-4 py-3 text-left transition ${
-                        item.active
-                          ? 'border-cyan-400/30 bg-cyan-500/10 text-cyan-100'
-                          : 'border-white/10 bg-black/20 text-white/60 hover:border-cyan-400/20 hover:text-cyan-200'
-                      }`}
-                    >
-                      <p className="text-xs font-black uppercase tracking-[0.17em]">{item.label}</p>
-                      <p className="mt-1 text-[11px] leading-relaxed text-white/35">{item.description}</p>
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {adminView === 'content' && (
-            <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Typ obsahu</p>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {([
-                  ['news', 'Aktuality'],
-                  ['blog', 'Blog']
-                ] as Array<[CmsEntryType, string]>).map(([type, label]) => (
                   <button
-                    key={type}
                     type="button"
-                    onClick={() => {
-                      setActiveType(type);
-                      setSelectedId(null);
-                      setIsSidebarOpen(false);
-                    }}
-                    className={`rounded-[1.5rem] border px-4 py-4 text-left transition ${
-                      activeType === type
-                        ? 'border-cyan-400/30 bg-cyan-500/10 text-cyan-200'
-                        : 'border-white/10 bg-black/20 text-white/60 hover:border-cyan-400/20'
-                    }`}
+                    onClick={() => setExpandedSidebarGroup(group.id as SidebarGroupId)}
+                    className="flex w-full items-center justify-between gap-3 rounded-[1.2rem] px-3 py-2.5 text-left transition hover:bg-white/[0.03]"
+                    title={group.summary}
                   >
-                    <p className="text-xs font-black uppercase tracking-[0.18em]">{label}</p>
-                    <p className="mt-2 text-[11px] leading-relaxed text-white/35">
-                      {type === 'news' ? 'Krátké zprávy, výzvy a oznámení.' : 'Delší texty a rozšířený obsah.'}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="relative inline-flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-500/10">
+                        {group.icon}
+                        {hasActiveItem && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.8)]" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black uppercase tracking-[0.18em] text-white">{group.title}</p>
+                      </div>
+                    </div>
+                    <div className="text-white/40">
+                      {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                    </div>
                   </button>
-                ))}
-              </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  handleNewEntry(activeType);
-                  setIsSidebarOpen(false);
-                }}
-                className="mt-4 flex w-full items-center gap-3 rounded-[1.6rem] border border-dashed border-cyan-400/20 bg-cyan-500/5 px-4 py-4 text-left transition hover:border-cyan-400/35"
-              >
-                <FilePlus2 size={16} className="text-cyan-300" />
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Nová položka</p>
-                  <p className="mt-1 text-sm text-white/40">Okamžitě otevře prázdný editor pro {activeType === 'news' ? 'aktualitu' : 'blog'}.</p>
+                  {isOpen && (
+                    <div className="mt-2 grid gap-2">
+                      {group.items.map((item) => (
+                        <button
+                          key={`${group.id}-${item.label}`}
+                          type="button"
+                          onClick={() => {
+                            item.action();
+                            setIsSidebarOpen(false);
+                          }}
+                          className={`flex w-full items-center justify-between gap-3 rounded-[1.1rem] border px-3 py-2.5 text-left transition ${
+                            item.active
+                              ? 'border-cyan-400/35 bg-cyan-500/12 text-cyan-100'
+                              : 'border-white/10 bg-black/20 text-white/60 hover:border-cyan-400/20 hover:text-cyan-200'
+                          }`}
+                          title={item.summary}
+                        >
+                          <span className="min-w-0 truncate text-[11px] font-black uppercase tracking-[0.16em]">{item.label}</span>
+                          <span className={`h-2 w-2 shrink-0 rounded-full ${item.active ? 'bg-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.8)]' : 'bg-white/15'}`} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </button>
-            </div>
-          )}
+              );
+            })}
+          </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Rychlé akce</p>
-            <div className="mt-4 space-y-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Akce</p>
+            <div className="mt-4 grid grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => void syncAdminEntries()}
-                className="flex w-full items-center gap-3 rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-4 text-left text-white/65 transition hover:border-cyan-400/20 hover:text-cyan-300"
+                className="flex flex-col items-center gap-2 rounded-[1.4rem] border border-white/10 bg-black/20 px-3 py-4 text-white/65 transition hover:border-cyan-400/20 hover:text-cyan-300"
+                title="Obnovit data"
               >
                 <RefreshCw size={16} />
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em]">Obnovit data</p>
-                  <p className="mt-1 text-sm text-white/35">Natáhne čerstvý stav ze Supabase.</p>
-                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.16em]">Obnovit</span>
               </button>
               <button
                 type="button"
                 onClick={onToggleTheme}
-                className="flex w-full items-center gap-3 rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-4 text-left text-white/65 transition hover:border-cyan-400/20 hover:text-cyan-300"
+                className="flex flex-col items-center gap-2 rounded-[1.4rem] border border-white/10 bg-black/20 px-3 py-4 text-white/65 transition hover:border-cyan-400/20 hover:text-cyan-300"
+                title={isDark ? 'Přepnout na light' : 'Přepnout na dark'}
               >
                 <ShieldCheck size={16} />
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em]">{isDark ? 'Přepnout na light' : 'Přepnout na dark'}</p>
-                  <p className="mt-1 text-sm text-white/35">Rychlá změna motivu administrační vrstvy.</p>
-                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.16em]">{isDark ? 'Light' : 'Dark'}</span>
               </button>
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex w-full items-center gap-3 rounded-[1.5rem] border border-red-500/20 bg-red-500/10 px-4 py-4 text-left text-red-100 transition hover:bg-red-500/15"
+                className="flex flex-col items-center gap-2 rounded-[1.4rem] border border-red-500/20 bg-red-500/10 px-3 py-4 text-red-100 transition hover:bg-red-500/15"
+                title="Odhlásit"
               >
                 <LogOut size={16} />
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em]">Odhlásit</p>
-                  <p className="mt-1 text-sm text-red-100/70">Bezpečně ukončí administrační relaci.</p>
-                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.16em]">Odhlásit</span>
               </button>
-            </div>
-          </div>
-
-          <div className="rounded-[2rem] border border-cyan-400/20 bg-cyan-500/5 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-400">Stav systému</p>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                <p className="text-2xl font-black text-white">{dashboardStats.total}</p>
-                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/35">Záznamy</p>
-              </div>
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                <p className="text-2xl font-black text-white">{dashboardStats.published}</p>
-                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/35">Publikováno</p>
-              </div>
             </div>
           </div>
         </div>
@@ -627,10 +924,11 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.22em] text-cyan-300 transition hover:border-cyan-400/35 hover:bg-cyan-500/15"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/10 text-cyan-300 transition hover:border-cyan-400/35 hover:bg-cyan-500/15"
+              aria-label="Otevřít admin menu"
+              title="Otevřít admin menu"
             >
-              <Menu size={15} />
-              Lišta
+              <Menu size={18} />
             </button>
             <button
               type="button"
@@ -658,295 +956,74 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </div>
         </div>
 
-        <div className="glass-panel rounded-[2.8rem] border-white/10 p-3">
-          <div className="mb-4 px-3 pt-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Přepínač pracovních ploch</p>
-            <h2 className="mt-3 text-2xl font-black text-white">Editor jako dashboard</h2>
-            <p className="mt-2 max-w-3xl text-sm text-white/40">
-              Místo malých přepínačů máš teď větší pracovní karty. Přeskakuješ mezi obsahem, homepage builderem a rychlými akcemi bez ztráty kontextu.
-            </p>
-          </div>
-          <div className="grid gap-3 xl:grid-cols-4">
-            {([
-              ['content', 'Obsah a články', 'Aktuality, blog a rich text editor.', adminView === 'content' ? `Aktivní: ${activeType === 'news' ? 'Aktuality' : 'Blog'}` : `${dashboardStats.total} záznamů`],
-              ['homepage', 'Homepage builder', 'Widgety, pořadí sekcí a fixní obrazové sloty.', 'Sekce, sloty a widgety'],
-              ['site', 'Globální nastavení', 'Kontakty, navigace, footer, média a právní overlaye.', 'Web a legal'],
-              ['create', 'Rychlý start', 'Otevři nový záznam nebo vysouvací menu s operacemi.', adminView === 'content' ? 'Nová položka / menu' : 'Menu / obnovit']
-            ] as const).map(([view, title, description, meta]) => (
-              <button
-                key={view}
-                type="button"
-                onClick={() => {
-                  if (view === 'create') {
-                    if (adminView === 'content') {
-                      handleNewEntry(activeType);
-                    } else {
-                      setIsSidebarOpen(true);
-                    }
-                    return;
-                  }
-                  setAdminView(view);
-                }}
-                className={`rounded-[2rem] px-5 py-4 text-left transition ${
-                  adminView === view
-                    ? 'bg-cyan-500 text-black'
-                    : 'bg-white/[0.03] text-white/70 hover:border-cyan-400/20 hover:bg-white/[0.05]'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <p className="text-xs font-black uppercase tracking-[0.22em]">{title}</p>
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${adminView === view ? 'bg-black/10 text-black/70' : 'bg-black/20 text-white/35'}`}>
-                    {meta}
-                  </span>
-                </div>
-                <p className={`mt-3 text-sm leading-relaxed ${adminView === view ? 'text-black/70' : 'text-white/40'}`}>
-                  {description}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-[2.8rem] border-cyan-400/15 bg-cyan-500/[0.03] p-6">
-          <div className="mb-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Admin menu + submenu</p>
-            <h2 className="mt-3 text-2xl font-black text-white">Stránky oddělené podle účelu</h2>
-            <p className="mt-2 max-w-3xl text-sm text-white/40">
-              Základní členění adminu je připravené podle veřejného webu: obsah, homepage, navigace, Ke stažení a legal.
-            </p>
-          </div>
-          <div className="grid gap-4 xl:grid-cols-3">
-            {adminPageGroups.map((group) => (
-              <div key={group.title} className="rounded-[2rem] border border-white/10 bg-black/20 p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/30">{group.title}</p>
-                <div className="mt-4 grid gap-2">
-                  {group.items.map((item) => (
-                    <button
-                      key={`${group.title}-dashboard-${item.label}`}
-                      type="button"
-                      onClick={item.action}
-                      className={`rounded-[1.4rem] px-4 py-3 text-left transition ${
-                        item.active ? 'bg-cyan-500 text-black' : 'bg-white/[0.035] text-white/65 hover:bg-white/[0.06] hover:text-cyan-200'
-                      }`}
-                    >
-                      <p className="text-xs font-black uppercase tracking-[0.18em]">{item.label}</p>
-                      <p className={`mt-1 text-[11px] leading-relaxed ${item.active ? 'text-black/65' : 'text-white/35'}`}>
-                        {item.description}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-[2.8rem] border-white/10 p-6">
-          <div className="mb-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Co chcete udělat?</p>
-            <h2 className="mt-3 text-2xl font-black text-white">Jednoduchý rozcestník</h2>
-            <p className="mt-2 max-w-3xl text-sm text-white/40">
-              Pokud se v adminu nechceš orientovat technicky, začni tady. Každá karta tě přepne rovnou do správné části.
-            </p>
-          </div>
-          <div className="grid gap-4 xl:grid-cols-4">
-            {[
-              {
-                title: 'Napsat aktualitu',
-                description: 'Otevře nový formulář pro krátkou novinku nebo oznámení.',
-                action: () => {
-                  setAdminView('content');
-                  handleNewEntry('news');
-                }
-              },
-              {
-                title: 'Napsat blog',
-                description: 'Otevře nový delší článek s editorem formátování.',
-                action: () => {
-                  setAdminView('content');
-                  handleNewEntry('blog');
-                }
-              },
-              {
-                title: 'Upravit homepage',
-                description: 'Přepne tě do builderu sekcí, obrázků a widgetů.',
-                action: () => setAdminView('homepage')
-              },
-              {
-                title: 'Upravit webové nastavení',
-                description: 'Přepne tě na kontakty, menu, footer, média a právní texty.',
-                action: () => setAdminView('site')
-              }
-            ].map((item) => (
-              <button
-                key={item.title}
-                type="button"
-                onClick={item.action}
-                className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 text-left transition hover:border-cyan-400/20 hover:bg-white/[0.05]"
-              >
-                <p className="text-sm font-black uppercase tracking-[0.18em] text-white">{item.title}</p>
-                <p className="mt-3 text-sm leading-relaxed text-white/40">{item.description}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr]">
-          <div className="glass-panel rounded-[3rem] border-white/10 p-6 md:p-8">
-            <div className="mb-6 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Dashboard</p>
-                <h2 className="mt-2 text-3xl font-black text-white">
-                  {adminView === 'homepage'
-                    ? 'Řízení homepage'
-                    : adminView === 'site'
-                      ? 'Řízení webu'
-                      : adminView === 'gallery'
-                        ? 'Řízení galerie'
-                        : 'Obsahový přehled'}
-                </h2>
-                <p className="mt-3 max-w-2xl text-sm text-white/40">
-                  {adminView === 'homepage'
-                    ? 'Tady dává MatrixFx smysl jako vizuální identita dashboardu, ne pod formuláři. Homepage builder tak má vlastní orientační vrstvu a přehled klíčových stavů.'
-                    : adminView === 'site'
-                      ? 'Admin už neřídí jen články. Přibyla vrstva pro kontakty, menu, footer, média, další page headery a právní overlaye, takže web má centrální řídicí panel i pro veřejné systémové informace.'
-                      : adminView === 'gallery'
-                        ? 'Galerie má vlastní správu skupin, dat, popisků a publikace. Tady už neřešíš články, ale čistě vizuální archiv projektu.'
-                      : 'Admin panel má nově i dashboard vrstvu. Vidíš rychlý stav obsahu, publikace a můžeš se rychle rozhodnout, co upravit dál.'}
-                </p>
-              </div>
-              <div className="hidden rounded-[2rem] border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-right md:block">
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Aktivní režim</p>
-                <p className="mt-2 text-sm font-black uppercase tracking-[0.22em] text-white">
-                  {adminView === 'homepage'
-                    ? 'Homepage Builder'
-                    : adminView === 'site'
-                      ? 'Globální Nastavení'
-                      : adminView === 'gallery'
-                        ? 'Galerie'
-                      : activeType === 'news'
-                        ? 'Aktuality'
-                        : 'Blog'}
-                </p>
-              </div>
+        <div className="glass-panel rounded-[3rem] border-white/10 p-6 md:p-8">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+            <div className="max-w-3xl space-y-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Rychlý přehled</p>
+              <h2 className="text-3xl font-black text-white md:text-4xl">
+                {activeModeLabel}
+              </h2>
+              <p className="text-sm leading-relaxed text-white/40">
+                {activeModeDescription} Hlavní navigace adminu je teď schovaná do vysouvacího postranního menu pod ikonou vlevo nahoře.
+              </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 xl:min-w-[620px] xl:grid-cols-4">
               {[
                 {
-                  label: 'Všechny záznamy',
+                  label: 'Záznamy',
                   value: dashboardStats.total,
-                  description: 'Součet aktualit a blogových článků v CMS.',
-                  icon: <ShieldCheck size={18} />,
                   accent: 'text-cyan-300',
                   bg: 'bg-cyan-500/10'
                 },
                 {
                   label: 'Publikováno',
                   value: dashboardStats.published,
-                  description: 'Obsah viditelný na veřejném webu.',
-                  icon: <Save size={18} />,
                   accent: 'text-emerald-300',
                   bg: 'bg-emerald-500/10'
                 },
                 {
                   label: 'Drafty',
                   value: dashboardStats.drafts,
-                  description: 'Rozpracované položky jen pro admin.',
-                  icon: <PencilLine size={18} />,
                   accent: 'text-amber-300',
                   bg: 'bg-amber-500/10'
                 },
                 {
-                  label: 'Homepage sloty',
-                  value: '6',
-                  description: 'Pevné obrazové pozice připravené pro builder.',
-                  icon: <LayoutTemplate size={18} />,
+                  label: adminView === 'content' ? 'Typ obsahu' : 'Režim',
+                  value: adminView === 'content' ? (activeType === 'news' ? 'Aktuality' : 'Blog') : activeModeLabel,
                   accent: 'text-teal-300',
                   bg: 'bg-teal-500/10'
                 }
               ].map((card) => (
                 <div key={card.label} className="rounded-[2.2rem] border border-white/10 bg-white/[0.03] p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${card.bg} ${card.accent}`}>
-                      {card.icon}
-                    </div>
-                    <p className="text-3xl font-black text-white">{card.value}</p>
+                  <div className={`inline-flex rounded-2xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] ${card.bg} ${card.accent}`}>
+                    {card.label}
                   </div>
-                  <p className="mt-5 text-[10px] font-black uppercase tracking-[0.22em] text-white/35">{card.label}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-white/40">{card.description}</p>
+                  <p className="mt-5 text-2xl font-black text-white md:text-3xl">{card.value}</p>
                 </div>
               ))}
             </div>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-[2.2rem] border border-white/10 bg-black/20 p-5">
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Aktuality vs. blog</p>
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-4">
-                    <p className="text-2xl font-black text-white">{dashboardStats.news}</p>
-                    <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/35">Aktuality</p>
-                  </div>
-                  <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-4">
-                    <p className="text-2xl font-black text-white">{dashboardStats.blog}</p>
-                    <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/35">Blog</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[2.2rem] border border-white/10 bg-black/20 p-5">
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Doporučení</p>
-                <p className="mt-4 text-sm leading-relaxed text-white/45">
-                  MatrixFx nechávám v přehledových blocích a ne pod vstupními poli. Admin tak zůstává čitelný, ale má vlastní
-                  identitu a nepůsobí jako čistý CRUD bez značky.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-panel rounded-[3rem] border-white/10 p-4">
-            <MatrixFxHero
-              isDark={isDark}
-              darkLogoSrc="/images/podklady/branding/logo-9.png"
-              lightLogoSrc="/images/podklady/branding/logo-main.png"
-              darkLogoAlt="REST||ART admin dashboard"
-              lightLogoAlt="REST||ART admin dashboard"
-              revealFrom="bottom"
-              label={adminView === 'homepage' ? 'Homepage Builder' : 'Admin Dashboard'}
-              description={
-                adminView === 'homepage'
-                  ? 'Přesouvej sekce, měň pevné sloty a postupně objektivizuj homepage do editovatelných widgetů.'
-                  : adminView === 'site'
-                    ? 'Spravuj kontakty, menu, footer, média a právní stránky v jednom panelu bez sahání do kódu.'
-                    : adminView === 'gallery'
-                      ? 'Spravuj skupiny fotek, data, popisy a publikaci galerie v jednom místě.'
-                    : 'Spravuj aktuality, blog a veřejný obsah v jednom prostředí se silnější vizuální identitou.'
-              }
-              bulge={{ type: 'ripple', duration: 4, intensity: 14, repeat: true }}
-            />
           </div>
         </div>
 
         {adminView === 'homepage' ? (
-          <HomepageBuilderPanel />
+          <HomepageBuilderPanel
+            initialMode={homepageFocus.mode}
+            initialSlotId={homepageFocus.slotId}
+            initialWidgetId={homepageFocus.widgetId}
+          />
+        ) : adminView === 'investment' ? (
+          <InvestmentSettingsPanel isDark={isDark} />
         ) : adminView === 'site' ? (
-          <GlobalSettingsPanel isDark={isDark} />
+          <GlobalSettingsPanel
+            isDark={isDark}
+            initialPanel={siteFocus.panel}
+            initialPageIntro={siteFocus.pageIntro}
+          />
         ) : adminView === 'gallery' ? (
           <GalleryManagerPanel />
         ) : (
           <div className="grid gap-8 xl:grid-cols-[360px,1fr]">
-          <div className="xl:col-span-2 grid gap-4 md:grid-cols-3">
-            {[
-              ['1. Vyber typ', 'Zvol Aktuality nebo Blog.'],
-              ['2. Vyber položku', 'Otevři existující záznam vlevo, nebo vytvoř nový.'],
-              ['3. Uprav a ulož', 'Doplň text, obrázek a klikni na Uložit.']
-            ].map(([title, text]) => (
-              <div key={title} className="rounded-[2rem] border border-white/10 bg-white/[0.03] px-5 py-4">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">{title}</p>
-                <p className="mt-2 text-sm text-white/40">{text}</p>
-              </div>
-            ))}
-          </div>
           <aside className="glass-panel rounded-[3rem] border-white/10 p-5">
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
@@ -1026,24 +1103,24 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         Upraveno {formatAdminDate(entry.updated_at)}
                       </p>
                     </button>
-                    <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-4">
+                    <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3">
                       <button
                         type="button"
                         onClick={() => handleSelectEntry(entry)}
-                        className="inline-flex items-center gap-2 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/65 transition hover:border-cyan-400/30 hover:text-cyan-300"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-400/15 bg-cyan-500/8 text-cyan-200 transition hover:border-cyan-400/30 hover:text-cyan-100"
                         title={`Upravit položku ${entry.title}`}
+                        aria-label={`Upravit položku ${entry.title}`}
                       >
-                        <PencilLine size={12} />
-                        Upravit
+                        <PencilLine size={14} />
                       </button>
                       <button
                         type="button"
                         onClick={() => void handleDeleteEntry(entry)}
-                        className="inline-flex items-center gap-2 rounded-[1.2rem] border border-red-500/20 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-red-200 transition hover:bg-red-500/15"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 transition hover:bg-red-500/15"
                         title={`Smazat položku ${entry.title}`}
+                        aria-label={`Smazat položku ${entry.title}`}
                       >
-                        <Trash2 size={12} />
-                        Smazat
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
@@ -1053,6 +1130,41 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </aside>
 
           <section className="space-y-6">
+            <AdminStickyActionBar
+              title={editorState.id ? `CMS · ${editorState.title || 'bez názvu'}` : 'CMS · nový záznam'}
+              status={error ? 'error' : isSaving ? 'saving' : editorHasUnsavedChanges ? 'dirty' : notice ? 'saved' : 'idle'}
+              previewHref={editorState.type === 'news' ? '/novinky' : '/blog'}
+              message={
+                error ||
+                notice ||
+                (editorHasUnsavedChanges
+                  ? 'Obsah má neuložené změny. Ulož je, aby se propsaly do CMS.'
+                  : 'Obsahový editor je připravený.')
+              }
+              actions={
+                <>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="inline-flex h-10 items-center gap-2 rounded-[1.2rem] bg-cyan-500 px-4 text-xs font-black uppercase tracking-[0.18em] text-black transition hover:bg-cyan-400 disabled:opacity-55"
+                  >
+                    {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                    Uložit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={!selectedId || isSaving}
+                    className="inline-flex h-10 items-center gap-2 rounded-[1.2rem] border border-red-500/20 bg-red-500/10 px-4 text-xs font-black uppercase tracking-[0.18em] text-red-200 transition hover:bg-red-500/15 disabled:opacity-40"
+                  >
+                    <Trash2 size={14} />
+                    Smazat
+                  </button>
+                </>
+              }
+            />
+
             <div className="glass-panel rounded-[3rem] border-white/10 p-6 md:p-8">
               <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
@@ -1069,6 +1181,16 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
+                  <AdminInfoTooltip
+                    title="Jak pracovat s obsahem"
+                    description="Nápověda je schovaná sem, aby editor zůstal čistý a působil jako pracovní plocha, ne jako návodová stránka."
+                    items={[
+                      'Nejdřív vlevo zvol Aktuality nebo Blog a otevři konkrétní položku.',
+                      'V editoru uprav text, cover obrázek, stav a datum publikace.',
+                      'Po uložení se změny propíšou do CMS a podle stavu i na veřejný web.'
+                    ]}
+                    label="Nápověda"
+                  />
                   <button
                     type="button"
                     onClick={handleSave}
@@ -1277,6 +1399,10 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                         onChange={handleUploadFile}
                       />
                     </div>
+                    <p className="text-xs leading-relaxed text-white/38">
+                      Lokální obrázky před uploadem automaticky zmenšíme a zkomprimujeme, aby cover
+                      nebyl zbytečně těžký.
+                    </p>
 
                     <div className="space-y-2">
                       <FieldLabel label="Cover URL" hint="Finální obrázek, který se použije na veřejné kartě a v detailu článku. Může být uložený ve Storage nebo externě." />
@@ -1302,26 +1428,27 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                   </div>
                 </div>
 
-                <div className="glass-panel rounded-[3rem] border-white/10 p-6">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Stav operace</p>
-                  <div className="mt-4 space-y-3">
-                    {notice && <div className="rounded-[1.5rem] border border-cyan-400/15 bg-cyan-500/5 px-4 py-3 text-sm text-cyan-100/80">{notice}</div>}
-                    {error && (
-                      <div className="rounded-[1.5rem] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                        <div className="mb-2 flex items-center gap-2 font-black uppercase tracking-[0.18em] text-red-200">
-                          <AlertCircle size={14} />
-                          Chyba
+                {(notice || error) && (
+                  <div className="glass-panel rounded-[3rem] border-white/10 p-6">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Stav operace</p>
+                    <div className="mt-4 space-y-3">
+                      {notice && (
+                        <div className="rounded-[1.5rem] border border-cyan-400/15 bg-cyan-500/5 px-4 py-3 text-sm text-cyan-100/80">
+                          {notice}
                         </div>
-                        {error}
-                      </div>
-                    )}
-                    {!notice && !error && (
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/40">
-                        Editor je připravený. Uložením se změny promítnou do Supabase a na veřejný web.
-                      </div>
-                    )}
+                      )}
+                      {error && (
+                        <div className="rounded-[1.5rem] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                          <div className="mb-2 flex items-center gap-2 font-black uppercase tracking-[0.18em] text-red-200">
+                            <AlertCircle size={14} />
+                            Chyba
+                          </div>
+                          {error}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </section>

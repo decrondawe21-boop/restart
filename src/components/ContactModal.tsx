@@ -29,12 +29,12 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
 
         <div className="space-y-8">
           <div className="space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-black text-cyan-400">Kontaktní miniokno</p>
+            <p className="text-[10px] uppercase tracking-[0.3em] font-black text-cyan-400">Kontakt</p>
             <h3 className="text-4xl md:text-5xl font-black text-white uppercase leading-tight">
               Kontaktujte <span className="text-cyan-300 headline-thin">nás</span>
             </h3>
             <p className="text-white/40 font-light max-w-2xl">
-              Zůstáváte na aktuální stránce a formulář se otevře pouze v překryvném okně.
+              Napište nám zprávu. Každá spolupráce začíná jedním rozhovorem.
             </p>
           </div>
 

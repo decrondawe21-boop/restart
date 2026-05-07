@@ -31,6 +31,8 @@ import {
   globalPublicContactSettingKey,
   legalPageContentSettingKey,
   pageIntroContentSettingKey,
+  investmentIntroContextSettingKey,
+  investmentReturnContentSettingKey,
   normalizeHomepageLayout,
   normalizeHomepageMediaSlots,
   normalizeGalleryGroups,
@@ -38,10 +40,14 @@ import {
   normalizePublicContactInfo,
   normalizeLegalPageContent,
   normalizePageIntroContent,
+  normalizeInvestmentIntroContext,
+  normalizeInvestmentReturnContent,
   normalizeSiteNavigationSettings,
   defaultHomepageWidgetContent,
   defaultLegalPageContent,
   defaultPageIntroContent,
+  defaultInvestmentIntroContext,
+  defaultInvestmentReturnContent,
   defaultSiteNavigationSettings,
   type HomepageSectionId,
   type NavigationItemKey
@@ -475,6 +481,8 @@ const App = () => {
   const [siteLegalPageContent, setSiteLegalPageContent] = useState(defaultLegalPageContent);
   const [siteNavigationSettings, setSiteNavigationSettings] = useState(defaultSiteNavigationSettings);
   const [pageIntroContent, setPageIntroContent] = useState(defaultPageIntroContent);
+  const [investmentIntroContext, setInvestmentIntroContext] = useState(defaultInvestmentIntroContext);
+  const [investmentReturnContent, setInvestmentReturnContent] = useState(defaultInvestmentReturnContent);
 
   const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
   const isAdminRoute = normalizedPath === '/admin' || normalizedPath.startsWith('/admin/');
@@ -614,7 +622,9 @@ const App = () => {
           globalNavigationSettingKey,
           globalPublicContactSettingKey,
           legalPageContentSettingKey,
-          pageIntroContentSettingKey
+          pageIntroContentSettingKey,
+          investmentIntroContextSettingKey,
+          investmentReturnContentSettingKey
         ]);
         if (!isMounted) return;
 
@@ -627,6 +637,8 @@ const App = () => {
         setSiteNavigationSettings(normalizeSiteNavigationSettings(byKey.get(globalNavigationSettingKey)));
         setSiteLegalPageContent(normalizeLegalPageContent(byKey.get(legalPageContentSettingKey)));
         setPageIntroContent(normalizePageIntroContent(byKey.get(pageIntroContentSettingKey)));
+        setInvestmentIntroContext(normalizeInvestmentIntroContext(byKey.get(investmentIntroContextSettingKey)));
+        setInvestmentReturnContent(normalizeInvestmentReturnContent(byKey.get(investmentReturnContentSettingKey)));
       } catch (error) {
         console.error('Homepage settings fetch failed', error);
       }
@@ -668,12 +680,6 @@ const App = () => {
   const relativeRecidivismDrop = Math.round((recidivismDelta / recidivismBaseRate) * 100);
   const infrastructureBreakEvenParticipants = Math.ceil(totalInfrastructureInvestment / annualSavingsPerPerson);
   const fullLaunchBreakEvenParticipants = Math.ceil((totalInfrastructureInvestment + annualPilotOperationBudget) / annualSavingsPerPerson);
-  const savingsPlanRows = [10, 25, 50, 100].map((participants) => ({
-    participants,
-    systemCost: participants * annualSystemCostModel,
-    reintegrationCost: participants * annualReintegrationCost,
-    savings: participants * annualSavingsPerPerson
-  }));
   const impactGaugeStats = [
     {
       label: 'Recidiva bez podpory',
@@ -955,7 +961,7 @@ const App = () => {
         { key: 'about-stories', label: 'Příběhy', id: 'stories' },
         { key: 'about-news', label: 'Novinky a aktuality', id: 'news' },
         { key: 'about-blog', label: 'Blog / Archiv', id: 'blog' },
-        { key: 'about-contacts', label: 'Kontakty (mini okno)', id: 'contacts-modal' }
+        { key: 'about-contacts', label: 'Kontakty', id: 'contacts-modal' }
       ]
     },
     { key: 'gallery', label: 'Galerie', id: 'gallery' },
@@ -1191,6 +1197,8 @@ const App = () => {
   ];
   const newsPosts = publicNewsPosts.length > 0 ? publicNewsPosts : defaultNewsPosts;
   const editorialPosts = publicBlogPosts.length > 0 ? publicBlogPosts : defaultBlogPosts;
+  const amountDisplayClass = (sizeClass: string, accent: 'white' | 'cyan' = 'white') =>
+    `${sizeClass} amount-glow leading-none ${accent === 'cyan' ? 'text-cyan-300' : 'text-white'}`;
 
   const getHomepageMediaSlot = (
     slotId: (typeof defaultHomepageMediaSlots)[number]['id'],
@@ -2593,13 +2601,13 @@ const App = () => {
                 <p className="text-cyan-300 font-semibold mt-1">RESTART INTEGRACE</p>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
-                <a href="mailto:info@david-kozak.com" className="glass-panel p-5 rounded-[1.7rem] border-white/10 hover:border-cyan-400/30 transition-colors">
+                <a href={`mailto:${publicContact.email}`} className="glass-panel p-5 rounded-[1.7rem] border-white/10 hover:border-cyan-400/30 transition-colors">
                   <Mail className="text-cyan-400 mb-4" size={22} />
-                  <p className="text-sm text-white font-semibold">info@david-kozak.com</p>
+                  <p className="text-sm text-white font-semibold">{publicContact.email}</p>
                 </a>
-                <a href="tel:+420775189574" className="glass-panel p-5 rounded-[1.7rem] border-white/10 hover:border-cyan-400/30 transition-colors">
+                <a href={`tel:${publicContact.phone.replace(/\s+/g, '')}`} className="glass-panel p-5 rounded-[1.7rem] border-white/10 hover:border-cyan-400/30 transition-colors">
                   <Phone className="text-cyan-400 mb-4" size={22} />
-                  <p className="text-sm text-white font-semibold">+420 775 189 574</p>
+                  <p className="text-sm text-white font-semibold">{publicContact.phone}</p>
                 </a>
               </div>
               <button
@@ -3935,14 +3943,18 @@ const App = () => {
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
             <div className="max-w-7xl mx-auto space-y-14">
-              <div className="space-y-5 border-b border-white/10 pb-10">
-                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                  {pageIntroContent.pillars.eyebrow}
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-white/10 pb-12">
+                <div className="space-y-5">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                    {pageIntroContent.pillars.eyebrow}
+                  </div>
+                  <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                    {pageIntroContent.pillars.titleLead} <span className="text-cyan-300 headline-thin">{pageIntroContent.pillars.titleAccent}</span>
+                  </h2>
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
-                  {pageIntroContent.pillars.titleLead} <span className="text-cyan-300 headline-thin">{pageIntroContent.pillars.titleAccent}</span>
-                </h2>
-                <p className="max-w-3xl text-sm text-white/40">{pageIntroContent.pillars.description}</p>
+                <p className="max-w-md text-sm text-white/40 font-light leading-relaxed">
+                  {pageIntroContent.pillars.description}
+                </p>
               </div>
 
               <div className="space-y-8">
@@ -4025,14 +4037,18 @@ const App = () => {
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] -z-10" />
             <div className="max-w-7xl mx-auto space-y-14">
-              <div className="space-y-5 border-b border-white/10 pb-10">
-                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                  {pageIntroContent.stories.eyebrow}
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-white/10 pb-12">
+                <div className="space-y-5">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                    {pageIntroContent.stories.eyebrow}
+                  </div>
+                  <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                    {pageIntroContent.stories.titleLead} <span className="text-cyan-300 headline-thin">{pageIntroContent.stories.titleAccent}</span>
+                  </h2>
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
-                  {pageIntroContent.stories.titleLead} <span className="text-cyan-300 headline-thin">{pageIntroContent.stories.titleAccent}</span>
-                </h2>
-                <p className="max-w-3xl text-sm text-white/40">{pageIntroContent.stories.description}</p>
+                <p className="max-w-md text-sm text-white/40 font-light leading-relaxed">
+                  {pageIntroContent.stories.description}
+                </p>
               </div>
 
               <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-emerald-400/10 bg-emerald-500/[0.03] space-y-4">
@@ -4118,18 +4134,20 @@ const App = () => {
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-teal-500/5 rounded-full blur-[120px] -z-10" />
 
             <div className="max-w-7xl mx-auto space-y-20">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-cyan-400/10 pb-16">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-cyan-400/10 pb-16">
                 <div className="space-y-6">
                   <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
                     {pageIntroContent.projects.eyebrow}
                   </div>
                   <h2 className="text-4xl md:text-6xl text-white uppercase text-glow-cyan leading-tight">{pageIntroContent.projects.titleLead} <br /><span className="text-cyan-300 headline-thin">{pageIntroContent.projects.titleAccent}</span></h2>
                 </div>
-                <a href="https://davidkozak.social" target="_blank" className="group bg-white text-black px-10 py-5 rounded-2xl flex items-center gap-3 hover:bg-cyan-400 transition-all text-xs font-black tracking-widest uppercase shadow-xl shadow-cyan-500/10">
-                  Portfolio Majitele <ExternalLink size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                </a>
+                <div className="max-w-md space-y-5">
+                  <p className="text-sm text-white/40 font-light leading-relaxed">{pageIntroContent.projects.description}</p>
+                  <a href="https://davidkozak.social" target="_blank" className="group inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-2xl hover:bg-cyan-400 transition-all text-xs font-black tracking-widest uppercase shadow-xl shadow-cyan-500/10">
+                    Portfolio Majitele <ExternalLink size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                  </a>
+                </div>
               </div>
-              <p className="max-w-3xl text-sm text-white/40">{pageIntroContent.projects.description}</p>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {kozakProjects.map((p, idx) => (
@@ -4191,7 +4209,7 @@ const App = () => {
           {
             title: 'Další dokumenty',
             type: 'Složka',
-            description: 'Prostor pro metodiky, partnerské podklady, prezentace a další veřejné materiály.'
+            description: 'Metodiky, partnerské podklady, prezentace a další veřejné materiály projektu.'
           }
         ];
 
@@ -4207,8 +4225,8 @@ const App = () => {
                   </h2>
                 </div>
                 <p className="text-xl text-white/50 font-light leading-relaxed">
-                  Registrační formuláře, grafy, výroční zprávy a další podklady budou soustředěné na jednom místě.
-                  Položky jsou připravené pro napojení na správu souborů v admin panelu.
+                  Na jednom místě najdete registrační formuláře, grafy dopadu, výroční zprávy i další podklady
+                  pro partnery, instituce a veřejnost.
                 </p>
               </div>
 
@@ -4222,7 +4240,7 @@ const App = () => {
                     <h3 className="mt-3 text-2xl font-black text-white uppercase leading-tight">{item.title}</h3>
                     <p className="mt-4 text-sm text-white/48 font-light leading-relaxed">{item.description}</p>
                     <div className="mt-7 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">
-                      Soubor bude doplněn
+                      Součást dokumentace
                       <ArrowDownRight size={14} />
                     </div>
                   </article>
@@ -4237,7 +4255,7 @@ const App = () => {
           {
             title: 'Programový balíček REST||ART',
             type: 'ZIP / EXE',
-            description: 'Prostor pro instalační soubory, interní nástroje nebo distribuční balíčky.'
+            description: 'Instalační soubory, distribuční balíčky a praktické nástroje navázané na projekt REST||ART.'
           },
           {
             title: 'JAILBREAK podklady',
@@ -4252,7 +4270,7 @@ const App = () => {
           {
             title: 'STREETWISE / RESET / STABILIZACE',
             type: 'Složka',
-            description: 'Prostor pro programové materiály, metodiky a balíčky ke stažení.'
+            description: 'Programové materiály, metodiky a soubory pro terénní i navazující práci.'
           }
         ];
 
@@ -4268,8 +4286,8 @@ const App = () => {
                   </h2>
                 </div>
                 <p className="text-xl text-white/50 font-light leading-relaxed">
-                  Samostatná knihovna programových souborů, balíčků a nástrojů. Veřejná stránka už počítá i s typy
-                  souborů jako EXE, ZIP, PDF nebo XLSX.
+                  Knihovna programových souborů, metodik a podpůrných balíčků pro jednotlivé pilíře projektu
+                  i spolupracující partnery.
                 </p>
               </div>
 
@@ -4283,7 +4301,7 @@ const App = () => {
                     <h3 className="mt-3 text-2xl font-black text-white uppercase leading-tight">{item.title}</h3>
                     <p className="mt-4 text-sm text-white/48 font-light leading-relaxed">{item.description}</p>
                     <div className="mt-7 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">
-                      Připraveno pro upload
+                      Součást knihovny
                       <ArrowDownRight size={14} />
                     </div>
                   </article>
@@ -4291,10 +4309,10 @@ const App = () => {
               </div>
 
               <div className="glass-panel rounded-[2.5rem] border-emerald-400/15 bg-emerald-500/[0.04] p-8">
-                <p className="text-[10px] uppercase tracking-[0.28em] text-emerald-300 font-black">Admin napojení</p>
+                <p className="text-[10px] uppercase tracking-[0.28em] text-emerald-300 font-black">Jak jsou materiály členěné</p>
                 <p className="mt-3 text-lg text-white/58 font-light leading-relaxed">
-                  Tato stránka je připravená jako samostatná sekce pro budoucí správu souborů z admin panelu:
-                  název, popis, typ souboru, veřejná dostupnost a odkaz ke stažení.
+                  Soubory jsou rozdělené podle typu a programu tak, aby partneři, instituce i veřejnost rychle
+                  našli správný podklad ke stažení.
                 </p>
               </div>
             </div>
@@ -4307,19 +4325,21 @@ const App = () => {
             {/* Background decorative elements */}
             <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] -z-10 animate-pulse" />
             
-            <div className="max-w-7xl mx-auto">
-              <div className="grid lg:grid-cols-2 gap-20 items-start">
-                <div className="space-y-16">
-                  <div className="space-y-6">
-                    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                      {pageIntroContent.contacts.eyebrow}
-                    </div>
-                    <h2 className="text-5xl md:text-[4.5rem] text-white uppercase text-glow-cyan leading-[0.9]">{pageIntroContent.contacts.titleLead} <br /><span className="text-cyan-300 headline-thin">{pageIntroContent.contacts.titleAccent}</span></h2>
-                    <p className="text-xl text-white/40 font-light max-w-md leading-relaxed">
-                      {pageIntroContent.contacts.description}
-                    </p>
+            <div className="max-w-7xl mx-auto space-y-14">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 border-b border-cyan-400/10 pb-12">
+                <div className="space-y-6">
+                  <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/5 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                    {pageIntroContent.contacts.eyebrow}
                   </div>
+                  <h2 className="text-5xl md:text-[4.5rem] text-white uppercase text-glow-cyan leading-[0.9]">{pageIntroContent.contacts.titleLead} <br /><span className="text-cyan-300 headline-thin">{pageIntroContent.contacts.titleAccent}</span></h2>
+                </div>
+                <p className="max-w-md text-sm text-white/40 font-light leading-relaxed">
+                  {pageIntroContent.contacts.description}
+                </p>
+              </div>
 
+              <div className="grid lg:grid-cols-2 gap-20 items-start">
+                <div className="space-y-10">
                   <div className="grid gap-6">
                     <div className="glass-panel p-10 rounded-[2.5rem] space-y-6 border-white/5">
                       <div className="flex items-center gap-6">
@@ -4464,20 +4484,17 @@ const App = () => {
                 </div>
                 <div className="space-y-6">
                   <div className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-4">
-                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">Osobní kontext a reálný základ</p>
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-400 font-black">{investmentIntroContext.eyebrow}</p>
                     <p className="text-white/50 font-light leading-relaxed">
-                      Projekt vznikl díky osobní zkušenosti zakladatele a na základě skutečných příběhů lidí, kteří prošli výkonem
-                      trestu a skrze práci mimo ČR našli novou cestu.
+                      {investmentIntroContext.description}
                     </p>
-                    <div className="grid gap-3">
-                      <div className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-5">
-                        <p className="text-sm font-bold text-white">Erik Horváth</p>
-                        <p className="text-sm text-white/45 font-light">bývalý vězeň, dnes elektrikář, abstinence a návrat k rodině</p>
-                      </div>
-                      <div className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-5">
-                        <p className="text-sm font-bold text-white">Mio Prešíč</p>
-                        <p className="text-sm text-white/45 font-light">po dvouleté práci v Německu spoluvlastník sítě automyček</p>
-                      </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {investmentIntroContext.people.map((person) => (
+                        <div key={person.id} className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-5">
+                          <p className="text-sm font-bold text-white">{person.name}</p>
+                          <p className="text-sm text-white/45 font-light">{person.detail}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -4721,26 +4738,24 @@ const App = () => {
             <div className="max-w-7xl mx-auto space-y-12">
               <div className="space-y-4 border-b border-white/10 pb-10">
                 <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
-                  IV. Návratnost a přínos
+                  {investmentReturnContent.headerEyebrow}
                 </div>
                 <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
-                  Důvod <span className="text-cyan-300 headline-thin">investovat</span>
+                  {investmentReturnContent.headerTitleLead} <span className="text-cyan-300 headline-thin">{investmentReturnContent.headerTitleAccent}</span>
                 </h2>
                 <p className="text-white/40 font-light max-w-3xl">
-                  Projekt je nastaven jako kombinace sociálního dopadu, ekonomické efektivity a dlouhodobé stabilizace komunit.
+                  {investmentReturnContent.headerDescription}
                 </p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-6">
-                {investmentBenefits.map((benefit, idx) => (
+                {investmentReturnContent.benefits.map((benefit, idx) => (
                   <div key={idx} className="glass-panel p-8 rounded-[2.5rem] border-white/10 space-y-5">
                     <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
-                      {React.cloneElement(benefit.icon as React.ReactElement<{ size?: number }>, { size: 24 })}
+                      {React.cloneElement(investmentBenefits[idx].icon as React.ReactElement<{ size?: number }>, { size: 24 })}
                     </div>
                     <h3 className="text-xl font-bold text-white">{benefit.title}</h3>
-                    {'value' in benefit && (
-                      <p className="text-4xl font-black text-white leading-none text-glow-cyan">{benefit.value}</p>
-                    )}
+                    <p className={amountDisplayClass('text-4xl', benefit.accent)}>{benefit.value}</p>
                     <p className="text-white/50 font-light leading-relaxed">{benefit.description}</p>
                   </div>
                 ))}
@@ -4748,72 +4763,61 @@ const App = () => {
 
               <div className="grid lg:grid-cols-[0.9fr,1.1fr] gap-8 items-start">
                 <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-red-500/10 bg-red-500/[0.025] space-y-5">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-red-400 font-black">Cesta k recidivě</p>
-                  <h3 className="text-3xl font-black text-white uppercase leading-none">Kde to začíná</h3>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-red-400 font-black">{investmentReturnContent.recidivismEyebrow}</p>
+                  <h3 className="text-3xl font-black text-white uppercase leading-none">{investmentReturnContent.recidivismTitle}</h3>
                   <p className="text-white/48 font-light leading-relaxed">
-                    Mladý člověk bez zázemí, propuštěný vězeň bez práce nebo člověk po léčbě bez návazné podpory se často
-                    vrací do stejného prostředí, které ho do krize dostalo. Bez jednoho cíle, jednoho plánu a návazné práce
-                    systém jen čeká na další selhání.
+                    {investmentReturnContent.recidivismDescription}
                   </p>
                 </div>
                 <div className="glass-panel p-8 md:p-10 rounded-[3rem] border-cyan-400/10 bg-cyan-500/[0.03] space-y-6">
                   <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">Klíčová čísla</p>
-                    <h3 className="text-3xl font-black text-white uppercase leading-none">Ekonomika vs. reintegrace</h3>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">{investmentReturnContent.keyFiguresEyebrow}</p>
+                    <h3 className="text-3xl font-black text-white uppercase leading-none">{investmentReturnContent.keyFiguresTitle}</h3>
                   </div>
                   <div className="grid md:grid-cols-3 gap-4">
-                    {[
-                      { label: 'Systém / osoba / rok', value: formatCurrency(annualSystemCostModel) },
-                      { label: 'Reintegrace / osoba / rok', value: formatCurrency(annualReintegrationCost) },
-                      { label: 'Úspora / osoba / rok', value: formatCurrency(annualSavingsPerPerson) }
-                    ].map((item) => (
+                    {investmentReturnContent.keyFigures.map((item) => (
                       <div key={item.label} className="rounded-[1.8rem] border border-white/10 bg-white/[0.03] p-5 space-y-2">
                         <p className="text-[10px] uppercase tracking-[0.22em] text-white/30 font-black">{item.label}</p>
-                        <p className="text-2xl font-black text-white leading-none">{item.value}</p>
+                        <p className={amountDisplayClass('text-2xl', item.accent)}>{item.value}</p>
                       </div>
                     ))}
                   </div>
                   <p className="text-sm text-white/45 font-light leading-relaxed">
-                    Smysl investice není jen úspora. Každý stabilizovaný člověk znamená menší tlak na věznice,
-                    sociální systém, obce, rodiny i zaměstnavatele.
+                    {investmentReturnContent.keyFiguresDescription}
                   </p>
                 </div>
               </div>
 
               <div className="grid lg:grid-cols-2 gap-8">
                 <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-red-500/10 bg-red-500/[0.02] space-y-6">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-red-400 font-black">Bez intervence</p>
-                  <h3 className="text-3xl font-black text-white uppercase leading-none">Selhávající systém</h3>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-red-400 font-black">{investmentReturnContent.noInterventionEyebrow}</p>
+                  <h3 className="text-3xl font-black text-white uppercase leading-none">{investmentReturnContent.noInterventionTitle}</h3>
                   <div className="grid sm:grid-cols-2 gap-6 pt-4">
-                    <div className="space-y-2">
-                      <p className="text-[10px] uppercase tracking-widest text-red-400/60 font-black">Model / osoba / rok</p>
-                      <p className="text-4xl font-black text-white">{formatCurrency(annualSystemCostModel)}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-[10px] uppercase tracking-widest text-red-400/60 font-black">Historický údaj 2022</p>
-                      <p className="text-4xl font-black text-white">{formatCurrency(annualSystemCostHistorical)}</p>
-                    </div>
+                    {investmentReturnContent.noInterventionFigures.map((item) => (
+                      <div key={item.label} className="space-y-2">
+                        <p className="text-[10px] uppercase tracking-widest text-red-400/60 font-black">{item.label}</p>
+                        <p className={amountDisplayClass('text-4xl', item.accent)}>{item.value}</p>
+                      </div>
+                    ))}
                   </div>
                   <p className="text-white/45 font-light leading-relaxed">
-                    Náklad vzniká bez stabilizačního efektu a bez skutečného návratu člověka do práce, bydlení a odpovědnosti.
+                    {investmentReturnContent.noInterventionDescription}
                   </p>
                 </div>
 
                 <div className="glass-panel p-10 md:p-12 rounded-[3rem] border-cyan-400/10 bg-cyan-500/[0.03] space-y-6">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">S intervencí REST||ART</p>
-                  <h3 className="text-3xl font-black text-white uppercase leading-none">Plán úspor a návratnosti</h3>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">{investmentReturnContent.withInterventionEyebrow}</p>
+                  <h3 className="text-3xl font-black text-white uppercase leading-none">{investmentReturnContent.withInterventionTitle}</h3>
                   <div className="grid sm:grid-cols-2 gap-6 pt-4">
-                    <div className="space-y-2">
-                      <p className="text-[10px] uppercase tracking-widest text-cyan-400/60 font-black">Reintegrace / osoba / rok</p>
-                      <p className="text-4xl font-black text-white">{formatCurrency(annualReintegrationCost)}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-[10px] uppercase tracking-widest text-cyan-400/60 font-black">Úspora / osoba / rok</p>
-                      <p className="text-4xl font-black text-cyan-300">{formatCurrency(annualSavingsPerPerson)}</p>
-                    </div>
+                    {investmentReturnContent.withInterventionFigures.map((item) => (
+                      <div key={item.label} className="space-y-2">
+                        <p className="text-[10px] uppercase tracking-widest text-cyan-400/60 font-black">{item.label}</p>
+                        <p className={amountDisplayClass('text-4xl', item.accent)}>{item.value}</p>
+                      </div>
+                    ))}
                   </div>
                   <p className="text-white/45 font-light leading-relaxed">
-                    Každý člověk, který se nevrátí do recidivy a místo toho pracuje, generuje úsporu a zároveň obnovuje bezpečnost i důvěru v komunitě.
+                    {investmentReturnContent.withInterventionDescription}
                   </p>
                 </div>
               </div>
@@ -4821,30 +4825,30 @@ const App = () => {
               <div className="space-y-5">
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black mb-2">Modelové scénáře</p>
-                    <h3 className="text-3xl font-black text-white">Plán úspor podle kapacity</h3>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black mb-2">{investmentReturnContent.scenariosEyebrow}</p>
+                    <h3 className="text-3xl font-black text-white">{investmentReturnContent.scenariosTitle}</h3>
                   </div>
                   <p className="text-sm text-white/40 font-light max-w-xl">
-                    Výpočty níže pracují s konzervativní roční úsporou {formatCurrency(annualSavingsPerPerson)} na jednoho stabilizovaného účastníka.
+                    {investmentReturnContent.scenariosDescription}
                   </p>
                 </div>
                 <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-                  {savingsPlanRows.map((row) => (
-                    <div key={row.participants} className="glass-panel p-6 rounded-[2.2rem] border-white/10 space-y-4">
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">{row.participants} lidí / rok</p>
+                  {investmentReturnContent.scenarios.map((row) => (
+                    <div key={row.participantsLabel} className="glass-panel p-6 rounded-[2.2rem] border-white/10 space-y-4">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-400 font-black">{row.participantsLabel}</p>
                       <div className="space-y-2">
                         <div>
                           <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Bez programu</p>
-                          <p className="text-2xl font-black text-white">{formatCurrency(row.systemCost)}</p>
+                          <p className={amountDisplayClass('text-2xl', 'white')}>{row.systemCost}</p>
                         </div>
                         <div>
                           <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">S programem</p>
-                          <p className="text-2xl font-black text-white">{formatCurrency(row.reintegrationCost)}</p>
+                          <p className={amountDisplayClass('text-2xl', 'white')}>{row.reintegrationCost}</p>
                         </div>
                       </div>
                       <div className="pt-3 border-t border-white/10">
                         <p className="text-[10px] uppercase tracking-widest text-cyan-400 font-black">Roční úspora</p>
-                        <p className="text-3xl font-black text-cyan-300">{formatCurrency(row.savings)}</p>
+                        <p className={amountDisplayClass('text-3xl', 'cyan')}>{row.savings}</p>
                       </div>
                     </div>
                   ))}
@@ -4961,8 +4965,7 @@ const App = () => {
                       ))}
                     </div>
                     <div className="p-6 rounded-[2rem] bg-cyan-500/5 border border-cyan-400/10 text-white/50 font-light leading-relaxed">
-                      Historický údaj vězeňství ukazuje rozdíl až {formatCurrency(annualHistoricalSavingsPerPerson)} na osobu a rok.
-                      Investiční záměr ale drží opatrnější plánovací model, aby byl dopad projektu obhajitelný i bez nadsazených předpokladů.
+                      {investmentReturnContent.historicalNote}
                     </div>
                   </div>
                 </div>

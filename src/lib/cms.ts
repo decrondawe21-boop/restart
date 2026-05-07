@@ -60,6 +60,11 @@ const dateFormatter = new Intl.DateTimeFormat('cs-CZ', {
   year: 'numeric'
 });
 
+const LOCAL_UPLOAD_MAX_DIMENSION = 2400;
+const LOCAL_UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
+const LOCAL_UPLOAD_PRIMARY_QUALITY = 0.82;
+const LOCAL_UPLOAD_SECONDARY_QUALITY = 0.72;
+
 export const slugify = (value: string) =>
   value
     .normalize('NFKD')
@@ -89,6 +94,93 @@ const extFromUrl = (value: string) => {
     return undefined;
   }
   return undefined;
+};
+
+const loadImageFromFile = (file: File) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Obrázek se nepodařilo načíst pro optimalizaci.'));
+    };
+
+    image.src = objectUrl;
+  });
+
+const canvasToBlob = (canvas: HTMLCanvasElement, mimeType: string, quality?: number) =>
+  new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), mimeType, quality);
+  });
+
+const optimizeImageFileForUpload = async (file: File) => {
+  if (
+    !file.type.startsWith('image/') ||
+    file.type.includes('svg') ||
+    file.type.includes('gif')
+  ) {
+    return file;
+  }
+
+  try {
+    const image = await loadImageFromFile(file);
+    const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
+    const needsResize = longestSide > LOCAL_UPLOAD_MAX_DIMENSION;
+    const needsCompression = file.size > LOCAL_UPLOAD_MAX_BYTES;
+
+    if (!needsResize && !needsCompression) {
+      return file;
+    }
+
+    const scale = needsResize ? LOCAL_UPLOAD_MAX_DIMENSION / longestSide : 1;
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return file;
+    }
+
+    context.drawImage(image, 0, 0, width, height);
+
+    const outputType =
+      file.type.includes('png') || file.type.includes('webp') ? 'image/webp' : 'image/jpeg';
+
+    let optimizedBlob = await canvasToBlob(canvas, outputType, LOCAL_UPLOAD_PRIMARY_QUALITY);
+    if (!optimizedBlob) {
+      return file;
+    }
+
+    if (optimizedBlob.size > LOCAL_UPLOAD_MAX_BYTES) {
+      const smallerBlob = await canvasToBlob(canvas, outputType, LOCAL_UPLOAD_SECONDARY_QUALITY);
+      if (smallerBlob && smallerBlob.size < optimizedBlob.size) {
+        optimizedBlob = smallerBlob;
+      }
+    }
+
+    if (!needsResize && optimizedBlob.size >= file.size * 0.98) {
+      return file;
+    }
+
+    const optimizedExtension = extFromMime(outputType);
+    const optimizedBaseName = slugify(file.name.replace(/\.[^.]+$/, '')) || 'image';
+
+    return new File([optimizedBlob], `${optimizedBaseName}.${optimizedExtension}`, {
+      type: outputType,
+      lastModified: file.lastModified
+    });
+  } catch {
+    return file;
+  }
 };
 
 export const mapCmsEntryToBlogPost = (entry: CmsEntry): BlogPost => ({
@@ -236,13 +328,14 @@ export const isCurrentUserAdmin = async () => {
 };
 
 export const uploadImageFileToStorage = async (file: File, folder = 'covers') => {
-  const extension = extFromMime(file.type);
-  const baseName = slugify(file.name.replace(/\.[^.]+$/, '')) || 'image';
+  const uploadFile = await optimizeImageFileForUpload(file);
+  const extension = extFromMime(uploadFile.type);
+  const baseName = slugify(uploadFile.name.replace(/\.[^.]+$/, '')) || 'image';
   const filePath = `${folder}/${Date.now()}-${baseName}.${extension}`;
 
-  const { error } = await supabase.storage.from(mediaBucket).upload(filePath, file, {
+  const { error } = await supabase.storage.from(mediaBucket).upload(filePath, uploadFile, {
     cacheControl: '3600',
-    contentType: file.type || undefined,
+    contentType: uploadFile.type || undefined,
     upsert: false
   });
 

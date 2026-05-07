@@ -13,6 +13,8 @@ import {
   Upload
 } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import AdminInfoTooltip from './AdminInfoTooltip';
+import AdminStickyActionBar from './AdminStickyActionBar';
 import MatrixFxHero from '../MatrixFxHero';
 import {
   fetchSiteSettings,
@@ -52,14 +54,39 @@ const BuilderFieldLabel: React.FC<{ label: string; hint: string }> = ({ label, h
   </div>
 );
 
-const HomepageBuilderPanel: React.FC = () => {
+interface HomepageBuilderPanelProps {
+  initialMode?: 'media' | 'widget';
+  initialSlotId?: HomepageMediaSlotId;
+  initialWidgetId?: HomepageWidgetId;
+}
+
+interface SavedHomepageSnapshot {
+  layout: HomepageSectionSetting[];
+  slots: HomepageMediaSlotSetting[];
+  widgetContent: HomepageWidgetContentSettings;
+}
+
+const HomepageBuilderPanel: React.FC<HomepageBuilderPanelProps> = ({
+  initialMode = 'media',
+  initialSlotId,
+  initialWidgetId
+}) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [layout, setLayout] = useState<HomepageSectionSetting[]>(defaultHomepageLayout);
   const [slots, setSlots] = useState<HomepageMediaSlotSetting[]>(defaultHomepageMediaSlots);
   const [widgetContent, setWidgetContent] = useState<HomepageWidgetContentSettings>(defaultHomepageWidgetContent);
-  const [editorMode, setEditorMode] = useState<'media' | 'widget'>('media');
-  const [selectedSlotId, setSelectedSlotId] = useState<HomepageMediaSlotId>(homepageMediaSlotDefinitions[0].id);
-  const [selectedWidgetId, setSelectedWidgetId] = useState<HomepageWidgetId>(homepageWidgetDefinitions[0].id);
+  const [savedHomepage, setSavedHomepage] = useState<SavedHomepageSnapshot>({
+    layout: defaultHomepageLayout,
+    slots: defaultHomepageMediaSlots,
+    widgetContent: defaultHomepageWidgetContent
+  });
+  const [editorMode, setEditorMode] = useState<'media' | 'widget'>(initialMode);
+  const [selectedSlotId, setSelectedSlotId] = useState<HomepageMediaSlotId>(
+    initialSlotId ?? homepageMediaSlotDefinitions[0].id
+  );
+  const [selectedWidgetId, setSelectedWidgetId] = useState<HomepageWidgetId>(
+    initialWidgetId ?? homepageWidgetDefinitions[0].id
+  );
   const [assetUrl, setAssetUrl] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -85,6 +112,10 @@ const HomepageBuilderPanel: React.FC = () => {
   const firstVisibleSection = useMemo(() => layout.find((section) => section.visible)?.id ?? null, [layout]);
   const firstVisibleSectionLabel =
     homepageSectionDefinitions.find((section) => section.id === firstVisibleSection)?.label ?? 'Žádná sekce';
+  const isDirty = useMemo(
+    () => JSON.stringify({ layout, slots, widgetContent }) !== JSON.stringify(savedHomepage),
+    [layout, savedHomepage, slots, widgetContent]
+  );
 
   const syncHomepageSettings = async () => {
     setIsLoading(true);
@@ -98,13 +129,27 @@ const HomepageBuilderPanel: React.FC = () => {
       ]);
       const recordsByKey = new Map(records.map((record) => [record.key, record.value_json]));
 
-      setLayout(normalizeHomepageLayout(recordsByKey.get(homepageLayoutSettingKey)));
-      setSlots(normalizeHomepageMediaSlots(recordsByKey.get(homepageMediaSlotsSettingKey)));
-      setWidgetContent(normalizeHomepageWidgetContent(recordsByKey.get(homepageWidgetContentSettingKey)));
+      const nextLayout = normalizeHomepageLayout(recordsByKey.get(homepageLayoutSettingKey));
+      const nextSlots = normalizeHomepageMediaSlots(recordsByKey.get(homepageMediaSlotsSettingKey));
+      const nextWidgetContent = normalizeHomepageWidgetContent(recordsByKey.get(homepageWidgetContentSettingKey));
+
+      setLayout(nextLayout);
+      setSlots(nextSlots);
+      setWidgetContent(nextWidgetContent);
+      setSavedHomepage({
+        layout: nextLayout,
+        slots: nextSlots,
+        widgetContent: nextWidgetContent
+      });
     } catch (caughtError) {
       setLayout(defaultHomepageLayout);
       setSlots(defaultHomepageMediaSlots);
       setWidgetContent(defaultHomepageWidgetContent);
+      setSavedHomepage({
+        layout: defaultHomepageLayout,
+        slots: defaultHomepageMediaSlots,
+        widgetContent: defaultHomepageWidgetContent
+      });
       setError(caughtError instanceof Error ? caughtError.message : 'Načtení nastavení homepage selhalo.');
     } finally {
       setIsLoading(false);
@@ -114,6 +159,22 @@ const HomepageBuilderPanel: React.FC = () => {
   useEffect(() => {
     void syncHomepageSettings();
   }, []);
+
+  useEffect(() => {
+    setEditorMode(initialMode);
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (initialSlotId) {
+      setSelectedSlotId(initialSlotId);
+    }
+  }, [initialSlotId]);
+
+  useEffect(() => {
+    if (initialWidgetId) {
+      setSelectedWidgetId(initialWidgetId);
+    }
+  }, [initialWidgetId]);
 
   useEffect(() => {
     setAssetUrl(selectedSlot.src);
@@ -216,6 +277,7 @@ const HomepageBuilderPanel: React.FC = () => {
         saveSiteSetting(homepageWidgetContentSettingKey, widgetContent)
       ]);
 
+      setSavedHomepage({ layout, slots, widgetContent });
       setNotice('Homepage builder byl uložen. Veřejná homepage teď čte nové pořadí sekcí, obrazové sloty i textové widgety.');
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : 'Uložení homepage builderu selhalo.');
@@ -228,9 +290,9 @@ const HomepageBuilderPanel: React.FC = () => {
     setLayout(defaultHomepageLayout);
     setSlots(defaultHomepageMediaSlots);
     setWidgetContent(defaultHomepageWidgetContent);
-    setSelectedSlotId(homepageMediaSlotDefinitions[0].id);
-    setSelectedWidgetId(homepageWidgetDefinitions[0].id);
-    setEditorMode('media');
+    setSelectedSlotId(initialSlotId ?? homepageMediaSlotDefinitions[0].id);
+    setSelectedWidgetId(initialWidgetId ?? homepageWidgetDefinitions[0].id);
+    setEditorMode(initialMode);
     setAssetUrl('');
     setNotice('Lokálně jsem obnovil výchozí konfiguraci. Pro propsání na web ji ještě ulož.');
     setError('');
@@ -508,21 +570,34 @@ const HomepageBuilderPanel: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="glass-panel rounded-[2.8rem] border-white/10 p-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Jak upravit homepage</p>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
-          {[
-            ['1. Vyber vlevo', 'Klikni na sekci, obrázek nebo textový widget, který chceš upravit.'],
-            ['2. Uprav vpravo', 'Změň text, obrázek nebo pořadí bez zásahu do kódu.'],
-            ['3. Ulož', 'Klikni na Uložit homepage a veřejná stránka načte nové hodnoty.']
-          ].map(([title, text]) => (
-            <div key={title} className="rounded-[2rem] border border-white/10 bg-white/[0.03] px-5 py-4">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">{title}</p>
-              <p className="mt-2 text-sm text-white/40">{text}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <AdminStickyActionBar
+        title="Homepage builder"
+        status={error ? 'error' : isSaving ? 'saving' : isDirty ? 'dirty' : notice ? 'saved' : 'idle'}
+        previewHref="/"
+        message={error || (isDirty ? 'Homepage má neuložené změny.' : notice || 'Uprav pořadí sekcí, média a textové widgety homepage.')}
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => void syncHomepageSettings()}
+              disabled={isSaving || isLoading}
+              className="inline-flex h-10 items-center gap-2 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase tracking-[0.18em] text-white/70 transition hover:border-cyan-400/30 hover:text-cyan-300 disabled:opacity-50"
+            >
+              <RefreshCw size={14} />
+              Obnovit
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveHomepage}
+              disabled={isSaving || isLoading || !isDirty}
+              className="inline-flex h-10 items-center gap-2 rounded-[1.2rem] bg-cyan-500 px-4 text-xs font-black uppercase tracking-[0.18em] text-black transition hover:bg-cyan-400 disabled:opacity-55"
+            >
+              {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              Uložit
+            </button>
+          </>
+        }
+      />
 
       <div className="grid gap-6 xl:grid-cols-[1.02fr,0.98fr]">
         <div className="glass-panel rounded-[3rem] border-white/10 p-4">
@@ -757,6 +832,15 @@ const HomepageBuilderPanel: React.FC = () => {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
+              <AdminInfoTooltip
+                title="Jak upravit homepage"
+                description="Nápověda je schovaná sem, aby editor zůstal kompaktní."
+                items={[
+                  'Vlevo vyber sekci, slot nebo widget.',
+                  'Vpravo uprav texty, média nebo pořadí.',
+                  'Ulož homepage a veřejná stránka načte nové hodnoty.'
+                ]}
+              />
               <button
                 type="button"
                 onClick={handleResetDefaults}
@@ -768,7 +852,7 @@ const HomepageBuilderPanel: React.FC = () => {
               <button
                 type="button"
                 onClick={handleSaveHomepage}
-                disabled={isSaving || isLoading}
+                disabled={isSaving || isLoading || !isDirty}
                 className="inline-flex items-center gap-2 rounded-[1.6rem] bg-cyan-500 px-5 py-4 text-xs font-black uppercase tracking-[0.22em] text-black transition hover:bg-cyan-400 disabled:opacity-70"
               >
                 {isSaving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
@@ -930,37 +1014,22 @@ const HomepageBuilderPanel: React.FC = () => {
                   {renderEditorPreview()}
                 </div>
 
-                <div className="glass-panel rounded-[2.6rem] border-white/10 p-6">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Stav operace</p>
-                  <div className="mt-4 space-y-3">
-                    {notice && (
-                      <div className="rounded-[1.5rem] border border-cyan-400/15 bg-cyan-500/5 px-4 py-3 text-sm text-cyan-100/80">
-                        {notice}
-                      </div>
-                    )}
-                    {error && (
-                      <div className="rounded-[1.5rem] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                        {error}
-                      </div>
-                    )}
-                    {!notice && !error && (
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/40">
-                        Pořadí sekcí, obrazové sloty i textové widgety se ukládají do Supabase a veřejná homepage je čte s fallbackem na dnešní hardcoded verzi.
-                      </div>
-                    )}
+                {(notice || error) && (
+                  <div className="glass-panel rounded-[2.6rem] border-white/10 p-6">
+                    <div className="space-y-3">
+                      {notice && (
+                        <div className="rounded-[1.5rem] border border-cyan-400/15 bg-cyan-500/5 px-4 py-3 text-sm text-cyan-100/80">
+                          {notice}
+                        </div>
+                      )}
+                      {error && (
+                        <div className="rounded-[1.5rem] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                          {error}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-
-                <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5">
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-400">Co je teď hotové</p>
-                  <ul className="mt-4 space-y-3 text-sm leading-relaxed text-white/45">
-                    <li>Zapínání a vypínání hlavních homepage sekcí.</li>
-                    <li>Řazení sekcí bez zásahu do kódu.</li>
-                    <li>Správa několika klíčových fixních obrazových pozic.</li>
-                    <li>Editace textových widgetů pro hero, rozdělení obsahu a AI sekci.</li>
-                    <li>Upload obrázků z URL i souboru přes Supabase Storage.</li>
-                  </ul>
-                </div>
+                )}
               </div>
             </div>
             </div>

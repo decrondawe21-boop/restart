@@ -8,6 +8,8 @@ export const globalPublicContactSettingKey = 'global_public_contact';
 export const legalPageContentSettingKey = 'legal_page_content';
 export const globalNavigationSettingKey = 'global_navigation';
 export const pageIntroContentSettingKey = 'page_intro_content';
+export const investmentIntroContextSettingKey = 'investment_intro_context';
+export const investmentReturnContentSettingKey = 'investment_return_content';
 export const galleryGroupsSettingKey = 'gallery_groups';
 export type LegalPageKey = 'privacy' | 'terms' | 'cookies';
 export type SocialLinkKey = 'instagram' | 'facebook' | 'globe';
@@ -245,11 +247,76 @@ export interface PageIntroEntry {
 
 export type PageIntroContentSettings = Record<PageIntroKey, PageIntroEntry>;
 
+export interface InvestmentIntroPersonEntry {
+  id: string;
+  name: string;
+  detail: string;
+}
+
+export interface InvestmentIntroContextSettings {
+  eyebrow: string;
+  description: string;
+  people: InvestmentIntroPersonEntry[];
+}
+
+export interface InvestmentReturnBenefitEntry {
+  title: string;
+  value: string;
+  description: string;
+  accent: 'white' | 'cyan';
+}
+
+export interface InvestmentReturnFigureEntry {
+  label: string;
+  value: string;
+  accent: 'white' | 'cyan';
+}
+
+export interface InvestmentReturnScenarioEntry {
+  participantsLabel: string;
+  systemCost: string;
+  reintegrationCost: string;
+  savings: string;
+}
+
+export interface InvestmentReturnContentSettings {
+  headerEyebrow: string;
+  headerTitleLead: string;
+  headerTitleAccent: string;
+  headerDescription: string;
+  benefits: InvestmentReturnBenefitEntry[];
+  recidivismEyebrow: string;
+  recidivismTitle: string;
+  recidivismDescription: string;
+  keyFiguresEyebrow: string;
+  keyFiguresTitle: string;
+  keyFiguresDescription: string;
+  keyFigures: InvestmentReturnFigureEntry[];
+  noInterventionEyebrow: string;
+  noInterventionTitle: string;
+  noInterventionDescription: string;
+  noInterventionFigures: InvestmentReturnFigureEntry[];
+  withInterventionEyebrow: string;
+  withInterventionTitle: string;
+  withInterventionDescription: string;
+  withInterventionFigures: InvestmentReturnFigureEntry[];
+  scenariosEyebrow: string;
+  scenariosTitle: string;
+  scenariosDescription: string;
+  scenarios: InvestmentReturnScenarioEntry[];
+  historicalNote: string;
+}
+
 export interface GalleryImageItem {
   id: string;
   url: string;
   alt: string;
   caption: string;
+  fit: 'contain' | 'cover';
+  zoom: number;
+  focusX: number;
+  focusY: number;
+  filter: 'none' | 'mono' | 'warm' | 'cool' | 'dramatic' | 'soft';
 }
 
 export interface GalleryGroup {
@@ -269,7 +336,7 @@ export const navigationItemDefinitions: NavigationItemDefinition[] = [
   { key: 'about-stories', label: 'Příběhy', description: 'Skutečné příběhy a restarty.', group: 'O nás', depth: 1 },
   { key: 'about-news', label: 'Novinky a aktuality', description: 'Krátké novinky a veřejná oznámení.', group: 'O nás', depth: 1 },
   { key: 'about-blog', label: 'Blog / Archiv', description: 'Komentáře, analýzy a archivnější texty.', group: 'O nás', depth: 1 },
-  { key: 'about-contacts', label: 'Kontakty (mini okno)', description: 'Kontakt otevřený jako modal.', group: 'O nás', depth: 1 },
+  { key: 'about-contacts', label: 'Kontakty', description: 'Rychlý kontaktní vstup z menu.', group: 'O nás', depth: 1 },
   { key: 'gallery', label: 'Galerie', description: 'Veřejná galerie fotek rozdělená podle data a tématu.', group: 'Hlavní menu', depth: 0 },
   { key: 'downloads-root', label: 'Ke stažení', description: 'Veřejná knihovna souborů ke stažení.', group: 'Hlavní menu', depth: 0 },
   { key: 'downloads-documents', label: 'Dokumenty', description: 'Registrační formulář, grafy, výroční zprávy a další dokumenty.', group: 'Ke stažení', depth: 1 },
@@ -431,6 +498,113 @@ export const defaultSiteNavigationSettings: SiteNavigationSettings = {
 };
 
 export const defaultGalleryGroups: GalleryGroupsSettings = [];
+
+export const defaultInvestmentIntroContext: InvestmentIntroContextSettings = {
+  eyebrow: 'Osobní kontext a reálný základ',
+  description:
+    'Projekt vznikl díky osobní zkušenosti zakladatele a na základě skutečných příběhů lidí, kteří prošli výkonem trestu a skrze práci mimo ČR našli novou cestu.',
+  people: [
+    {
+      id: 'invest-person-erik-horvath',
+      name: 'Erik Horváth',
+      detail: 'bývalý vězeň, dnes elektrikář, abstinence a návrat k rodině'
+    },
+    {
+      id: 'invest-person-mio-presic',
+      name: 'Mio Prešíč',
+      detail: 'po dvouleté práci v Německu spoluvlastník sítě automyček'
+    },
+    {
+      id: 'invest-person-petr-hojda',
+      name: 'Petr Hojda',
+      detail: 'pracuje jako pomocný dělník'
+    },
+    {
+      id: 'invest-person-jaroslav-majer',
+      name: 'Jaroslav Majer',
+      detail: 'aktuálně ve věznici Bělušice, podaná žádost o podmíněné propuštění'
+    },
+    {
+      id: 'invest-person-jiri-kaleja',
+      name: 'Kaleja Jiří',
+      detail: 'aktuálně ve věznici Bělušice, podaná žádost o podmíněné propuštění'
+    },
+    {
+      id: 'invest-person-miroslav-reindl',
+      name: 'Miroslav Reindl',
+      detail: 'boj o návrat nezletilého syna z pěstounské péče k otci, stabilní práce i zázemí'
+    }
+  ]
+};
+
+export const defaultInvestmentReturnContent: InvestmentReturnContentSettings = {
+  headerEyebrow: 'IV. Návratnost a přínos',
+  headerTitleLead: 'Důvod',
+  headerTitleAccent: 'investovat',
+  headerDescription:
+    'Projekt je nastaven jako kombinace sociálního dopadu, ekonomické efektivity a dlouhodobé stabilizace komunit.',
+  benefits: [
+    {
+      title: 'Roční úspora na 1 účastníka',
+      value: '550 000 Kč',
+      description: 'Konzervativní model počítá s rozdílem 600 000 Kč v selhávajícím systému oproti 50 000 Kč v programu REST||ART.',
+      accent: 'cyan'
+    },
+    {
+      title: 'Návratnost investice',
+      value: '26 lidí',
+      description: 'Samotná infrastrukturní investice 14,2 mil. Kč se podle tohoto modelu vrací při stabilizaci 26 lidí v ročním horizontu.',
+      accent: 'white'
+    },
+    {
+      title: 'Pokles recidivy',
+      value: '-53 p. b.',
+      description: 'Cílem je posun z 70 % na 17 % při propojení programů JAILBREAK, REWORK, STREETWISE a návazné stabilizace.',
+      accent: 'white'
+    }
+  ],
+  recidivismEyebrow: 'Cesta k recidivě',
+  recidivismTitle: 'Kde to začíná',
+  recidivismDescription:
+    'Mladý člověk bez zázemí, propuštěný vězeň bez práce nebo člověk po léčbě bez návazné podpory se často vrací do stejného prostředí, které ho do krize dostalo. Bez jednoho cíle, jednoho plánu a návazné práce systém jen čeká na další selhání.',
+  keyFiguresEyebrow: 'Klíčová čísla',
+  keyFiguresTitle: 'Ekonomika vs. reintegrace',
+  keyFiguresDescription:
+    'Smysl investice není jen úspora. Každý stabilizovaný člověk znamená menší tlak na věznice, sociální systém, obce, rodiny i zaměstnavatele.',
+  keyFigures: [
+    { label: 'Systém / osoba / rok', value: '600 000 Kč', accent: 'white' },
+    { label: 'Reintegrace / osoba / rok', value: '50 000 Kč', accent: 'white' },
+    { label: 'Úspora / osoba / rok', value: '550 000 Kč', accent: 'cyan' }
+  ],
+  noInterventionEyebrow: 'Bez intervence',
+  noInterventionTitle: 'Selhávající systém',
+  noInterventionDescription:
+    'Náklad vzniká bez stabilizačního efektu a bez skutečného návratu člověka do práce, bydlení a odpovědnosti.',
+  noInterventionFigures: [
+    { label: 'Model / osoba / rok', value: '600 000 Kč', accent: 'white' },
+    { label: 'Historický údaj 2022', value: '647 145 Kč', accent: 'white' }
+  ],
+  withInterventionEyebrow: 'S intervencí REST||ART',
+  withInterventionTitle: 'Plán úspor a návratnosti',
+  withInterventionDescription:
+    'Každý člověk, který se nevrátí do recidivy a místo toho pracuje, generuje úsporu a zároveň obnovuje bezpečnost i důvěru v komunitě.',
+  withInterventionFigures: [
+    { label: 'Reintegrace / osoba / rok', value: '50 000 Kč', accent: 'white' },
+    { label: 'Úspora / osoba / rok', value: '550 000 Kč', accent: 'cyan' }
+  ],
+  scenariosEyebrow: 'Modelové scénáře',
+  scenariosTitle: 'Plán úspor podle kapacity',
+  scenariosDescription:
+    'Výpočty níže pracují s konzervativní roční úsporou 550 000 Kč na jednoho stabilizovaného účastníka.',
+  scenarios: [
+    { participantsLabel: '10 lidí / rok', systemCost: '6 000 000 Kč', reintegrationCost: '500 000 Kč', savings: '5 500 000 Kč' },
+    { participantsLabel: '25 lidí / rok', systemCost: '15 000 000 Kč', reintegrationCost: '1 250 000 Kč', savings: '13 750 000 Kč' },
+    { participantsLabel: '50 lidí / rok', systemCost: '30 000 000 Kč', reintegrationCost: '2 500 000 Kč', savings: '27 500 000 Kč' },
+    { participantsLabel: '100 lidí / rok', systemCost: '60 000 000 Kč', reintegrationCost: '5 000 000 Kč', savings: '55 000 000 Kč' }
+  ],
+  historicalNote:
+    'Historický údaj vězeňství ukazuje rozdíl až 597 145 Kč na osobu a rok. Investiční záměr ale drží opatrnější plánovací model, aby byl dopad projektu obhajitelný i bez nadsazených předpokladů.'
+};
 
 export const defaultPageIntroContent: PageIntroContentSettings = {
   about: {
@@ -700,14 +874,25 @@ export const normalizeHomepageWidgetContent = (value: unknown): HomepageWidgetCo
 
 export const normalizePublicContactInfo = (value: unknown): PublicContactInfo => {
   const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const normalizedPhone = asNonEmptyString(source.phone, defaultPublicContactInfo.phone);
+  const normalizedEmail = asNonEmptyString(source.email, defaultPublicContactInfo.email);
+  const compactPhone = normalizedPhone.replace(/\s+/g, '');
+  const phone =
+    ['+420705224435', '+420775189574'].includes(compactPhone)
+      ? defaultPublicContactInfo.phone
+      : normalizedPhone;
+  const email =
+    ['kozak@d-international.eu', 'info@david-kozak.com'].includes(normalizedEmail.trim().toLowerCase())
+      ? defaultPublicContactInfo.email
+      : normalizedEmail;
 
   return {
     companyName: asNonEmptyString(source.companyName, defaultPublicContactInfo.companyName),
     companyNameUpper: asNonEmptyString(source.companyNameUpper, defaultPublicContactInfo.companyNameUpper),
     addressLine: asNonEmptyString(source.addressLine, defaultPublicContactInfo.addressLine),
     cityLine: asNonEmptyString(source.cityLine, defaultPublicContactInfo.cityLine),
-    phone: asNonEmptyString(source.phone, defaultPublicContactInfo.phone),
-    email: asNonEmptyString(source.email, defaultPublicContactInfo.email),
+    phone,
+    email,
     primaryWebsite: asNonEmptyString(source.primaryWebsite, defaultPublicContactInfo.primaryWebsite),
     primaryWebsiteUrl: asNonEmptyString(source.primaryWebsiteUrl, defaultPublicContactInfo.primaryWebsiteUrl),
     secondaryWebsite: asNonEmptyString(source.secondaryWebsite, defaultPublicContactInfo.secondaryWebsite),
@@ -730,9 +915,16 @@ export const normalizeSiteNavigationSettings = (value: unknown): SiteNavigationS
           Boolean(item) && typeof item === 'object' && (item as { key?: unknown }).key === key
       ) ?? null;
 
+    const normalizedLabel = asNonEmptyString(entry?.label, label);
+    const displayLabel =
+      key === 'about-contacts' &&
+      ['kontakty (mini okno)', 'kontakty (miniokno)', 'rychlý kontakt'].includes(normalizedLabel.trim().toLowerCase())
+        ? label
+        : normalizedLabel;
+
     return {
       key,
-      label: asNonEmptyString(entry?.label, label),
+      label: displayLabel,
       visible: entry?.visible !== false
     };
   });
@@ -799,6 +991,114 @@ export const normalizePageIntroContent = (value: unknown): PageIntroContentSetti
   return normalizedEntries;
 };
 
+export const normalizeInvestmentIntroContext = (value: unknown): InvestmentIntroContextSettings => {
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const rawPeople = Array.isArray(source.people) ? source.people : defaultInvestmentIntroContext.people;
+
+  const people = rawPeople
+    .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    .map((item, index) => ({
+      id: asNonEmptyString(item.id, `investment-intro-person-${index + 1}`),
+      name: asNonEmptyString(item.name, `Příběh ${index + 1}`),
+      detail: asNonEmptyString(item.detail, '')
+    }))
+    .filter((item) => item.name.trim().length > 0 || item.detail.trim().length > 0);
+
+  return {
+    eyebrow: asNonEmptyString(source.eyebrow, defaultInvestmentIntroContext.eyebrow),
+    description: asNonEmptyString(source.description, defaultInvestmentIntroContext.description),
+    people: people.length > 0 ? people : defaultInvestmentIntroContext.people
+  };
+};
+
+export const normalizeInvestmentReturnContent = (value: unknown): InvestmentReturnContentSettings => {
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const asBenefitArray = Array.isArray(source.benefits) ? source.benefits : defaultInvestmentReturnContent.benefits;
+  const asKeyFigures = Array.isArray(source.keyFigures) ? source.keyFigures : defaultInvestmentReturnContent.keyFigures;
+  const asNoInterventionFigures = Array.isArray(source.noInterventionFigures)
+    ? source.noInterventionFigures
+    : defaultInvestmentReturnContent.noInterventionFigures;
+  const asWithInterventionFigures = Array.isArray(source.withInterventionFigures)
+    ? source.withInterventionFigures
+    : defaultInvestmentReturnContent.withInterventionFigures;
+  const asScenarios = Array.isArray(source.scenarios) ? source.scenarios : defaultInvestmentReturnContent.scenarios;
+
+  return {
+    headerEyebrow: asNonEmptyString(source.headerEyebrow, defaultInvestmentReturnContent.headerEyebrow),
+    headerTitleLead: asNonEmptyString(source.headerTitleLead, defaultInvestmentReturnContent.headerTitleLead),
+    headerTitleAccent: asNonEmptyString(source.headerTitleAccent, defaultInvestmentReturnContent.headerTitleAccent),
+    headerDescription: asNonEmptyString(source.headerDescription, defaultInvestmentReturnContent.headerDescription),
+    benefits: defaultInvestmentReturnContent.benefits.map((fallback, index) => {
+      const entry = asBenefitArray[index] && typeof asBenefitArray[index] === 'object'
+        ? (asBenefitArray[index] as Record<string, unknown>)
+        : {};
+      return {
+        title: asNonEmptyString(entry.title, fallback.title),
+        value: asNonEmptyString(entry.value, fallback.value),
+        description: asNonEmptyString(entry.description, fallback.description),
+        accent: entry.accent === 'white' || entry.accent === 'cyan' ? entry.accent : fallback.accent
+      };
+    }),
+    recidivismEyebrow: asNonEmptyString(source.recidivismEyebrow, defaultInvestmentReturnContent.recidivismEyebrow),
+    recidivismTitle: asNonEmptyString(source.recidivismTitle, defaultInvestmentReturnContent.recidivismTitle),
+    recidivismDescription: asNonEmptyString(source.recidivismDescription, defaultInvestmentReturnContent.recidivismDescription),
+    keyFiguresEyebrow: asNonEmptyString(source.keyFiguresEyebrow, defaultInvestmentReturnContent.keyFiguresEyebrow),
+    keyFiguresTitle: asNonEmptyString(source.keyFiguresTitle, defaultInvestmentReturnContent.keyFiguresTitle),
+    keyFiguresDescription: asNonEmptyString(source.keyFiguresDescription, defaultInvestmentReturnContent.keyFiguresDescription),
+    keyFigures: defaultInvestmentReturnContent.keyFigures.map((fallback, index) => {
+      const entry = asKeyFigures[index] && typeof asKeyFigures[index] === 'object'
+        ? (asKeyFigures[index] as Record<string, unknown>)
+        : {};
+      return {
+        label: asNonEmptyString(entry.label, fallback.label),
+        value: asNonEmptyString(entry.value, fallback.value),
+        accent: entry.accent === 'white' || entry.accent === 'cyan' ? entry.accent : fallback.accent
+      };
+    }),
+    noInterventionEyebrow: asNonEmptyString(source.noInterventionEyebrow, defaultInvestmentReturnContent.noInterventionEyebrow),
+    noInterventionTitle: asNonEmptyString(source.noInterventionTitle, defaultInvestmentReturnContent.noInterventionTitle),
+    noInterventionDescription: asNonEmptyString(source.noInterventionDescription, defaultInvestmentReturnContent.noInterventionDescription),
+    noInterventionFigures: defaultInvestmentReturnContent.noInterventionFigures.map((fallback, index) => {
+      const entry = asNoInterventionFigures[index] && typeof asNoInterventionFigures[index] === 'object'
+        ? (asNoInterventionFigures[index] as Record<string, unknown>)
+        : {};
+      return {
+        label: asNonEmptyString(entry.label, fallback.label),
+        value: asNonEmptyString(entry.value, fallback.value),
+        accent: entry.accent === 'white' || entry.accent === 'cyan' ? entry.accent : fallback.accent
+      };
+    }),
+    withInterventionEyebrow: asNonEmptyString(source.withInterventionEyebrow, defaultInvestmentReturnContent.withInterventionEyebrow),
+    withInterventionTitle: asNonEmptyString(source.withInterventionTitle, defaultInvestmentReturnContent.withInterventionTitle),
+    withInterventionDescription: asNonEmptyString(source.withInterventionDescription, defaultInvestmentReturnContent.withInterventionDescription),
+    withInterventionFigures: defaultInvestmentReturnContent.withInterventionFigures.map((fallback, index) => {
+      const entry = asWithInterventionFigures[index] && typeof asWithInterventionFigures[index] === 'object'
+        ? (asWithInterventionFigures[index] as Record<string, unknown>)
+        : {};
+      return {
+        label: asNonEmptyString(entry.label, fallback.label),
+        value: asNonEmptyString(entry.value, fallback.value),
+        accent: entry.accent === 'white' || entry.accent === 'cyan' ? entry.accent : fallback.accent
+      };
+    }),
+    scenariosEyebrow: asNonEmptyString(source.scenariosEyebrow, defaultInvestmentReturnContent.scenariosEyebrow),
+    scenariosTitle: asNonEmptyString(source.scenariosTitle, defaultInvestmentReturnContent.scenariosTitle),
+    scenariosDescription: asNonEmptyString(source.scenariosDescription, defaultInvestmentReturnContent.scenariosDescription),
+    scenarios: defaultInvestmentReturnContent.scenarios.map((fallback, index) => {
+      const entry = asScenarios[index] && typeof asScenarios[index] === 'object'
+        ? (asScenarios[index] as Record<string, unknown>)
+        : {};
+      return {
+        participantsLabel: asNonEmptyString(entry.participantsLabel, fallback.participantsLabel),
+        systemCost: asNonEmptyString(entry.systemCost, fallback.systemCost),
+        reintegrationCost: asNonEmptyString(entry.reintegrationCost, fallback.reintegrationCost),
+        savings: asNonEmptyString(entry.savings, fallback.savings)
+      };
+    }),
+    historicalNote: asNonEmptyString(source.historicalNote, defaultInvestmentReturnContent.historicalNote)
+  };
+};
+
 const parseGalleryDate = (value: string) => {
   const timestamp = Date.parse(value);
   return Number.isNaN(timestamp) ? 0 : timestamp;
@@ -816,6 +1116,28 @@ export const normalizeGalleryGroups = (value: unknown): GalleryGroupsSettings =>
     return defaultGalleryGroups;
   }
 
+  const normalizeGalleryImageFit = (rawValue: unknown): GalleryImageItem['fit'] =>
+    rawValue === 'cover' ? 'cover' : 'contain';
+
+  const normalizeGalleryImageFilter = (rawValue: unknown): GalleryImageItem['filter'] => {
+    switch (rawValue) {
+      case 'mono':
+      case 'warm':
+      case 'cool':
+      case 'dramatic':
+      case 'soft':
+        return rawValue;
+      default:
+        return 'none';
+    }
+  };
+
+  const normalizeGalleryRange = (rawValue: unknown, fallback: number, min: number, max: number) => {
+    const numeric = typeof rawValue === 'number' ? rawValue : Number(rawValue);
+    if (!Number.isFinite(numeric)) return fallback;
+    return Math.min(max, Math.max(min, numeric));
+  };
+
   const normalized = value
     .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
     .map((item, index) => {
@@ -826,7 +1148,12 @@ export const normalizeGalleryGroups = (value: unknown): GalleryGroupsSettings =>
               id: asNonEmptyString(image.id, `gallery-image-${index + 1}-${imageIndex + 1}`),
               url: typeof image.url === 'string' ? image.url : '',
               alt: typeof image.alt === 'string' ? image.alt : '',
-              caption: typeof image.caption === 'string' ? image.caption : ''
+              caption: typeof image.caption === 'string' ? image.caption : '',
+              fit: normalizeGalleryImageFit(image.fit),
+              zoom: normalizeGalleryRange(image.zoom, 1, 1, 2.5),
+              focusX: normalizeGalleryRange(image.focusX, 50, 0, 100),
+              focusY: normalizeGalleryRange(image.focusY, 50, 0, 100),
+              filter: normalizeGalleryImageFilter(image.filter)
             }))
             .filter((image) => image.url.trim().length > 0)
         : [];

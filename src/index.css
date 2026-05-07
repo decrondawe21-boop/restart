@@ -71,6 +71,14 @@ body {
   letter-spacing: 1.5px;
 }
 
+.amount-glow {
+  font-family: 'Poppins', sans-serif;
+  font-style: normal;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 10px var(--color-cyan-glow), 0 0 20px var(--color-cyan-glow-soft);
+}
+
 .theme-light {
   --light-bg: #f0fdf9;
   --light-text: rgba(12, 32, 32, 0.92);
@@ -543,6 +551,66 @@ body {
 .theme-light .neon-quote-mark {
   color: #0e7490;
   text-shadow: 0 0 8px rgba(14, 116, 144, 0.45), 0 0 16px rgba(14, 116, 144, 0.25);
+}
+
+.admin-workspace {
+  --admin-panel-radius: 1.5rem;
+  --admin-card-radius: 1.1rem;
+  --admin-field-radius: 0.95rem;
+}
+
+.admin-workspace .glass-panel {
+  border-radius: var(--admin-panel-radius);
+}
+
+.admin-workspace :is(input:not([type='range']), textarea, select) {
+  border-radius: var(--admin-field-radius);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.admin-workspace :is(textarea) {
+  min-height: 6.5rem;
+}
+
+.admin-workspace :is(.space-y-8) > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1.35rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1.35rem * var(--tw-space-y-reverse));
+}
+
+.admin-workspace :is(.space-y-6) > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+}
+
+.admin-workspace :is(.space-y-5) > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.85rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.85rem * var(--tw-space-y-reverse));
+}
+
+.admin-workspace :is(.rounded-\[3rem\], .rounded-\[2\.8rem\], .rounded-\[2\.6rem\], .rounded-\[2\.4rem\]) {
+  border-radius: var(--admin-panel-radius);
+}
+
+.admin-workspace :is(.rounded-\[2\.2rem\], .rounded-\[2rem\], .rounded-\[1\.8rem\]) {
+  border-radius: var(--admin-card-radius);
+}
+
+.admin-workspace :is(.p-8, .md\:p-8) {
+  padding: 1.5rem;
+}
+
+.admin-workspace :is(.p-6, .md\:p-6) {
+  padding: 1.25rem;
+}
+
+.admin-workspace :is(.px-5.py-4, .px-4.py-4) {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
 .tree-watermark-photo {
