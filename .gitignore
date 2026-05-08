@@ -18,3 +18,4 @@ yarn-error.log*
 .claude/
 skills-lock.json
 supabase/.temp/
+stripe-sample-code/
