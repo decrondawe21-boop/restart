@@ -965,7 +965,10 @@ const App = () => {
     { name: "Aplikace firemní", url: "https://appka.david-kozak.com", desc: "Vlastní firemní aplikace pro mobilní zařízení.", icon: <Smartphone /> }
   ];
 
-  const stripeDonationUrl = (import.meta.env.VITE_STRIPE_DONATE_URL ?? '').trim();
+  const stripeDonationUrl = (
+    import.meta.env.VITE_STRIPE_DONATE_URL ??
+    'https://donate.stripe.com/8x23cv0HAdIg8dibnF3ks03?locale=cs&prefilled_email=kozakdavid%40dk-i.cz'
+  ).trim();
   const donationBankAccount = {
     iban: 'LT45 3250 0078 0969 2068',
     bic: 'REVOLT21',
