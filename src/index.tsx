@@ -954,6 +954,13 @@ const App = () => {
   ];
 
   const stripeDonationUrl = (import.meta.env.VITE_STRIPE_DONATE_URL ?? '').trim();
+  const donationBankAccount = {
+    iban: 'LT45 3250 0078 0969 2068',
+    bic: 'REVOLT21',
+    bankName: 'Revolut Bank UAB',
+    bankAddress: 'Konstitucijos ave. 21B, 08130, Vilnius, Lithuania',
+    correspondentBic: 'BARCGB22'
+  };
 
   const navTreeTemplate: MenuNode[] = [
     { key: 'home', label: 'Domů', id: 'home' },
@@ -4226,6 +4233,43 @@ const App = () => {
                 </div>
               </section>
 
+              <section className="glass-panel rounded-[3rem] border-cyan-400/10 bg-cyan-500/[0.02] p-8 md:p-10">
+                <div className="grid gap-8 lg:grid-cols-[0.82fr,1.18fr]">
+                  <div className="space-y-4">
+                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-300">
+                      <Wallet size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Bankovní převod</p>
+                      <h2 className="mt-3 text-3xl font-black uppercase leading-none text-white">Podpora bez Stripe</h2>
+                    </div>
+                    <p className="text-sm leading-relaxed text-white/45">
+                      Pokud preferujete přímý převod, použijte níže uvedený účet. Do zprávy pro příjemce můžete uvést
+                      „Dar REST||ART“ nebo konkrétní výzvu.
+                    </p>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="rounded-[1.8rem] border border-white/10 bg-black/20 p-5 md:col-span-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/30">IBAN</p>
+                      <p className="mt-2 break-all text-2xl font-black text-cyan-200">{donationBankAccount.iban}</p>
+                    </div>
+                    <div className="rounded-[1.8rem] border border-white/10 bg-black/20 p-5">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/30">BIC / SWIFT</p>
+                      <p className="mt-2 text-lg font-black text-white">{donationBankAccount.bic}</p>
+                    </div>
+                    <div className="rounded-[1.8rem] border border-white/10 bg-black/20 p-5">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/30">Korespondent BIC</p>
+                      <p className="mt-2 text-lg font-black text-white">{donationBankAccount.correspondentBic}</p>
+                    </div>
+                    <div className="rounded-[1.8rem] border border-white/10 bg-black/20 p-5 md:col-span-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/30">Banka</p>
+                      <p className="mt-2 text-base font-bold text-white">{donationBankAccount.bankName}</p>
+                      <p className="mt-1 text-sm text-white/45">{donationBankAccount.bankAddress}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               <section className="grid gap-5 md:grid-cols-3">
                 {donationTiers.map((tier) => (
                   <article key={tier.amount} className="glass-panel rounded-[2.4rem] border-white/10 p-6 transition hover:-translate-y-1 hover:border-cyan-400/25">
@@ -4519,6 +4563,37 @@ const App = () => {
                           </div>
                         </div>
                       ))}
+                    </div>
+
+                    <div className="glass-panel p-10 rounded-[2.5rem] space-y-6 border-cyan-400/10 bg-cyan-500/[0.02]">
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center">
+                          <Wallet size={30} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-300 mb-1 font-black">Bankovní účet pro podporu</p>
+                          <p className="text-2xl font-bold text-white/90">REST||ART DONATE</p>
+                        </div>
+                      </div>
+                      <div className="grid gap-4 pt-4 border-t border-white/5 text-sm text-white/45 font-light md:grid-cols-2">
+                        <div className="md:col-span-2">
+                          <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">IBAN</p>
+                          <p className="mt-1 break-all text-lg font-black text-cyan-200">{donationBankAccount.iban}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">BIC / SWIFT</p>
+                          <p className="mt-1 font-bold text-white/80">{donationBankAccount.bic}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Korespondent BIC</p>
+                          <p className="mt-1 font-bold text-white/80">{donationBankAccount.correspondentBic}</p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <p className="text-[10px] uppercase tracking-widest text-white/20 font-black">Banka</p>
+                          <p className="mt-1 text-white/70">{donationBankAccount.bankName}</p>
+                          <p>{donationBankAccount.bankAddress}</p>
+                        </div>
+                      </div>
                     </div>
                     
                     <div className="grid md:grid-cols-2 gap-6">
