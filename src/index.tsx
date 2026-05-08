@@ -112,7 +112,10 @@ type PageKey =
   | 'zamer-rozpocet'
   | 'zamer-prinos'
   | 'zamer-harmonogram'
-  | 'zamer-programy';
+  | 'zamer-programy'
+  | 'legal-privacy'
+  | 'legal-terms'
+  | 'legal-cookies';
 
 const pagePathMap: Record<PageKey, string> = {
   home: '/',
@@ -140,7 +143,10 @@ const pagePathMap: Record<PageKey, string> = {
   'zamer-rozpocet': '/investicni-zamer/rozpocet',
   'zamer-prinos': '/investicni-zamer/prinos',
   'zamer-harmonogram': '/investicni-zamer/harmonogram',
-  'zamer-programy': '/investicni-zamer/programy'
+  'zamer-programy': '/investicni-zamer/programy',
+  'legal-privacy': '/legal/ochrana-osobnich-udaju',
+  'legal-terms': '/legal/podminky-uziti',
+  'legal-cookies': '/legal/cookies'
 };
 
 const brandAssets = {
@@ -360,6 +366,12 @@ const HoverRevealCard: React.FC<HoverRevealCardProps> = ({ question, answer, met
 };
 
 type LegalPageKey = 'privacy' | 'terms' | 'cookies';
+
+const legalPageRoutes: Record<LegalPageKey, PageKey> = {
+  privacy: 'legal-privacy',
+  terms: 'legal-terms',
+  cookies: 'legal-cookies'
+};
 
 const legalPageContent: Record<
   LegalPageKey,
@@ -1081,7 +1093,10 @@ const App = () => {
     'zamer-rozpocet',
     'zamer-prinos',
     'zamer-harmonogram',
-    'zamer-programy'
+    'zamer-programy',
+    'legal-privacy',
+    'legal-terms',
+    'legal-cookies'
   ];
 
   const investmentGoals = [
@@ -3264,10 +3279,60 @@ const App = () => {
     </section>
   );
 
+  const renderLegalFullPage = (legalKey: LegalPageKey) => {
+    const page = siteLegalPageContent[legalKey];
+
+    return (
+      <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[560px] h-[560px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+        <div className="absolute bottom-0 left-0 w-[560px] h-[560px] bg-emerald-500/5 rounded-full blur-[130px] -z-10" />
+        <div className="mx-auto max-w-5xl space-y-8">
+          <div className="glass-panel rounded-[3rem] border-cyan-400/10 p-8 md:p-12">
+            <div className="inline-flex items-center gap-3 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">
+              <ShieldCheck size={14} />
+              {page.eyebrow}
+            </div>
+            <h1 className="mt-6 text-4xl font-black uppercase leading-tight text-white md:text-6xl">{page.title}</h1>
+            <p className="mt-5 max-w-3xl text-base font-light leading-relaxed text-white/50">{page.description}</p>
+          </div>
+
+          <div className="space-y-5">
+            {page.sections.map((section) => (
+              <section key={section.heading} className="glass-panel rounded-[2.4rem] border-white/10 p-6 md:p-8">
+                <h2 className="text-2xl font-black text-white">{section.heading}</h2>
+                {section.paragraphs?.map((paragraph) => (
+                  <p key={paragraph} className="mt-4 text-base leading-relaxed text-white/60">
+                    {paragraph}
+                  </p>
+                ))}
+                {section.bullets && section.bullets.length > 0 && (
+                  <ul className="mt-5 space-y-3 text-base text-white/65">
+                    {section.bullets.map((bullet) => (
+                      <li key={bullet} className="flex gap-3">
+                        <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-cyan-400" />
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = (page: PageKey) => {
     switch(page) {
       case 'home':
         return <>{renderConfiguredHomepage()}</>;
+      case 'legal-privacy':
+        return renderLegalFullPage('privacy');
+      case 'legal-terms':
+        return renderLegalFullPage('terms');
+      case 'legal-cookies':
+        return renderLegalFullPage('cookies');
       case 'pillar-jailbreak': {
         const program = opzPrograms.find((item) => item.name === 'JAILBREAK');
         if (!program) return null;
@@ -6930,6 +6995,7 @@ const App = () => {
         title={openLegalPage ? siteLegalPageContent[openLegalPage].title : ''}
         description={openLegalPage ? siteLegalPageContent[openLegalPage].description : ''}
         sections={openLegalPage ? siteLegalPageContent[openLegalPage].sections : []}
+        fullPageHref={openLegalPage ? pagePathMap[legalPageRoutes[openLegalPage]] : undefined}
       />
 
       {/* MAGICKÝ OBRÁZEK PŘED FOOTEREM */}

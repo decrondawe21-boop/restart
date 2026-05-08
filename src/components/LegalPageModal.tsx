@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, X } from 'lucide-react';
+import { ExternalLink, ShieldCheck, X } from 'lucide-react';
 
 export interface LegalSection {
   heading: string;
@@ -14,6 +14,7 @@ interface LegalPageModalProps {
   title: string;
   description: string;
   sections: LegalSection[];
+  fullPageHref?: string;
 }
 
 const LegalPageModal: React.FC<LegalPageModalProps> = ({
@@ -22,7 +23,8 @@ const LegalPageModal: React.FC<LegalPageModalProps> = ({
   eyebrow,
   title,
   description,
-  sections
+  sections,
+  fullPageHref
 }) => {
   if (!isOpen) return null;
 
@@ -49,6 +51,15 @@ const LegalPageModal: React.FC<LegalPageModalProps> = ({
             <div className="space-y-3">
               <h3 className="text-3xl font-black uppercase leading-tight text-white md:text-5xl">{title}</h3>
               <p className="max-w-3xl text-sm font-light leading-relaxed text-white/45 md:text-base">{description}</p>
+              {fullPageHref && (
+                <a
+                  href={fullPageHref}
+                  className="inline-flex items-center gap-3 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200 transition hover:border-cyan-400/35 hover:bg-cyan-500/15"
+                >
+                  Číst celé
+                  <ExternalLink size={14} />
+                </a>
+              )}
             </div>
           </div>
 
