@@ -102,6 +102,7 @@ type PageKey =
   | 'news'
   | 'gallery'
   | 'projects'
+  | 'donate'
   | 'blog'
   | 'contacts'
   | 'downloads-documents'
@@ -129,6 +130,7 @@ const pagePathMap: Record<PageKey, string> = {
   news: '/novinky',
   gallery: '/galerie',
   projects: '/projekty',
+  donate: '/donate',
   blog: '/blog',
   contacts: '/kontakty',
   'downloads-documents': '/ke-stazeni/dokumenty',
@@ -951,8 +953,11 @@ const App = () => {
     { name: "Aplikace firemní", url: "https://appka.david-kozak.com", desc: "Vlastní firemní aplikace pro mobilní zařízení.", icon: <Smartphone /> }
   ];
 
+  const stripeDonationUrl = (import.meta.env.VITE_STRIPE_DONATE_URL ?? '').trim();
+
   const navTreeTemplate: MenuNode[] = [
     { key: 'home', label: 'Domů', id: 'home' },
+    { key: 'donate', label: 'DONATE - podpořte nás!', id: 'donate' },
     {
       key: 'about-root',
       label: 'O nás',
@@ -1060,6 +1065,7 @@ const App = () => {
     'news',
     'gallery',
     'projects',
+    'donate',
     'blog',
     'downloads-documents',
     'downloads-programs',
@@ -4126,6 +4132,139 @@ const App = () => {
             description={pageIntroContent.gallery.description}
           />
         );
+      case 'donate': {
+        const donationTiers = [
+          {
+            amount: '500 Kč',
+            title: 'Startovací pomoc',
+            description: 'Materiály, první konzultace, doprava nebo praktická drobnost, která člověku pomůže udělat první krok.',
+            icon: <HeartHandshake size={22} />
+          },
+          {
+            amount: '1 500 Kč',
+            title: 'Mentoring a stabilizace',
+            description: 'Čas s mentorem, příprava na práci, doprovod při řešení úřadů a návrat do běžného režimu.',
+            icon: <Users size={22} />
+          },
+          {
+            amount: '5 000 Kč+',
+            title: 'Programový rozvoj',
+            description: 'Podpora workshopů, pracovního vybavení, výzev JAILBREAK / REWORK / STREETWISE a dlouhodobého dopadu.',
+            icon: <Rocket size={22} />
+          }
+        ];
+        const impactChallenges = [
+          'Pomozte pokrýt první praktické kroky po návratu z vězení nebo krize.',
+          'Podpořte mentoring, pracovní restart a stabilizaci lidí, kteří chtějí začít znovu.',
+          'Staňte se partnerem výzvy druhé šance a pomozte nám z programu udělat opakovatelný systém.'
+        ];
+        const donateHref =
+          stripeDonationUrl ||
+          `mailto:${publicContact.email}?subject=${encodeURIComponent('Chci podpořit REST||ART')}`;
+
+        return (
+          <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[520px] h-[520px] bg-cyan-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="absolute bottom-10 left-0 w-[560px] h-[560px] bg-emerald-500/5 rounded-full blur-[130px] -z-10" />
+            <div className="max-w-7xl mx-auto space-y-12">
+              <section className="grid gap-8 lg:grid-cols-[1.05fr,0.95fr] items-stretch">
+                <div className="glass-panel rounded-[3rem] border-white/10 p-8 md:p-12 flex flex-col justify-between">
+                  <div className="space-y-7">
+                    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-[10px] tracking-[0.3em] font-black uppercase">
+                      <Heart size={14} />
+                      {pageIntroContent.donate.eyebrow}
+                    </div>
+                    <div className="space-y-5">
+                      <h1 className="text-5xl md:text-7xl font-black uppercase leading-[0.92] text-white text-glow-cyan">
+                        {pageIntroContent.donate.titleLead}
+                        <br />
+                        <span className="headline-thin text-cyan-300">{pageIntroContent.donate.titleAccent}</span>
+                      </h1>
+                      <p className="max-w-2xl text-base md:text-lg leading-relaxed text-white/55 font-light">
+                        {pageIntroContent.donate.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-10 flex flex-wrap gap-3">
+                    <a
+                      href={donateHref}
+                      target={stripeDonationUrl ? '_blank' : undefined}
+                      rel={stripeDonationUrl ? 'noreferrer' : undefined}
+                      className="group inline-flex items-center gap-3 rounded-2xl bg-cyan-400 px-6 py-4 text-xs font-black uppercase tracking-[0.22em] text-black transition hover:bg-white"
+                    >
+                      Darovat přes Stripe
+                      <ExternalLink size={16} className="transition group-hover:translate-x-1 group-hover:-translate-y-1" />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setIsContactModalOpen(true)}
+                      className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-4 text-xs font-black uppercase tracking-[0.22em] text-white/75 transition hover:border-cyan-400/30 hover:text-cyan-300"
+                    >
+                      Chci být partner
+                      <MessageCircle size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative min-h-[520px] overflow-hidden rounded-[3rem] border border-white/10 bg-black/30">
+                  <img
+                    src={brandAssets.monetization.donationCertificate}
+                    alt="REST||ART donation certificate"
+                    className="absolute inset-0 h-full w-full object-cover opacity-75"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#051111] via-[#051111]/30 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-8">
+                    <div className="glass-panel rounded-[2rem] border-cyan-400/15 bg-[#061719]/75 p-6">
+                      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-300">Transparentní podpora</p>
+                      <p className="mt-3 text-2xl font-black text-white">Dary jdou do konkrétních kroků, ne do prázdných slibů.</p>
+                      <p className="mt-3 text-sm leading-relaxed text-white/50">
+                        Po doplnění Stripe Payment Linku bude tlačítko vést přímo na bezpečnou platební stránku.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="grid gap-5 md:grid-cols-3">
+                {donationTiers.map((tier) => (
+                  <article key={tier.amount} className="glass-panel rounded-[2.4rem] border-white/10 p-6 transition hover:-translate-y-1 hover:border-cyan-400/25">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-300">
+                        {tier.icon}
+                      </div>
+                      <p className="amount-glow text-3xl leading-none text-cyan-300">{tier.amount}</p>
+                    </div>
+                    <h2 className="mt-6 text-xl font-black uppercase text-white">{tier.title}</h2>
+                    <p className="mt-4 text-sm leading-relaxed text-white/45">{tier.description}</p>
+                  </article>
+                ))}
+              </section>
+
+              <section className="glass-panel rounded-[3rem] border-white/10 p-8 md:p-10">
+                <div className="grid gap-8 lg:grid-cols-[0.85fr,1.15fr]">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Aktuální výzvy</p>
+                    <h2 className="mt-4 text-3xl md:text-5xl font-black uppercase leading-none text-white">
+                      Vyberte si, kde chcete být vidět.
+                    </h2>
+                  </div>
+                  <div className="space-y-4">
+                    {impactChallenges.map((challenge, index) => (
+                      <div key={challenge} className="flex gap-4 rounded-[1.8rem] border border-white/10 bg-black/20 p-5">
+                        <span className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/10 text-[10px] font-black text-cyan-300">
+                          {index + 1}
+                        </span>
+                        <p className="text-base leading-relaxed text-white/65">{challenge}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        );
+      }
       case 'projects':
         return (
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">

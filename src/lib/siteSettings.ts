@@ -21,9 +21,11 @@ export type PageIntroKey =
   | 'blog'
   | 'gallery'
   | 'projects'
+  | 'donate'
   | 'contacts';
 export type NavigationItemKey =
   | 'home'
+  | 'donate'
   | 'about-root'
   | 'about-stories'
   | 'about-news'
@@ -332,6 +334,7 @@ export type GalleryGroupsSettings = GalleryGroup[];
 
 export const navigationItemDefinitions: NavigationItemDefinition[] = [
   { key: 'home', label: 'Domů', description: 'Úvodní vstup na homepage.', group: 'Hlavní menu', depth: 0 },
+  { key: 'donate', label: 'DONATE - podpořte nás!', description: 'Darovací stránka s výzvami a Stripe odkazem.', group: 'Hlavní menu', depth: 0 },
   { key: 'about-root', label: 'O nás', description: 'Základní rozcestník identitní a obsahové vrstvy.', group: 'Hlavní menu', depth: 0 },
   { key: 'about-stories', label: 'Příběhy', description: 'Skutečné příběhy a restarty.', group: 'O nás', depth: 1 },
   { key: 'about-news', label: 'Novinky a aktuality', description: 'Krátké novinky a veřejná oznámení.', group: 'O nás', depth: 1 },
@@ -367,6 +370,7 @@ export const pageIntroDefinitions: PageIntroDefinition[] = [
   { key: 'blog', label: 'Blog', description: 'Header stránky Blog / Archiv.' },
   { key: 'gallery', label: 'Galerie', description: 'Header veřejné galerie.' },
   { key: 'projects', label: 'Projekty', description: 'Header stránky Projekty a ecosystem.' },
+  { key: 'donate', label: 'Donate', description: 'Header darovací stránky a výzvy k podpoře.' },
   { key: 'contacts', label: 'Kontakty', description: 'Header kontaktní stránky.' }
 ];
 
@@ -650,6 +654,13 @@ export const defaultPageIntroContent: PageIntroContentSettings = {
     titleLead: 'Vizionář',
     titleAccent: '& Design',
     description: 'Síť navazujících projektů, platforem a digitálních výstupů, které rozšiřují značku DKI mimo samotný REST||ART.'
+  },
+  donate: {
+    eyebrow: 'DONATE',
+    titleLead: 'Podpořte',
+    titleAccent: 'nás',
+    description:
+      'Každý dar pomáhá měnit druhou šanci v konkrétní kroky: mentoring, práci, stabilizaci, materiály a návrat lidí zpět do života.'
   },
   contacts: {
     eyebrow: 'Jsme tu pro vás',

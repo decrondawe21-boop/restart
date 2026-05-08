@@ -166,6 +166,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     blog: 'Blog / archiv',
     gallery: 'Galerie',
     projects: 'Projekty',
+    donate: 'Donate',
     contacts: 'Kontakty'
   };
 
