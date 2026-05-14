@@ -149,6 +149,138 @@ const pagePathMap: Record<PageKey, string> = {
   'legal-cookies': '/legal/cookies'
 };
 
+const siteOrigin = 'https://restartintegrace.david-kozak.com';
+const defaultSeoImage = `${siteOrigin}/brand/og-restart-integrace.png`;
+const siteTitle = 'REST||ART Integrace';
+const siteDescription =
+  'REST||ART Integrace propojuje postpenitenciární podporu, práci, bydlení, mentoring a dlouhodobou stabilizaci pro lidi, kteří potřebují skutečný návrat do života.';
+
+const pageSeoContent: Record<PageKey, { title: string; description: string; image?: string }> = {
+  home: {
+    title: 'REST||ART Integrace | Druhá šance, která se mění v plán',
+    description: siteDescription
+  },
+  about: {
+    title: 'O projektu | REST||ART Integrace',
+    description: 'Poznejte principy REST||ART Integrace, značku druhé šance a systém práce Davida Kozáka International.'
+  },
+  pillars: {
+    title: 'Šest pilířů integrace | REST||ART',
+    description: 'JAILBREAK, REWORK, STREETWISE, RESET, MÍSTO ZLOMU a STABILIZACE jako navazující cesta k návratu do práce, bydlení a důvěry.'
+  },
+  'pillar-jailbreak': {
+    title: 'JAILBREAK | Podpora po výkonu trestu',
+    description: 'Program pro bezpečný přechod z vězeňského prostředí na svobodu: práce, bydlení, dluhy, mentoring a stabilita.'
+  },
+  'pillar-rework': {
+    title: 'REWORK | Návrat na trh práce',
+    description: 'Pracovní aktivace, diagnostika, rekvalifikace a mentoring pro lidi s bariérami na trhu práce.'
+  },
+  'pillar-rework-analyza': {
+    title: 'REWORK Analýza trhu | REST||ART',
+    description: 'Východiska programu REWORK, cílové skupiny, pracovní příležitosti a ekonomická logika integrační práce.'
+  },
+  'pillar-rework-implementace': {
+    title: 'REWORK Implementace | REST||ART',
+    description: 'Praktický rámec implementace programu REWORK: fáze, partneři, aktivace účastníků a měřitelný dopad.'
+  },
+  'pillar-streetwise': {
+    title: 'STREETWISE | Terénní stabilizace',
+    description: 'První kontakt, bezpečné napojení na pomoc a základní stabilizace pro lidi na ulici nebo v akutní krizi.'
+  },
+  'pillar-reset': {
+    title: 'RESET | Nové nastavení směru',
+    description: 'Restart motivace, identity a osobní opory pro lidi, kteří potřebují obnovit režim, cíle a důvěru.'
+  },
+  'pillar-mistozlomu': {
+    title: 'MÍSTO ZLOMU | Prevence propadu',
+    description: 'Podpora mladých lidí z krizového prostředí, ústavní péče nebo nestabilního zázemí na cestě k samostatnosti.'
+  },
+  'pillar-stabilizace': {
+    title: 'STABILIZACE | Udržení změny',
+    description: 'Dlouhodobý follow-up, pracovní a komunitní opora, bydlení, zdraví a odpovědnost za další krok.'
+  },
+  stories: {
+    title: 'Příběhy druhé šance | REST||ART',
+    description: 'Skutečné příběhy lidí, kteří prošli pádem, změnou a návratem do práce, důvěry a běžného života.'
+  },
+  news: {
+    title: 'Novinky a aktuality | REST||ART Integrace',
+    description: 'Aktuální kroky, milníky projektu, veřejná oznámení a zprávy z postpenitenciární integrační práce.'
+  },
+  gallery: {
+    title: 'Galerie | REST||ART Integrace',
+    description: 'Vizuální archiv projektu, materiálů, akcí a momentů z integrační práce.'
+  },
+  projects: {
+    title: 'Ecosystem David Kozák | REST||ART',
+    description: 'Navazující projekty, digitální výstupy a platformy, které rozšiřují značku DKI a REST||ART.'
+  },
+  donate: {
+    title: 'Podpořte REST||ART Integraci',
+    description: 'Dar pomáhá měnit druhou šanci v konkrétní kroky: mentoring, práci, stabilizaci, materiály a návrat lidí zpět do života.'
+  },
+  blog: {
+    title: 'Blog a archiv | REST||ART',
+    description: 'Komentáře, analýzy a hlubší texty o práci, reintegraci, návratnosti a principu druhé šance.'
+  },
+  contacts: {
+    title: 'Kontakt | REST||ART Integrace',
+    description: 'Spojte se s David Kozák International s.r.o. kvůli spolupráci, podpoře, médiím nebo zapojení do projektu.'
+  },
+  'downloads-documents': {
+    title: 'Dokumenty ke stažení | REST||ART',
+    description: 'Veřejné formuláře, grafy dopadu, podklady, metodiky a prezentace projektu REST||ART Integrace.'
+  },
+  'downloads-programs': {
+    title: 'Programové podklady | REST||ART',
+    description: 'Materiály a pracovní rámce pro programy JAILBREAK, REWORK, STREETWISE, RESET a návaznou stabilizaci.'
+  },
+  'zamer-uvod': {
+    title: 'Investiční záměr | REST||ART',
+    description: 'Úvod do investičního rámce REST||ART Integrace, cílových skupin, fáze projektu a systémového dopadu.'
+  },
+  'zamer-cile': {
+    title: 'Cíle investice | REST||ART',
+    description: 'Strategické cíle investice: kapacita, stabilizace účastníků, partnerství, infrastruktura a měřitelný dopad.'
+  },
+  'zamer-rozpocet': {
+    title: 'Rozpočet investice | REST||ART',
+    description: 'Struktura investičních nákladů, provozních výdajů a zdrojů potřebných pro rozvoj integračního centra.'
+  },
+  'zamer-prinos': {
+    title: 'Návratnost a přínos | REST||ART',
+    description: 'Ekonomika reintegrace, úspory systému, prevence recidivy a dlouhodobý sociální dopad projektu.'
+  },
+  'zamer-harmonogram': {
+    title: 'Harmonogram | REST||ART',
+    description: 'Časový plán investiční, pilotní a škálovací fáze projektu REST||ART Integrace.'
+  },
+  'zamer-programy': {
+    title: 'Přehled programů OPZ+ | REST||ART',
+    description: 'Programové linie, partneři a praktické kroky pro financování a rozvoj integračního systému.'
+  },
+  'legal-privacy': {
+    title: 'Ochrana osobních údajů | REST||ART',
+    description: 'Informace o zpracování kontaktních údajů, poptávek, administrace a bezpečného provozu webu.'
+  },
+  'legal-terms': {
+    title: 'Podmínky užití | REST||ART',
+    description: 'Základní pravidla užívání webu, obsahu, dokumentů a veřejných materiálů REST||ART Integrace.'
+  },
+  'legal-cookies': {
+    title: 'Zásady cookies | REST||ART',
+    description: 'Informace o technických cookies, lokálních preferencích a provozních datech webu.'
+  }
+};
+
+const updateMetaTag = (selector: string, attribute: 'content' | 'href', value: string) => {
+  const element = document.head.querySelector(selector);
+  if (element) {
+    element.setAttribute(attribute, value);
+  }
+};
+
 const brandAssets = {
   heroBanner: '/images/podklady/selected/motion-graphic-r.png',
   heroRealistic: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200',
@@ -503,6 +635,31 @@ const App = () => {
   const resolvedPath = normalizedPath === pagePathMap.contacts ? pagePathMap.home : normalizedPath;
   const currentPage =
     (Object.entries(pagePathMap).find(([, path]) => path === resolvedPath)?.[0] as PageKey | undefined) ?? 'home';
+
+  useEffect(() => {
+    const seo = isAdminRoute
+      ? {
+          title: 'Administrace | REST||ART Integrace',
+          description: 'Soukromá administrace webu REST||ART Integrace.',
+          image: defaultSeoImage
+        }
+      : pageSeoContent[currentPage];
+    const canonicalUrl = `${siteOrigin}${isAdminRoute ? '/' : pagePathMap[currentPage]}`;
+    const image = seo.image ?? defaultSeoImage;
+
+    document.title = seo.title;
+    updateMetaTag('meta[name="description"]', 'content', seo.description);
+    updateMetaTag('meta[name="robots"]', 'content', isAdminRoute ? 'noindex, nofollow' : 'index, follow, max-image-preview:large');
+    updateMetaTag('link[rel="canonical"]', 'href', canonicalUrl);
+    updateMetaTag('meta[property="og:title"]', 'content', seo.title);
+    updateMetaTag('meta[property="og:description"]', 'content', seo.description);
+    updateMetaTag('meta[property="og:url"]', 'content', canonicalUrl);
+    updateMetaTag('meta[property="og:image"]', 'content', image);
+    updateMetaTag('meta[property="og:image:secure_url"]', 'content', image);
+    updateMetaTag('meta[name="twitter:title"]', 'content', seo.title);
+    updateMetaTag('meta[name="twitter:description"]', 'content', seo.description);
+    updateMetaTag('meta[name="twitter:image"]', 'content', image);
+  }, [currentPage, isAdminRoute]);
 
   const goToPage = (page: PageKey) => {
     navigate(pagePathMap[page]);
@@ -6941,7 +7098,7 @@ const App = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <p className="px-3 text-[10px] uppercase tracking-[0.25em] text-white/30 font-black">Rozevírací seznam navigace</p>
+            <p className="px-3 text-[10px] uppercase tracking-[0.25em] text-white/30 font-black">Vyberte kapitolu</p>
             {renderMenuNodes(navTree)}
           </div>
 
@@ -6955,7 +7112,7 @@ const App = () => {
               className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-4 text-xs font-black uppercase tracking-[0.24em] text-cyan-200 transition hover:border-cyan-400/35 hover:bg-cyan-500/15"
             >
               <Key size={16} />
-              {adminSession && hasAdminAccess ? 'Otevřít editor webu' : 'Admin login'}
+              {adminSession && hasAdminAccess ? 'Otevřít editor webu' : 'Přihlášení správce'}
             </button>
             <div className="flex items-center justify-center gap-6">
               {socialLinks.map((item) => (
@@ -7001,7 +7158,7 @@ const App = () => {
         fullPageHref={openLegalPage ? pagePathMap[legalPageRoutes[openLegalPage]] : undefined}
       />
 
-      {/* MAGICKÝ OBRÁZEK PŘED FOOTEREM */}
+      {/* Brand statement before footer */}
       <section className="relative w-full h-[420px] md:h-[500px] overflow-hidden flex items-center justify-center my-16 group">
         <div className="absolute inset-0 z-0">
           <img src={brandAssets.programsOverview} alt="Přehled programů RESTART" className="w-full h-full object-cover opacity-60 scale-105 group-hover:scale-110 transition-transform duration-[8000ms]" />

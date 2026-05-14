@@ -449,7 +449,7 @@ export const defaultHomepageWidgetContent: HomepageWidgetContentSettings = {
     titleLead: 'Druhou šanci si zaslouží',
     titleAccent: 'každý.',
     description:
-      'Homepage znovu spojuje hlavní články a zpracované sekce do jednoho proudu. Zároveň zůstává zachované rozdělení do samostatných stránek a detailů v menu.',
+      'REST||ART Integrace propojuje postpenitenciární podporu, práci, bydlení, mentoring a dlouhodobou stabilizaci. Druhá šance tu není fráze, ale konkrétní plán návratu do života.',
     mottoEyebrow: 'Motto projektu',
     mottoQuote: '"Každý příběh má právo pokračovat."',
     mottoBody:
@@ -459,9 +459,9 @@ export const defaultHomepageWidgetContent: HomepageWidgetContentSettings = {
     imageQuote: '"Každý příběh má právo pokračovat."'
   },
   topicPages: {
-    eyebrow: 'Rozdělení obsahu',
-    titleLead: 'Nové stránky',
-    titleAccent: 'podle tématu'
+    eyebrow: 'Mapa projektu',
+    titleLead: 'Všechny vstupy',
+    titleAccent: 'na jednom místě'
   },
   aiAssistant: {
     badge: 'AI Integrační Asistent',
@@ -498,7 +498,7 @@ export const defaultSiteNavigationSettings: SiteNavigationSettings = {
   footerTagline: 'Iniciativa David Kozák International',
   footerCopyright: '© 2026 REST||ART INTEGRACE',
   footerRights: 'Všechna práva vyhrazena',
-  footerDesignCredit: 'DK Studio'
+  footerDesignCredit: 'David Kozák International'
 };
 
 export const defaultGalleryGroups: GalleryGroupsSettings = [];

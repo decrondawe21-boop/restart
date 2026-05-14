@@ -1,0 +1,31 @@
+{
+  "name": "REST||ART Integrace",
+  "short_name": "REST||ART",
+  "description": "Integrační projekt pro druhou šanci, práci, mentoring a dlouhodobou stabilizaci.",
+  "lang": "cs-CZ",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#051111",
+  "theme_color": "#051111",
+  "orientation": "portrait-primary",
+  "categories": ["social", "education", "business"],
+  "icons": [
+    {
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
