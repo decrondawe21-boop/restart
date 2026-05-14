@@ -163,6 +163,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="username"
                     className="w-full rounded-[1.6rem] border border-white/10 bg-white/[0.04] px-5 py-4 text-white outline-none transition focus:border-cyan-400/30"
                     placeholder={DEFAULT_ADMIN_EMAIL}
                     required
@@ -177,6 +178,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
                       type="password"
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
+                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                       className="w-full rounded-[1.6rem] border border-white/10 bg-white/[0.04] py-4 pl-12 pr-5 text-white outline-none transition focus:border-cyan-400/30"
                       placeholder="••••••••"
                       required

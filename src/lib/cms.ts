@@ -80,6 +80,12 @@ const extFromMime = (mime: string | undefined | null) => {
   if (mime.includes('webp')) return 'webp';
   if (mime.includes('gif')) return 'gif';
   if (mime.includes('svg')) return 'svg';
+  if (mime.includes('pdf')) return 'pdf';
+  if (mime.includes('mp4')) return 'mp4';
+  if (mime.includes('webm')) return 'webm';
+  if (mime.includes('quicktime')) return 'mov';
+  if (mime.includes('presentation') || mime.includes('powerpoint')) return 'pptx';
+  if (mime.includes('opendocument.presentation')) return 'odp';
   return 'jpg';
 };
 
@@ -87,7 +93,7 @@ const extFromUrl = (value: string) => {
   try {
     const { pathname } = new URL(value);
     const ext = pathname.split('.').pop()?.toLowerCase();
-    if (ext && ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(ext)) {
+    if (ext && ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'pdf', 'mp4', 'webm', 'mov', 'm4v', 'ppt', 'pptx', 'odp', 'key'].includes(ext)) {
       return ext === 'jpeg' ? 'jpg' : ext;
     }
   } catch {
