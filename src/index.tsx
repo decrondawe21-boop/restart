@@ -150,7 +150,7 @@ const pagePathMap: Record<PageKey, string> = {
 };
 
 const siteOrigin = 'https://restartintegrace.david-kozak.com';
-const defaultSeoImage = `${siteOrigin}/brand/og-restart-integrace.png`;
+const defaultSeoImage = `${siteOrigin}/brand/og-restart-integrace-v2.png`;
 const siteTitle = 'REST||ART Integrace';
 const siteDescription =
   'REST||ART Integrace propojuje postpenitenciární podporu, práci, bydlení, mentoring a dlouhodobou stabilizaci pro lidi, kteří potřebují skutečný návrat do života.';
