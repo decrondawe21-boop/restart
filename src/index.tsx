@@ -73,6 +73,9 @@ interface Project {
   name: string;
   url: string;
   desc: string;
+  category: string;
+  previewSrc: string;
+  previewAlt: string;
   icon: React.ReactElement;
 }
 
@@ -1109,17 +1112,24 @@ const App = () => {
     { id: 'stabilizace', title: 'STABILIZACE', description: 'Dlouhodobé udržení změny, follow-up, pracovní a komunitní opora, zdraví, bydlení a zodpovědnost za další krok.', icon: <ShieldCheck />, color: 'teal', imageSrc: brandAssets.programIcons.stabilizace }
   ];
 
-  // Projects data from the provided image
+  const projectPreviewPath = (slug: string) => `/images/project-previews/${slug}.png`;
+
   const kozakProjects: Project[] = [
-    { name: "Online program pro správu firem", url: "https://studio.david-kozak.com", desc: "Komplexní nástroj pro řízení projektů, týmu a financí.", icon: <Rocket /> },
-    { name: "Online generátor AI obrázků", url: "https://imaginator.david-kozak.com", desc: "Tvořte unikátní digitální umění s pomocí AI.", icon: <Paintbrush /> },
-    { name: "Web-prezentační portfolio", url: "https://dk.david-kozak.com", desc: "Galerie autorských webových designů.", icon: <Monitor /> },
-    { name: "Osobní rozvoj a mentoring", url: "https://zaosobni.david-kozak.com", desc: "Cesta k sebepoznání a osobnímu růstu.", icon: <Key /> },
-    { name: "Architekt pravdy", url: "https://sites.google.com/davidkozakinternational.org/dkisro/domů", desc: "Zkoumání hlubokých pravd a principů reality.", icon: <Landmark /> },
-    { name: "Online životopis", url: "https://zivotopis.david-kozak.com", desc: "Přehled vzdělání a zkušeností Davida Kozáka.", icon: <FileText /> },
-    { name: "Animátorský web", url: "https://new.david-kozak.com", desc: "Prezentace animací a motion design projektů.", icon: <Film /> },
-    { name: "Animátorský web (Silver)", url: "https://silver.david-kozak.com", desc: "Zaměřeno na high-end digitální animace.", icon: <Film /> },
-    { name: "Aplikace firemní", url: "https://appka.david-kozak.com", desc: "Vlastní firemní aplikace pro mobilní zařízení.", icon: <Smartphone /> }
+    { name: "David Kozák International", url: "https://international.david-kozak.com", category: "Hlavní web", desc: "Firemní web pro služby, mezinárodní aktivity, kvalifikované řemeslníky, A1 dokumentaci a provozní podporu.", icon: <Globe />, previewSrc: projectPreviewPath('david-kozak-international'), previewAlt: "Náhled webu David Kozák International" },
+    { name: "F-STUDIO", url: "https://studio.david-kozak.com", category: "Kreativa a systémy", desc: "Kreativní a firemní systém pro řízení procesů, financí, HR, skladu, reportingu a komunikace.", icon: <Rocket />, previewSrc: projectPreviewPath('f-studio'), previewAlt: "Náhled webu F-STUDIO" },
+    { name: "Imaginator", url: "https://imaginator.david-kozak.com", category: "Kreativa a systémy", desc: "Generativní vizuální projekt a AI experimenty.", icon: <Paintbrush />, previewSrc: projectPreviewPath('imaginator'), previewAlt: "Náhled webu Imaginator" },
+    { name: "DKI Lab", url: "https://new.david-kozak.com/", category: "Kreativa a systémy", desc: "Experimentální větev s novými koncepty a produktovými nápady.", icon: <Lightbulb />, previewSrc: projectPreviewPath('dki-lab'), previewAlt: "Náhled webu DKI Lab" },
+    { name: "Silver projekt", url: "https://silver.david-kozak.com/", category: "Kreativa a systémy", desc: "Specializovaný projekt s vlastním brand stylem.", icon: <Award />, previewSrc: projectPreviewPath('silver-projekt'), previewAlt: "Náhled webu Silver projekt" },
+    { name: "Osobní profil", url: "https://osobni.david-kozak.com/", category: "Osobní a profilové weby", desc: "Osobní profil a veřejná prezentace.", icon: <Users />, previewSrc: projectPreviewPath('osobni-profil'), previewAlt: "Náhled webu Osobní profil" },
+    { name: "Profesní CV", url: "https://zivotopis.david-kozak.com/", category: "Osobní a profilové weby", desc: "Profesní CV web s referencemi.", icon: <FileText />, previewSrc: projectPreviewPath('profesni-cv'), previewAlt: "Náhled webu Profesní CV" },
+    { name: "DKI App", url: "https://appka.david-kozak.com/", category: "Aplikace a technické projekty", desc: "Produktový web zaměřený na aplikaci.", icon: <Smartphone />, previewSrc: projectPreviewPath('dki-app'), previewAlt: "Náhled webu DKI App" },
+    { name: "RepasMobile", url: "https://repasmobile.david-kozak.com", category: "Aplikace a technické projekty", desc: "Produktová prezentace zaměřená na mobilní servis a opravy.", icon: <RefreshCw />, previewSrc: projectPreviewPath('repasmobile'), previewAlt: "Náhled webu RepasMobile" },
+    { name: "Dev / DK", url: "https://dk.david-kozak.com", category: "Aplikace a technické projekty", desc: "Technický hub s vývojářskými projekty.", icon: <Monitor />, previewSrc: projectPreviewPath('dev-dk'), previewAlt: "Náhled webu Dev / DK" },
+    { name: "DKI Invent", url: "https://invent.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Evidence inventáře a majetku pro projekty DKI.", icon: <LayoutGrid />, previewSrc: projectPreviewPath('dki-invent'), previewAlt: "Náhled webu DKI Invent" },
+    { name: "Kozák / DK-I", url: "https://kozak.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Osobní projektový hub pod infrastrukturou DK-I.", icon: <Link />, previewSrc: projectPreviewPath('kozak-dk-i'), previewAlt: "Náhled webu Kozák / DK-I" },
+    { name: "Roadmaps / DK-I", url: "https://roadmaps.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Veřejný přehled roadmap pro plánování a směr produktů.", icon: <Workflow />, previewSrc: projectPreviewPath('roadmaps-dk-i'), previewAlt: "Náhled webu Roadmaps / DK-I" },
+    { name: "PROTOKOL: AEGIS", url: "https://aegis.d-international.eu", category: "AI / bezpečnost", desc: "AI obranná vrstva proti manipulačním webovým patternům.", icon: <ShieldAlert />, previewSrc: projectPreviewPath('protokol-aegis'), previewAlt: "Náhled webu PROTOKOL: AEGIS" },
+    { name: "Vyvoj - BEZA f | David Kozák International, s.r.o.", url: "https://firemni.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Interní firemní a ekonomický systém pro zakázky, nákladové položky, billing, dokumentaci, týmové schvalování a AI konzultanta.", icon: <Building2 />, previewSrc: projectPreviewPath('firemni-dk-i'), previewAlt: "Náhled webu Vyvoj - BEZA f" }
   ];
 
   const stripeDonationUrl = (
@@ -4551,31 +4561,51 @@ const App = () => {
                 </div>
                 <div className="max-w-md space-y-5">
                   <p className="text-sm text-white/40 font-light leading-relaxed">{pageIntroContent.projects.description}</p>
-                  <a href="https://davidkozak.social" target="_blank" className="group inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-2xl hover:bg-cyan-400 transition-all text-xs font-black tracking-widest uppercase shadow-xl shadow-cyan-500/10">
+                  <a href="https://davidkozak.social" target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-3 bg-white text-black px-8 py-4 rounded-2xl hover:bg-cyan-400 transition-all text-xs font-black tracking-widest uppercase shadow-xl shadow-cyan-500/10">
                     Portfolio Majitele <ExternalLink size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                   </a>
                 </div>
               </div>
+
+              <div className="space-y-4 max-w-3xl">
+                <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Veřejné projekty</p>
+                <h3 className="text-2xl sm:text-3xl md:text-5xl font-black text-white uppercase leading-tight">
+                  <span className="block">Projektový</span>
+                  <span className="block">ekosystém</span>
+                </h3>
+                <p className="max-w-[20rem] sm:max-w-3xl text-white/45 text-sm md:text-base leading-relaxed">
+                  Přehled veřejných webů, produktových větví a technických rozcestníků pod značkou David Kozák International.
+                </p>
+              </div>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {kozakProjects.map((p, idx) => (
-                  <a key={p.name} href={p.url} target="_blank" className="glass-panel p-10 rounded-[3.5rem] group hover:-translate-y-3 transition-all duration-500 flex flex-col h-full border-white/5 hover:border-cyan-400/30 relative overflow-hidden">
+                  <a key={p.name} href={p.url} target="_blank" rel="noopener noreferrer" className="glass-panel p-6 md:p-7 rounded-[2rem] group hover:-translate-y-3 transition-all duration-500 flex flex-col h-full border-white/5 hover:border-cyan-400/30 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                    <div className="relative z-10 mb-7 overflow-hidden rounded-[1.35rem] border border-cyan-400/10 bg-black/25 aspect-video">
+                      <img src={p.previewSrc} alt={p.previewAlt} className="h-full w-full object-cover opacity-75 saturate-[0.9] transition-all duration-700 group-hover:scale-105 group-hover:opacity-95" loading="lazy" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                      <div className="absolute left-4 bottom-4 right-4 flex items-center justify-between gap-3">
+                        <span className="text-[9px] font-black uppercase tracking-[0.22em] text-cyan-200/90">{p.category}</span>
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/35">Preview</span>
+                      </div>
+                    </div>
                     
-                    <div className="flex justify-between items-start mb-10 relative z-10">
-                      <div className="w-16 h-16 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">
-                        {React.cloneElement(p.icon as React.ReactElement<{ size?: number }>, { size: 28 })}
+                    <div className="flex justify-between items-start mb-7 relative z-10">
+                      <div className="w-14 h-14 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">
+                        {React.cloneElement(p.icon as React.ReactElement<{ size?: number }>, { size: 26 })}
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-black text-white/10 uppercase tracking-widest mb-2">Project 0{idx + 1}</span>
+                        <span className="text-[10px] font-black text-white/10 uppercase tracking-widest mb-2">Project {(idx + 1).toString().padStart(2, '0')}</span>
                         <ExternalLink className="text-white/20 group-hover:text-cyan-400 transition-all" size={20} />
                       </div>
                     </div>
                     
                     <h3 className="text-2xl font-bold mb-4 leading-tight group-hover:text-cyan-400 transition-colors relative z-10">{p.name}</h3>
-                    <p className="text-white/40 font-light text-base flex-grow leading-relaxed relative z-10 group-hover:text-white/60 transition-colors">{p.desc}</p>
+                    <p className="text-white/40 font-light text-sm md:text-base flex-grow leading-relaxed relative z-10 group-hover:text-white/60 transition-colors">{p.desc}</p>
                     
-                    <div className="mt-10 pt-6 border-t border-white/5 flex justify-between items-center relative z-10">
+                    <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-center relative z-10">
                       <span className="text-[10px] text-cyan-400/50 uppercase tracking-[0.2em] font-black group-hover:text-cyan-400 transition-colors">Prozkoumat web</span>
                       <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-black transition-all">
                         <ArrowRight size={14} />
