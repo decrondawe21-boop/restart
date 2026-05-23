@@ -1129,9 +1129,58 @@ const App = () => {
     { name: "Kozák / DK-I", url: "https://kozak.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Osobní projektový hub pod infrastrukturou DK-I.", icon: <Link />, previewSrc: projectPreviewPath('kozak-dk-i'), previewAlt: "Náhled webu Kozák / DK-I" },
     { name: "Roadmaps / DK-I", url: "https://roadmaps.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Veřejný přehled roadmap pro plánování a směr produktů.", icon: <Workflow />, previewSrc: projectPreviewPath('roadmaps-dk-i'), previewAlt: "Náhled webu Roadmaps / DK-I" },
     { name: "PROTOKOL: AEGIS", url: "https://aegis.d-international.eu", category: "AI / bezpečnost", desc: "AI obranná vrstva proti manipulačním webovým patternům.", icon: <ShieldAlert />, previewSrc: projectPreviewPath('protokol-aegis'), previewAlt: "Náhled webu PROTOKOL: AEGIS" },
-    { name: "F-Faktury", url: "https://fakturuj.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Profesionální fakturační systém pro tvorbu, správu, odesílání a export faktur pro freelancery, studia a malé firmy.", icon: <FileText />, previewSrc: projectPreviewPath('fakturuj-dk-i'), previewAlt: "Náhled webu F-Faktury" },
-    { name: "Vyvoj - BEZA f | David Kozák International, s.r.o.", url: "https://firemni.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Interní firemní a ekonomický systém pro zakázky, nákladové položky, billing, dokumentaci, týmové schvalování a AI konzultanta.", icon: <Building2 />, previewSrc: projectPreviewPath('firemni-dk-i'), previewAlt: "Náhled webu Vyvoj - BEZA f" }
+    { name: "Vyvoj - BEZA f | David Kozák International, s.r.o.", url: "https://firemni.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Interní firemní a ekonomický systém pro zakázky, nákladové položky, billing, dokumentaci, týmové schvalování a AI konzultanta.", icon: <Building2 />, previewSrc: "https://firemni.dk-i.cz/banners/open-graph.png", previewAlt: "Náhled interního systému Vyvoj - BEZA f" },
+    { name: "Fakturuj / DK-I", url: "https://fakturuj.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Fakturační nástroj pro tvorbu, správu, odesílání a export faktur v projektové infrastruktuře DK-I.", icon: <FileText />, previewSrc: projectPreviewPath('fakturuj-dk-i'), previewAlt: "Náhled webu Fakturuj / DK-I" }
   ];
+
+  const projectCategories = Array.from(new Set(kozakProjects.map((project) => project.category)));
+
+  const renderProjectCard = (project: Project, index: number, compact = false) => (
+    <a
+      key={project.name}
+      href={project.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`glass-panel group relative flex h-full flex-col overflow-hidden border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-cyan-400/30 ${compact ? 'rounded-[2rem] p-5' : 'rounded-[2rem] p-6 md:p-7'}`}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-emerald-500/[0.03] opacity-0 transition-opacity group-hover:opacity-100" />
+
+      <div className={`relative z-10 mb-6 overflow-hidden rounded-[1.35rem] border border-cyan-400/10 bg-black/25 ${compact ? 'aspect-[16/9]' : 'aspect-video'}`}>
+        <img
+          src={project.previewSrc}
+          alt={project.previewAlt}
+          className="h-full w-full object-cover opacity-75 saturate-[0.9] transition-all duration-700 group-hover:scale-105 group-hover:opacity-95"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+        <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3">
+          <span className="min-w-0 truncate text-[9px] font-black uppercase tracking-[0.2em] text-cyan-200/90">{project.category}</span>
+          <ExternalLink className="shrink-0 text-white/45 transition-colors group-hover:text-cyan-200" size={16} />
+        </div>
+      </div>
+
+      <div className="relative z-10 mb-5 flex items-start justify-between gap-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-300 transition-all duration-500 group-hover:scale-105 group-hover:bg-cyan-500/20">
+          {React.cloneElement(project.icon as React.ReactElement<{ size?: number }>, { size: compact ? 22 : 26 })}
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-widest text-white/12">Project {(index + 1).toString().padStart(2, '0')}</span>
+      </div>
+
+      <h3 className={`${compact ? 'text-xl' : 'text-2xl'} relative z-10 mb-4 font-black leading-tight text-white transition-colors group-hover:text-cyan-300`}>
+        {project.name}
+      </h3>
+      <p className={`relative z-10 flex-grow font-light leading-relaxed text-white/45 transition-colors group-hover:text-white/65 ${compact ? 'text-sm' : 'text-sm md:text-base'}`}>
+        {project.desc}
+      </p>
+
+      <div className="relative z-10 mt-7 flex items-center justify-between border-t border-white/5 pt-5">
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400/60 transition-colors group-hover:text-cyan-300">Otevřít projekt</span>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-cyan-400 group-hover:text-black">
+          <ArrowRight size={14} />
+        </div>
+      </div>
+    </a>
+  );
 
   const stripeDonationUrl = (
     import.meta.env.VITE_STRIPE_DONATE_URL ??
@@ -2678,6 +2727,51 @@ const App = () => {
                   <p className="text-lg text-white/72 font-light leading-snug">{item}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="projektovy-ekosystem" className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-cyan-950/[0.08] to-transparent scroll-mt-24">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/20 to-transparent" />
+          <div className="max-w-7xl mx-auto space-y-12">
+            <div className="grid gap-8 lg:grid-cols-[0.9fr,1.1fr] lg:items-end">
+              <div className="space-y-5">
+                <p className="text-[10px] uppercase tracking-[0.32em] text-cyan-400 font-black">Veřejné projekty</p>
+                <h2 className="text-4xl md:text-6xl font-black text-white uppercase leading-none">
+                  Projektový <span className="block text-cyan-300 headline-thin">ekosystém</span>
+                </h2>
+              </div>
+              <div className="space-y-5">
+                <p className="text-lg text-white/55 font-light leading-relaxed">
+                  Veřejná síť webů, aplikací a experimentálních větví, které doplňují REST||ART a infrastrukturu David Kozák International.
+                  Public project ecosystem connecting company services, creative systems, AI experiments and technical tools.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {projectCategories.map((category) => (
+                    <span key={category} className="rounded-full border border-cyan-300/15 bg-cyan-400/[0.06] px-4 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-100/70">
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {kozakProjects.map((project, index) => renderProjectCard(project, index, true))}
+            </div>
+
+            <div className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 md:flex-row md:items-center md:justify-between">
+              <p className="text-sm text-white/45 font-light leading-relaxed">
+                Odkazy se otevírají v nové záložce a používají bezpečné nastavení <span className="text-white/70">noopener noreferrer</span>.
+              </p>
+              <button
+                type="button"
+                onClick={() => goToPage('projects')}
+                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-black transition hover:bg-cyan-300"
+              >
+                Zobrazit stránku projektů
+                <ArrowRight size={16} />
+              </button>
             </div>
           </div>
         </section>
@@ -4580,40 +4674,7 @@ const App = () => {
               </div>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {kozakProjects.map((p, idx) => (
-                  <a key={p.name} href={p.url} target="_blank" rel="noopener noreferrer" className="glass-panel p-6 md:p-7 rounded-[2rem] group hover:-translate-y-3 transition-all duration-500 flex flex-col h-full border-white/5 hover:border-cyan-400/30 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                    <div className="relative z-10 mb-7 overflow-hidden rounded-[1.35rem] border border-cyan-400/10 bg-black/25 aspect-video">
-                      <img src={p.previewSrc} alt={p.previewAlt} className="h-full w-full object-cover opacity-75 saturate-[0.9] transition-all duration-700 group-hover:scale-105 group-hover:opacity-95" loading="lazy" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-                      <div className="absolute left-4 bottom-4 right-4 flex items-center justify-between gap-3">
-                        <span className="text-[9px] font-black uppercase tracking-[0.22em] text-cyan-200/90">{p.category}</span>
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/35">Preview</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-start mb-7 relative z-10">
-                      <div className="w-14 h-14 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">
-                        {React.cloneElement(p.icon as React.ReactElement<{ size?: number }>, { size: 26 })}
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-black text-white/10 uppercase tracking-widest mb-2">Project {(idx + 1).toString().padStart(2, '0')}</span>
-                        <ExternalLink className="text-white/20 group-hover:text-cyan-400 transition-all" size={20} />
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-2xl font-bold mb-4 leading-tight group-hover:text-cyan-400 transition-colors relative z-10">{p.name}</h3>
-                    <p className="text-white/40 font-light text-sm md:text-base flex-grow leading-relaxed relative z-10 group-hover:text-white/60 transition-colors">{p.desc}</p>
-                    
-                    <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-center relative z-10">
-                      <span className="text-[10px] text-cyan-400/50 uppercase tracking-[0.2em] font-black group-hover:text-cyan-400 transition-colors">Prozkoumat web</span>
-                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-black transition-all">
-                        <ArrowRight size={14} />
-                      </div>
-                    </div>
-                  </a>
-                ))}
+                {kozakProjects.map((project, index) => renderProjectCard(project, index))}
               </div>
             </div>
           </div>
