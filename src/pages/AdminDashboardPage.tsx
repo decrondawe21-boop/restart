@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import {
   AlertCircle,
+  Barcode,
   ChevronDown,
   ChevronRight,
   FilePlus2,
@@ -27,6 +28,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import AdminInfoTooltip from '../components/admin/AdminInfoTooltip';
 import AdminStickyActionBar from '../components/admin/AdminStickyActionBar';
+import ClientIdGeneratorPanel from '../components/admin/ClientIdGeneratorPanel';
 import DownloadsManagerPanel from '../components/admin/DownloadsManagerPanel';
 import GlobalSettingsPanel, { type SitePanel } from '../components/admin/GlobalSettingsPanel';
 import GalleryManagerPanel from '../components/admin/GalleryManagerPanel';
@@ -60,12 +62,13 @@ interface EditableEntry extends CmsEntryInput {
   id?: string;
 }
 
-type AdminView = 'content' | 'homepage' | 'site' | 'gallery' | 'downloads' | 'investment';
+type AdminView = 'content' | 'homepage' | 'site' | 'gallery' | 'downloads' | 'client-id' | 'investment';
 type SidebarGroupId =
   | 'homepage'
   | 'about'
   | 'gallery'
   | 'downloads'
+  | 'client-tools'
   | 'pillars'
   | 'projects'
   | 'investment'
@@ -181,6 +184,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     if (adminView === 'homepage') return 'homepage';
     if (adminView === 'gallery') return 'gallery';
     if (adminView === 'downloads') return 'downloads';
+    if (adminView === 'client-id') return 'client-tools';
     if (adminView === 'investment') return 'investment';
     if (adminView === 'content') return 'about';
 
@@ -378,6 +382,13 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setError('');
   };
 
+  const openClientIdGenerator = () => {
+    setAdminView('client-id');
+    setSelectedId(null);
+    setNotice('');
+    setError('');
+  };
+
   const openInvestmentEditor = () => {
     setAdminView('investment');
     setNotice('');
@@ -486,6 +497,20 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           summary: 'Názvy a viditelnost položek v menu.',
           active: adminView === 'site' && siteFocus.panel === 'navigation',
           action: () => openSiteEditor('navigation')
+        }
+      ]
+    },
+    {
+      id: 'client-tools',
+      title: 'Klienti',
+      summary: 'Interní nástroje pro intake, klientské ID a dokumentaci.',
+      icon: <Barcode size={16} className="text-cyan-300" />,
+      items: [
+        {
+          label: 'Generátor ID',
+          summary: 'Klientské ID, QR kód a čárový kód pro formuláře.',
+          active: adminView === 'client-id',
+          action: () => openClientIdGenerator()
         }
       ]
     },
@@ -618,6 +643,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         ? 'Investiční záměr'
       : adminView === 'downloads'
         ? 'Ke stažení'
+      : adminView === 'client-id'
+        ? 'Klientské ID'
       : adminView === 'site'
           ? siteFocus.panel === 'pages'
             ? `Header: ${pageIntroLabels[siteFocus.pageIntro]}`
@@ -643,6 +670,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         ? 'Velké částky, scénáře úspor a text návratnosti.'
         : adminView === 'downloads'
           ? 'Veřejné dokumenty a programové podklady ke stažení.'
+        : adminView === 'client-id'
+          ? 'Generátor klientských identifikátorů, QR kódů a čárových kódů.'
         : adminView === 'site'
           ? siteFocus.panel === 'pages'
             ? `Právě řešíš header a popis stránky „${pageIntroLabels[siteFocus.pageIntro]}“.`
@@ -1030,6 +1059,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <InvestmentSettingsPanel isDark={isDark} />
         ) : adminView === 'downloads' ? (
           <DownloadsManagerPanel />
+        ) : adminView === 'client-id' ? (
+          <ClientIdGeneratorPanel />
         ) : adminView === 'site' ? (
           <GlobalSettingsPanel
             isDark={isDark}
