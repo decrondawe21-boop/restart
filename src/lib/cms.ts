@@ -75,7 +75,7 @@ export const slugify = (value: string) =>
     .slice(0, 90);
 
 const extFromMime = (mime: string | undefined | null) => {
-  if (!mime) return 'jpg';
+  if (!mime) return '';
   if (mime.includes('png')) return 'png';
   if (mime.includes('webp')) return 'webp';
   if (mime.includes('gif')) return 'gif';
@@ -84,16 +84,28 @@ const extFromMime = (mime: string | undefined | null) => {
   if (mime.includes('mp4')) return 'mp4';
   if (mime.includes('webm')) return 'webm';
   if (mime.includes('quicktime')) return 'mov';
-  if (mime.includes('presentation') || mime.includes('powerpoint')) return 'pptx';
+  if (mime.includes('zip')) return 'zip';
+  if (mime.includes('msword')) return 'doc';
+  if (mime.includes('wordprocessingml')) return 'docx';
+  if (mime.includes('ms-excel')) return 'xls';
+  if (mime.includes('spreadsheetml')) return 'xlsx';
+  if (mime.includes('ms-powerpoint')) return 'ppt';
+  if (mime.includes('presentation') || mime.includes('powerpoint') || mime.includes('presentationml')) return 'pptx';
   if (mime.includes('opendocument.presentation')) return 'odp';
-  return 'jpg';
+  if (mime.includes('csv')) return 'csv';
+  if (mime.includes('plain')) return 'txt';
+  if (mime.includes('rtf')) return 'rtf';
+  return '';
 };
 
 const extFromUrl = (value: string) => {
   try {
     const { pathname } = new URL(value);
     const ext = pathname.split('.').pop()?.toLowerCase();
-    if (ext && ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'pdf', 'mp4', 'webm', 'mov', 'm4v', 'ppt', 'pptx', 'odp', 'key'].includes(ext)) {
+    if (
+      ext &&
+      ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'pdf', 'mp4', 'webm', 'mov', 'm4v', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odp', 'key', 'csv', 'txt', 'rtf'].includes(ext)
+    ) {
       return ext === 'jpeg' ? 'jpg' : ext;
     }
   } catch {
@@ -335,7 +347,7 @@ export const isCurrentUserAdmin = async () => {
 
 export const uploadImageFileToStorage = async (file: File, folder = 'covers') => {
   const uploadFile = await optimizeImageFileForUpload(file);
-  const extension = extFromMime(uploadFile.type);
+  const extension = extFromMime(uploadFile.type) || uploadFile.name.split('.').pop()?.toLowerCase() || 'jpg';
   const baseName = slugify(uploadFile.name.replace(/\.[^.]+$/, '')) || 'image';
   const filePath = `${folder}/${Date.now()}-${baseName}.${extension}`;
 
@@ -349,6 +361,25 @@ export const uploadImageFileToStorage = async (file: File, folder = 'covers') =>
   return supabase.storage.from(mediaBucket).getPublicUrl(filePath).data.publicUrl;
 };
 
+export const uploadPublicFileToStorage = async (file: File, folder = 'downloads') => {
+  const extension = extFromMime(file.type) || file.name.split('.').pop()?.toLowerCase() || 'bin';
+  const baseName = slugify(file.name.replace(/\.[^.]+$/, '')) || 'soubor';
+  const filePath = `${folder}/${Date.now()}-${baseName}.${extension}`;
+
+  const { error } = await supabase.storage.from(mediaBucket).upload(filePath, file, {
+    cacheControl: '3600',
+    contentType: file.type || 'application/octet-stream',
+    upsert: false
+  });
+
+  if (error) throw error;
+
+  return {
+    path: filePath,
+    url: supabase.storage.from(mediaBucket).getPublicUrl(filePath).data.publicUrl
+  };
+};
+
 export const uploadImageFromUrlToStorage = async (imageUrl: string, folder = 'covers') => {
   const response = await fetch(imageUrl);
   if (!response.ok) {
@@ -356,7 +387,7 @@ export const uploadImageFromUrlToStorage = async (imageUrl: string, folder = 'co
   }
 
   const blob = await response.blob();
-  const extension = extFromUrl(imageUrl) ?? extFromMime(blob.type);
+  const extension = (extFromUrl(imageUrl) ?? extFromMime(blob.type)) || 'jpg';
   const baseName = slugify(imageUrl.split('/').pop() ?? 'image') || 'image';
   const filePath = `${folder}/${Date.now()}-${baseName}.${extension}`;
 

@@ -11,6 +11,7 @@ export const pageIntroContentSettingKey = 'page_intro_content';
 export const investmentIntroContextSettingKey = 'investment_intro_context';
 export const investmentReturnContentSettingKey = 'investment_return_content';
 export const galleryGroupsSettingKey = 'gallery_groups';
+export const downloadLibrarySettingKey = 'download_library';
 export type LegalPageKey = 'privacy' | 'terms' | 'cookies';
 export type SocialLinkKey = 'instagram' | 'facebook' | 'globe';
 export type PageIntroKey =
@@ -332,6 +333,23 @@ export interface GalleryGroup {
 
 export type GalleryGroupsSettings = GalleryGroup[];
 
+export type DownloadFileCategory = 'documents' | 'programs';
+
+export interface DownloadFileEntry {
+  id: string;
+  title: string;
+  description: string;
+  category: DownloadFileCategory;
+  fileType: string;
+  url: string;
+  path?: string;
+  sizeBytes?: number;
+  uploadedAt?: string;
+  visible: boolean;
+}
+
+export type DownloadLibrarySettings = DownloadFileEntry[];
+
 export const navigationItemDefinitions: NavigationItemDefinition[] = [
   { key: 'home', label: 'Domů', description: 'Úvodní vstup na homepage.', group: 'Hlavní menu', depth: 0 },
   { key: 'donate', label: 'DONATE - podpořte nás!', description: 'Darovací stránka s výzvami a Stripe odkazem.', group: 'Hlavní menu', depth: 0 },
@@ -502,6 +520,306 @@ export const defaultSiteNavigationSettings: SiteNavigationSettings = {
 };
 
 export const defaultGalleryGroups: GalleryGroupsSettings = [];
+
+export const defaultDownloadLibrary: DownloadLibrarySettings = [
+  {
+    id: 'rest-art-fotodokumentace-2026',
+    title: 'REST||ART fotodokumentace 2026',
+    description: 'Veřejný fotografický podklad pro prezentaci projektu, komunikaci s partnery a grantové výstupy.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_FOTODOKUMENTACE_2026_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-fundraising-deck-2026',
+    title: 'REST||ART fundraising deck 2026',
+    description: 'Prezentační deck pro jednání s dárci, partnery a institucemi.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_FUNDRAISING_DECK_2026_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-grant-fundraising-balicek-2026',
+    title: 'Grantový a fundraisingový balíček 2026',
+    description: 'Souhrnný balíček pro granty, fundraising a partnerskou komunikaci REST||ART.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_GRANT_FUNDRAISING_BALICEK_2026_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-impact-summary-template-2026',
+    title: 'Impact summary template 2026',
+    description: 'Šablona stručného dopadového souhrnu pro veřejné a partnerské reporty.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_IMPACT_SUMMARY_2026_TEMPLATE_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-kpi-evaluace-framework',
+    title: 'KPI a evaluace framework',
+    description: 'Rámec pro sledování metrik, výsledků a vyhodnocení programu.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_KPI_EVALUACE_FRAMEWORK_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-one-page-projekt-2026',
+    title: 'One-page projekt 2026',
+    description: 'Jednostránkový veřejný souhrn projektu REST||ART INTEGRACE.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_ONE_PAGE_PROJEKT_2026_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-pribehy-klientu-template',
+    title: 'Příběhy klientů - template',
+    description: 'Šablona pro bezpečné a konzistentní zpracování klientských příběhů.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_PRIBEHY_KLIENTU_TEMPLATE_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-zakladni-rozpocet-2026',
+    title: 'Základní rozpočet 2026',
+    description: 'Základní rozpočtový podklad projektu pro plánování a jednání.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_ZAKLADNI_ROZPOCET_2026_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-canva-master-system',
+    title: 'Canva master system',
+    description: 'Brandový a produkční systém pro tvorbu vizuálních materiálů REST||ART.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_CANVA_MASTER_SYSTEM_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-evaluacni-system',
+    title: 'Evaluační systém',
+    description: 'Struktura vyhodnocování programu, dopadu a navazujících kroků.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_EVALUACNI_SYSTEM_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-exit-form',
+    title: 'Exit form',
+    description: 'Výstupní formulář pro uzavření programu a závěrečné zhodnocení.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_EXIT_FORM_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-follow-up-tracking-karta',
+    title: 'Follow-up tracking karta',
+    description: 'Karta pro sledování navazující podpory, kontaktů a stabilizačních kroků.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_FOLLOW_UP_TRACKING_KARTA_v1_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-gdpr-balicek',
+    title: 'GDPR balíček',
+    description: 'Sada podkladů pro práci se souhlasy, citlivými údaji a dokumentací klientů.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_GDPR_BALICEK_v1_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-intake-form',
+    title: 'Intake form',
+    description: 'Vstupní formulář pro první kontakt, mapování situace a zařazení do programu.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_INTAKE_FORM_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-interni-metodika',
+    title: 'Interní metodika',
+    description: 'Metodický rámec pro týmovou práci, klientský proces a vedení programu.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_INTERNI_METODIKA_v1_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-kniha-klienta',
+    title: 'Kniha klienta',
+    description: 'Klientský průvodce procesem, úkoly, stabilizací a navazující podporou.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_KNIHA_KLIENTA_v1_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-krizovy-formular',
+    title: 'Krizový formulář',
+    description: 'Formulář pro zachycení krizové situace, rizik a okamžitých opatření.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_KRIZOVY_FORMULAR_v1_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-obecny-dotaznik',
+    title: 'Obecný dotazník pro všechny programy',
+    description: 'Společný dotazník pro vstupní orientaci napříč programy REST||ART.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_OBECNY_DOTAZNIK_VSECHNY_PROGRAMY_v1_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-peer-mentoring-karta',
+    title: 'Peer mentoring karta',
+    description: 'Podklad pro práci peer mentora a průběžné zachycení podpory klienta.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_PEER_MENTORING_KARTA_v1_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-popis-projektu-2026-msp',
+    title: 'Popis projektu 2026 - MSp návrh',
+    description: 'Projektový popis určený pro institucionální a grantový kontext.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_POPIS_PROJEKTU_2026_MSp_NAVRH.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-reportovaci-formulare',
+    title: 'Reportovací formuláře',
+    description: 'Sada formulářů pro pravidelné reportování, týmové vyhodnocení a kontrolu kroků.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_REPORTOVACI_FORMULARE_v1_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-scoring-system-v1',
+    title: 'Scoring system v1',
+    description: 'První verze scoringového rámce pro vyhodnocení potřeb a rizik.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_SCORING_SYSTEM_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-scoring-system-v2',
+    title: 'Scoring system v2',
+    description: 'Aktualizovaná verze scoringového rámce pro klientskou práci.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_SCORING_SYSTEM_v2_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-stabilizacni-index-master-v4',
+    title: 'Stabilizační index master v4',
+    description: 'Hlavní stabilizační index pro sledování posunu klienta a intervenčních kroků.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_STABILIZACNI_INDEX_MASTER_v4_OPRAVENO_PROOF.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-stabilizacni-index-master-v3',
+    title: 'Stabilizační index master v3',
+    description: 'Čistá flattened verze stabilizačního indexu pro archiv a srovnání verzí.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_STABILIZACNI_INDEX_MASTER_v3_CLEAN_FLATTENED.pdf',
+    visible: true
+  },
+  {
+    id: 'restart-mereni-vysledku-programu',
+    title: 'Měření výsledků programu',
+    description: 'Podklad pro měření výsledků, cílů a dopadu programu REST||ART.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/RESTART_mereni_vysledku_programu.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-stanovy-or-podklady',
+    title: 'Stanovy a OR podklady',
+    description: 'Organizační a rejstříkové podklady pro projektový a právní rámec.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_STANOVY_OR_PODKLADY_v1.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-strucny-impact-report-template',
+    title: 'Stručný impact report - template',
+    description: 'Šablona stručného impact reportu pro veřejné výstupy a partnery.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_STRUCNY_IMPACT_REPORT_v1_TEMPLATE.pdf',
+    visible: true
+  },
+  {
+    id: 'rest-art-top-skills-workflow',
+    title: 'Top skills workflow',
+    description: 'Workflow kompetencí a praktických kroků pro klientskou i týmovou práci.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/REST_ART_TOP_SKILLS_WORKFLOW.pdf',
+    visible: true
+  },
+  {
+    id: 'restart-budget-template-2026',
+    title: 'Budget template 2026',
+    description: 'Rozpočtová šablona pro plánování projektových nákladů a grantů.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/RESTART_budget_template_2026.pdf',
+    visible: true
+  },
+  {
+    id: 'restart-grantova-strategie-2026',
+    title: 'Grantová strategie 2026',
+    description: 'Strategický přehled grantových směrů, priorit a návazných kroků.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/RESTART_grantova_strategie_2026.pdf',
+    visible: true
+  },
+  {
+    id: 'restart-grantovy-prehlad-2026-cz',
+    title: 'Grantový přehled 2026 CZ',
+    description: 'Český přehled grantových příležitostí a plánovacích bodů pro rok 2026.',
+    category: 'documents',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/RESTART_grantovy_prehlad_2026_CZ.pdf',
+    visible: true
+  },
+  {
+    id: 'restart-kniha-klientu-metriky',
+    title: 'Kniha klientů - metriky',
+    description: 'Metrický podklad ke knize klientů a vyhodnocování stabilizačního procesu.',
+    category: 'programs',
+    fileType: 'PDF',
+    url: '/downloads/rest-art/RESTART_kniha_klientu_METRIKY.pdf',
+    visible: true
+  }
+];
 
 export const defaultInvestmentIntroContext: InvestmentIntroContextSettings = {
   eyebrow: 'Osobní kontext a reálný základ',
@@ -1108,6 +1426,41 @@ export const normalizeInvestmentReturnContent = (value: unknown): InvestmentRetu
     }),
     historicalNote: asNonEmptyString(source.historicalNote, defaultInvestmentReturnContent.historicalNote)
   };
+};
+
+export const normalizeDownloadLibrary = (value: unknown): DownloadLibrarySettings => {
+  if (!Array.isArray(value)) {
+    return defaultDownloadLibrary;
+  }
+
+  const normalized = value
+    .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    .map((item, index) => {
+      const category: DownloadFileCategory = item.category === 'programs' ? 'programs' : 'documents';
+      const url = typeof item.url === 'string' ? item.url.trim() : '';
+
+      return {
+        id: asNonEmptyString(item.id, `download-file-${index + 1}`),
+        title: asNonEmptyString(item.title, `Soubor ${index + 1}`),
+        description: asNonEmptyString(item.description, 'Veřejný soubor ke stažení.'),
+        category,
+        fileType: asNonEmptyString(item.fileType, 'Soubor').toUpperCase(),
+        url,
+        path: typeof item.path === 'string' && item.path.trim().length > 0 ? item.path : undefined,
+        sizeBytes:
+          typeof item.sizeBytes === 'number' && Number.isFinite(item.sizeBytes) && item.sizeBytes > 0
+            ? item.sizeBytes
+            : undefined,
+        uploadedAt:
+          typeof item.uploadedAt === 'string' && item.uploadedAt.trim().length > 0
+            ? item.uploadedAt
+            : undefined,
+        visible: item.visible !== false
+      };
+    })
+    .filter((item) => item.url.length > 0);
+
+  return normalized.length > 0 ? normalized : defaultDownloadLibrary;
 };
 
 const parseGalleryDate = (value: string) => {

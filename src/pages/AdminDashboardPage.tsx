@@ -27,6 +27,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import AdminInfoTooltip from '../components/admin/AdminInfoTooltip';
 import AdminStickyActionBar from '../components/admin/AdminStickyActionBar';
+import DownloadsManagerPanel from '../components/admin/DownloadsManagerPanel';
 import GlobalSettingsPanel, { type SitePanel } from '../components/admin/GlobalSettingsPanel';
 import GalleryManagerPanel from '../components/admin/GalleryManagerPanel';
 import HomepageBuilderPanel from '../components/admin/HomepageBuilderPanel';
@@ -59,7 +60,7 @@ interface EditableEntry extends CmsEntryInput {
   id?: string;
 }
 
-type AdminView = 'content' | 'homepage' | 'site' | 'gallery' | 'investment';
+type AdminView = 'content' | 'homepage' | 'site' | 'gallery' | 'downloads' | 'investment';
 type SidebarGroupId =
   | 'homepage'
   | 'about'
@@ -179,6 +180,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const getSidebarGroupForView = () => {
     if (adminView === 'homepage') return 'homepage';
     if (adminView === 'gallery') return 'gallery';
+    if (adminView === 'downloads') return 'downloads';
     if (adminView === 'investment') return 'investment';
     if (adminView === 'content') return 'about';
 
@@ -369,6 +371,13 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setError('');
   };
 
+  const openDownloadsManager = () => {
+    setAdminView('downloads');
+    setSelectedId(null);
+    setNotice('');
+    setError('');
+  };
+
   const openInvestmentEditor = () => {
     setAdminView('investment');
     setNotice('');
@@ -467,16 +476,16 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       icon: <Upload size={16} className="text-cyan-300" />,
       items: [
         {
-          label: 'Dokumenty',
-          summary: 'Názvy a viditelnost odkazů v menu ke stažení.',
-          active: adminView === 'site' && siteFocus.panel === 'navigation',
-          action: () => openSiteEditor('navigation')
+          label: 'Soubory ke stažení',
+          summary: 'Upload, popisy a viditelnost veřejných souborů.',
+          active: adminView === 'downloads',
+          action: () => openDownloadsManager()
         },
         {
-          label: 'Programy',
-          summary: 'Soubory a assety používané v download sekci.',
-          active: adminView === 'site' && siteFocus.panel === 'media',
-          action: () => openSiteEditor('media')
+          label: 'Menu ke stažení',
+          summary: 'Názvy a viditelnost položek v menu.',
+          active: adminView === 'site' && siteFocus.panel === 'navigation',
+          action: () => openSiteEditor('navigation')
         }
       ]
     },
@@ -607,6 +616,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         : 'Homepage · Hero / média'
       : adminView === 'investment'
         ? 'Investiční záměr'
+      : adminView === 'downloads'
+        ? 'Ke stažení'
       : adminView === 'site'
           ? siteFocus.panel === 'pages'
             ? `Header: ${pageIntroLabels[siteFocus.pageIntro]}`
@@ -630,6 +641,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         : 'Upravuješ vizuální sloty, hero a další média úvodní stránky.'
       : adminView === 'investment'
         ? 'Velké částky, scénáře úspor a text návratnosti.'
+        : adminView === 'downloads'
+          ? 'Veřejné dokumenty a programové podklady ke stažení.'
         : adminView === 'site'
           ? siteFocus.panel === 'pages'
             ? `Právě řešíš header a popis stránky „${pageIntroLabels[siteFocus.pageIntro]}“.`
@@ -1015,6 +1028,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           />
         ) : adminView === 'investment' ? (
           <InvestmentSettingsPanel isDark={isDark} />
+        ) : adminView === 'downloads' ? (
+          <DownloadsManagerPanel />
         ) : adminView === 'site' ? (
           <GlobalSettingsPanel
             isDark={isDark}

@@ -23,10 +23,12 @@ import {
   defaultHomepageLayout,
   defaultHomepageMediaSlots,
   defaultGalleryGroups,
+  defaultDownloadLibrary,
   homepageLayoutSettingKey,
   homepageMediaSlotsSettingKey,
   homepageWidgetContentSettingKey,
   galleryGroupsSettingKey,
+  downloadLibrarySettingKey,
   globalNavigationSettingKey,
   globalPublicContactSettingKey,
   legalPageContentSettingKey,
@@ -36,6 +38,7 @@ import {
   normalizeHomepageLayout,
   normalizeHomepageMediaSlots,
   normalizeGalleryGroups,
+  normalizeDownloadLibrary,
   normalizeHomepageWidgetContent,
   normalizePublicContactInfo,
   normalizeLegalPageContent,
@@ -49,6 +52,7 @@ import {
   defaultInvestmentIntroContext,
   defaultInvestmentReturnContent,
   defaultSiteNavigationSettings,
+  type DownloadFileEntry,
   type HomepageSectionId,
   type NavigationItemKey
 } from './lib/siteSettings';
@@ -63,7 +67,7 @@ import {
   Target, TrendingDown, TrendingUp, CheckCircle, Wallet, Activity, BarChart,
   Lightbulb, Flag, Workflow, Building2, Gavel, Award,
   AlertCircle, Link, MessageCircle, ShieldAlert, ArrowDownRight, Zap,
-  Fingerprint, HeartHandshake, Scale, Eye, HelpCircle, Sun, Moon
+  Fingerprint, HeartHandshake, Scale, Eye, HelpCircle, Sun, Moon, Download
 } from 'lucide-react';
 
 const apiKey = ""; // Klíč poskytne prostředí
@@ -624,6 +628,7 @@ const App = () => {
   const [publicNewsPosts, setPublicNewsPosts] = useState<BlogPost[]>([]);
   const [publicBlogPosts, setPublicBlogPosts] = useState<BlogPost[]>([]);
   const [publicGalleryGroups, setPublicGalleryGroups] = useState(defaultGalleryGroups);
+  const [downloadLibrary, setDownloadLibrary] = useState(defaultDownloadLibrary);
   const [homepageLayout, setHomepageLayout] = useState(defaultHomepageLayout);
   const [homepageMediaSlots, setHomepageMediaSlots] = useState(defaultHomepageMediaSlots);
   const [homepageWidgetContent, setHomepageWidgetContent] = useState(defaultHomepageWidgetContent);
@@ -793,6 +798,7 @@ const App = () => {
           homepageMediaSlotsSettingKey,
           homepageWidgetContentSettingKey,
           galleryGroupsSettingKey,
+          downloadLibrarySettingKey,
           globalNavigationSettingKey,
           globalPublicContactSettingKey,
           legalPageContentSettingKey,
@@ -808,6 +814,7 @@ const App = () => {
         setHomepageMediaSlots(normalizeHomepageMediaSlots(byKey.get(homepageMediaSlotsSettingKey)));
         setHomepageWidgetContent(normalizeHomepageWidgetContent(byKey.get(homepageWidgetContentSettingKey)));
         setPublicGalleryGroups(normalizeGalleryGroups(byKey.get(galleryGroupsSettingKey)));
+        setDownloadLibrary(normalizeDownloadLibrary(byKey.get(downloadLibrarySettingKey)));
         setSiteNavigationSettings(normalizeSiteNavigationSettings(byKey.get(globalNavigationSettingKey)));
         setSiteLegalPageContent(normalizeLegalPageContent(byKey.get(legalPageContentSettingKey)));
         setPageIntroContent(normalizePageIntroContent(byKey.get(pageIntroContentSettingKey)));
@@ -835,6 +842,11 @@ const App = () => {
   ];
   const currencyFormatter = new Intl.NumberFormat('cs-CZ');
   const formatCurrency = (value: number) => `${currencyFormatter.format(value)} Kč`;
+  const formatDownloadSize = (value?: number) => {
+    if (!value || value <= 0) return '';
+    if (value < 1024 * 1024) return `${Math.round(value / 1024)} kB`;
+    return `${(value / 1024 / 1024).toFixed(1).replace('.', ',')} MB`;
+  };
   const totalInfrastructureInvestment = 14_200_000;
   const annualSystemCostModel = 600_000;
   const annualSystemCostHistorical = 647_145;
@@ -4690,27 +4702,15 @@ const App = () => {
           />
         );
       case 'downloads-documents': {
-        const documentDownloads = [
-          {
-            title: 'Registrační formulář',
-            type: 'PDF / DOCX',
-            description: 'Vstupní formulář pro zapojení do programu a první administrativní krok.'
-          },
-          {
-            title: 'Grafy dopadu',
-            type: 'PDF / PNG',
-            description: 'Přehled nákladů, recidivy, návratnosti a měřitelných cílů projektu.'
-          },
-          {
-            title: 'Výroční zprávy',
-            type: 'PDF',
-            description: 'Archiv výročních zpráv, souhrnů a veřejných výstupů REST||ART INTEGRACE.'
-          },
-          {
-            title: 'Další dokumenty',
-            type: 'Složka',
-            description: 'Metodiky, partnerské podklady, prezentace a další veřejné materiály projektu.'
-          }
+        const documentDownloads = downloadLibrary.filter(
+          (item): item is DownloadFileEntry => item.category === 'documents' && item.visible
+        );
+        const clientUiTodoItems = [
+          'Registrace klienta a bezpečný vstupní formulář podle dodaných registračních podkladů.',
+          'Nahrávání klientských příloh, souhlasů, fotodokumentace a navazujících dokumentů.',
+          'Přehled stavu klienta: intake, scoring, stabilizační index, follow-up a exit.',
+          'Úkoly klienta, termíny, bezpečné zprávy a historie týmových kroků.',
+          'Export dokumentace, GDPR balíček, reporty dopadu a metriky pro partnery.'
         ];
 
         return (
@@ -4730,49 +4730,75 @@ const App = () => {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
-                {documentDownloads.map((item) => (
-                  <article key={item.title} className="glass-panel p-7 rounded-[2.4rem] border-white/10 hover:border-cyan-400/25 transition-all">
-                    <div className="mb-7 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-500/10 text-cyan-300">
-                      <FileText size={24} />
-                    </div>
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-300 font-black">{item.type}</p>
-                    <h3 className="mt-3 text-2xl font-black text-white uppercase leading-tight">{item.title}</h3>
-                    <p className="mt-4 text-sm text-white/48 font-light leading-relaxed">{item.description}</p>
-                    <div className="mt-7 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">
-                      Součást dokumentace
-                      <ArrowDownRight size={14} />
-                    </div>
-                  </article>
-                ))}
+              {documentDownloads.length === 0 ? (
+                <div className="glass-panel rounded-[2.5rem] border-dashed border-cyan-400/20 p-8 text-center">
+                  <p className="text-sm text-white/45">Veřejné dokumenty se připravují.</p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {documentDownloads.map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      className="glass-panel group flex min-h-[260px] flex-col p-7 rounded-[2.4rem] border-white/10 hover:border-cyan-400/25 transition-all"
+                    >
+                      <div className="mb-7 flex items-start justify-between gap-4">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-500/10 text-cyan-300">
+                          <FileText size={24} />
+                        </div>
+                        <div className="rounded-full border border-cyan-400/15 bg-cyan-500/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-cyan-300 font-black">
+                          {item.fileType}
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-black text-white uppercase leading-tight group-hover:text-cyan-200 transition-colors">{item.title}</h3>
+                      <p className="mt-4 flex-grow text-sm text-white/48 font-light leading-relaxed">{item.description}</p>
+                      <div className="mt-7 flex items-center justify-between gap-4 border-t border-white/10 pt-5">
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-white/35 font-black">
+                          {formatDownloadSize(item.sizeBytes) || 'Veřejný soubor'}
+                        </span>
+                        <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-cyan-300 font-black">
+                          Stáhnout
+                          <Download size={14} />
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              <div className="glass-panel rounded-[2.5rem] border-cyan-400/15 bg-cyan-500/[0.04] p-8">
+                <div className="grid gap-8 lg:grid-cols-[0.85fr,1.15fr]">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-300 font-black">TODO klientské UI</p>
+                    <h3 className="mt-3 text-3xl font-black uppercase text-white">REST||ART Integrace</h3>
+                    <p className="mt-4 text-sm text-white/48 font-light leading-relaxed">
+                      Základní roadmapa pro klientské rozhraní. Jakmile dodáš registrace a finální formuláře,
+                      navážeme datové modely, stavy a obrazovky přímo na ně.
+                    </p>
+                  </div>
+                  <div className="grid gap-3">
+                    {clientUiTodoItems.map((item, index) => (
+                      <div key={item} className="flex gap-3 rounded-[1.4rem] border border-white/10 bg-black/20 px-4 py-3">
+                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-[10px] font-black text-black">
+                          {index + 1}
+                        </span>
+                        <p className="text-sm leading-relaxed text-white/58">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         );
       }
       case 'downloads-programs': {
-        const programDownloads = [
-          {
-            title: 'Programový balíček REST||ART',
-            type: 'ZIP / EXE',
-            description: 'Instalační soubory, distribuční balíčky a praktické nástroje navázané na projekt REST||ART.'
-          },
-          {
-            title: 'JAILBREAK podklady',
-            type: 'PDF / ZIP',
-            description: 'Materiály a pracovní soubory pro program resocializace po výkonu trestu.'
-          },
-          {
-            title: 'REWORK podklady',
-            type: 'PDF / XLSX',
-            description: 'Rekvalifikační materiály, pracovní rámce a soubory pro partnerské firmy.'
-          },
-          {
-            title: 'STREETWISE / RESET / STABILIZACE',
-            type: 'Složka',
-            description: 'Programové materiály, metodiky a soubory pro terénní i navazující práci.'
-          }
-        ];
+        const programDownloads = downloadLibrary.filter(
+          (item): item is DownloadFileEntry => item.category === 'programs' && item.visible
+        );
 
         return (
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
@@ -4791,22 +4817,44 @@ const App = () => {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
-                {programDownloads.map((item) => (
-                  <article key={item.title} className="glass-panel p-7 rounded-[2.4rem] border-white/10 hover:border-emerald-400/25 transition-all">
-                    <div className="mb-7 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-400/15 bg-emerald-500/10 text-emerald-300">
-                      <Monitor size={24} />
-                    </div>
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-emerald-300 font-black">{item.type}</p>
-                    <h3 className="mt-3 text-2xl font-black text-white uppercase leading-tight">{item.title}</h3>
-                    <p className="mt-4 text-sm text-white/48 font-light leading-relaxed">{item.description}</p>
-                    <div className="mt-7 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-white/30 font-black">
-                      Součást knihovny
-                      <ArrowDownRight size={14} />
-                    </div>
-                  </article>
-                ))}
-              </div>
+              {programDownloads.length === 0 ? (
+                <div className="glass-panel rounded-[2.5rem] border-dashed border-emerald-400/20 p-8 text-center">
+                  <p className="text-sm text-white/45">Programové podklady se připravují.</p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {programDownloads.map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      className="glass-panel group flex min-h-[260px] flex-col p-7 rounded-[2.4rem] border-white/10 hover:border-emerald-400/25 transition-all"
+                    >
+                      <div className="mb-7 flex items-start justify-between gap-4">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-400/15 bg-emerald-500/10 text-emerald-300">
+                          <Monitor size={24} />
+                        </div>
+                        <div className="rounded-full border border-emerald-400/15 bg-emerald-500/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-emerald-300 font-black">
+                          {item.fileType}
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-black text-white uppercase leading-tight group-hover:text-emerald-200 transition-colors">{item.title}</h3>
+                      <p className="mt-4 flex-grow text-sm text-white/48 font-light leading-relaxed">{item.description}</p>
+                      <div className="mt-7 flex items-center justify-between gap-4 border-t border-white/10 pt-5">
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-white/35 font-black">
+                          {formatDownloadSize(item.sizeBytes) || 'Veřejný soubor'}
+                        </span>
+                        <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-emerald-300 font-black">
+                          Stáhnout
+                          <Download size={14} />
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
 
               <div className="glass-panel rounded-[2.5rem] border-emerald-400/15 bg-emerald-500/[0.04] p-8">
                 <p className="text-[10px] uppercase tracking-[0.28em] text-emerald-300 font-black">Jak jsou materiály členěné</p>
