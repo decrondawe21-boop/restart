@@ -345,6 +345,7 @@ export interface DownloadFileEntry {
   path?: string;
   sizeBytes?: number;
   uploadedAt?: string;
+  requiresAdmin?: boolean;
   visible: boolean;
 }
 
@@ -556,6 +557,7 @@ export const defaultDownloadLibrary: DownloadLibrarySettings = [
     category: 'documents',
     fileType: 'PDF',
     url: '/downloads/rest-art/REST_ART_IMPACT_SUMMARY_2026_TEMPLATE_v1.pdf',
+    requiresAdmin: true,
     visible: true
   },
   {
@@ -583,6 +585,7 @@ export const defaultDownloadLibrary: DownloadLibrarySettings = [
     category: 'documents',
     fileType: 'PDF',
     url: '/downloads/rest-art/REST_ART_PRIBEHY_KLIENTU_TEMPLATE_v1.pdf',
+    requiresAdmin: true,
     visible: true
   },
   {
@@ -772,6 +775,7 @@ export const defaultDownloadLibrary: DownloadLibrarySettings = [
     category: 'documents',
     fileType: 'PDF',
     url: '/downloads/rest-art/REST_ART_STRUCNY_IMPACT_REPORT_v1_TEMPLATE.pdf',
+    requiresAdmin: true,
     visible: true
   },
   {
@@ -790,6 +794,7 @@ export const defaultDownloadLibrary: DownloadLibrarySettings = [
     category: 'documents',
     fileType: 'PDF',
     url: '/downloads/rest-art/RESTART_budget_template_2026.pdf',
+    requiresAdmin: true,
     visible: true
   },
   {
@@ -1438,10 +1443,18 @@ export const normalizeDownloadLibrary = (value: unknown): DownloadLibrarySetting
     .map((item, index) => {
       const category: DownloadFileCategory = item.category === 'programs' ? 'programs' : 'documents';
       const url = typeof item.url === 'string' ? item.url.trim() : '';
+      const title = asNonEmptyString(item.title, `Soubor ${index + 1}`);
+      const id = asNonEmptyString(item.id, `download-file-${index + 1}`);
+      const templateFingerprint = `${id} ${title} ${url}`.toLowerCase();
+      const requiresAdmin =
+        item.requiresAdmin === true ||
+        templateFingerprint.includes('template') ||
+        templateFingerprint.includes('sablona') ||
+        templateFingerprint.includes('šablona');
 
       return {
-        id: asNonEmptyString(item.id, `download-file-${index + 1}`),
-        title: asNonEmptyString(item.title, `Soubor ${index + 1}`),
+        id,
+        title,
         description: asNonEmptyString(item.description, 'Veřejný soubor ke stažení.'),
         category,
         fileType: asNonEmptyString(item.fileType, 'Soubor').toUpperCase(),
@@ -1455,6 +1468,7 @@ export const normalizeDownloadLibrary = (value: unknown): DownloadLibrarySetting
           typeof item.uploadedAt === 'string' && item.uploadedAt.trim().length > 0
             ? item.uploadedAt
             : undefined,
+        requiresAdmin,
         visible: item.visible !== false
       };
     })

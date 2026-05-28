@@ -637,6 +637,7 @@ const App = () => {
   const [pageIntroContent, setPageIntroContent] = useState(defaultPageIntroContent);
   const [investmentIntroContext, setInvestmentIntroContext] = useState(defaultInvestmentIntroContext);
   const [investmentReturnContent, setInvestmentReturnContent] = useState(defaultInvestmentReturnContent);
+  const canViewAdminOnlyDownloads = hasAdminAccess;
 
   const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
   const isAdminRoute = normalizedPath === '/admin' || normalizedPath.startsWith('/admin/');
@@ -4703,7 +4704,10 @@ const App = () => {
         );
       case 'downloads-documents': {
         const documentDownloads = downloadLibrary.filter(
-          (item): item is DownloadFileEntry => item.category === 'documents' && item.visible
+          (item): item is DownloadFileEntry =>
+            item.category === 'documents' &&
+            item.visible &&
+            (!item.requiresAdmin || canViewAdminOnlyDownloads)
         );
 
         return (
@@ -4768,7 +4772,10 @@ const App = () => {
       }
       case 'downloads-programs': {
         const programDownloads = downloadLibrary.filter(
-          (item): item is DownloadFileEntry => item.category === 'programs' && item.visible
+          (item): item is DownloadFileEntry =>
+            item.category === 'programs' &&
+            item.visible &&
+            (!item.requiresAdmin || canViewAdminOnlyDownloads)
         );
 
         return (
