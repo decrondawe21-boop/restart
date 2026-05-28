@@ -4705,13 +4705,6 @@ const App = () => {
         const documentDownloads = downloadLibrary.filter(
           (item): item is DownloadFileEntry => item.category === 'documents' && item.visible
         );
-        const clientUiTodoItems = [
-          'Registrace klienta a bezpečný vstupní formulář podle dodaných registračních podkladů.',
-          'Nahrávání klientských příloh, souhlasů, fotodokumentace a navazujících dokumentů.',
-          'Přehled stavu klienta: intake, scoring, stabilizační index, follow-up a exit.',
-          'Úkoly klienta, termíny, bezpečné zprávy a historie týmových kroků.',
-          'Export dokumentace, GDPR balíček, reporty dopadu a metriky pro partnery.'
-        ];
 
         return (
           <div className="pt-32 pb-20 px-6 animate-in fade-in duration-1000 relative overflow-hidden">
@@ -4769,28 +4762,6 @@ const App = () => {
                 </div>
               )}
 
-              <div className="glass-panel rounded-[2.5rem] border-cyan-400/15 bg-cyan-500/[0.04] p-8">
-                <div className="grid gap-8 lg:grid-cols-[0.85fr,1.15fr]">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-300 font-black">TODO klientské UI</p>
-                    <h3 className="mt-3 text-3xl font-black uppercase text-white">REST||ART Integrace</h3>
-                    <p className="mt-4 text-sm text-white/48 font-light leading-relaxed">
-                      Základní roadmapa pro klientské rozhraní. Jakmile dodáš registrace a finální formuláře,
-                      navážeme datové modely, stavy a obrazovky přímo na ně.
-                    </p>
-                  </div>
-                  <div className="grid gap-3">
-                    {clientUiTodoItems.map((item, index) => (
-                      <div key={item} className="flex gap-3 rounded-[1.4rem] border border-white/10 bg-black/20 px-4 py-3">
-                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-[10px] font-black text-black">
-                          {index + 1}
-                        </span>
-                        <p className="text-sm leading-relaxed text-white/58">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         );
