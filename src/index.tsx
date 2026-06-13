@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './index.css';
-import BlogPage, { type BlogPost } from './pages/BlogPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import GalleryPage from './pages/GalleryPage';
-import AdminLoginPage from './pages/AdminLoginPage';
+import type { BlogPost } from './pages/BlogPage';
 import AdminLoginDialog from './components/AdminLoginDialog';
 import BlockQuote from './components/BlockQuote';
 import ContactModal from './components/ContactModal';
@@ -71,6 +68,10 @@ import {
 } from 'lucide-react';
 
 const apiKey = ""; // Klíč poskytne prostředí
+const BlogPage = React.lazy(() => import('./pages/BlogPage'));
+const AdminDashboardPage = React.lazy(() => import('./pages/AdminDashboardPage'));
+const GalleryPage = React.lazy(() => import('./pages/GalleryPage'));
+const AdminLoginPage = React.lazy(() => import('./pages/AdminLoginPage'));
 const PieChartCard = React.lazy(() => import('./components/PieChartCard'));
 
 interface Project {
@@ -7137,34 +7138,36 @@ const App = () => {
         </div>
 
         <div className="relative z-10">
-          <Routes>
-            <Route
-              path="/admin/login"
-              element={
-                <AdminLoginPage
-                  session={adminSession}
-                  authReady={authReady}
-                  isAdmin={hasAdminAccess}
-                  isDark={isDark}
-                  onToggleTheme={() => setIsDark((prev) => !prev)}
-                />
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <AdminDashboardPage
-                  session={adminSession}
-                  authReady={authReady}
-                  isAdmin={hasAdminAccess}
-                  isDark={isDark}
-                  onToggleTheme={() => setIsDark((prev) => !prev)}
-                />
-              }
-            />
-            <Route path="/admin/*" element={<Navigate to={adminRedirect} replace />} />
-            <Route path="*" element={<Navigate to={adminRedirect} replace />} />
-          </Routes>
+          <React.Suspense fallback={<div className="min-h-screen px-6 py-32 text-center text-cyan-300">Načítám administraci...</div>}>
+            <Routes>
+              <Route
+                path="/admin/login"
+                element={
+                  <AdminLoginPage
+                    session={adminSession}
+                    authReady={authReady}
+                    isAdmin={hasAdminAccess}
+                    isDark={isDark}
+                    onToggleTheme={() => setIsDark((prev) => !prev)}
+                  />
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <AdminDashboardPage
+                    session={adminSession}
+                    authReady={authReady}
+                    isAdmin={hasAdminAccess}
+                    isDark={isDark}
+                    onToggleTheme={() => setIsDark((prev) => !prev)}
+                  />
+                }
+              />
+              <Route path="/admin/*" element={<Navigate to={adminRedirect} replace />} />
+              <Route path="*" element={<Navigate to={adminRedirect} replace />} />
+            </Routes>
+          </React.Suspense>
         </div>
       </div>
     );
@@ -7274,13 +7277,15 @@ const App = () => {
         </aside>
       </div>
 
-      <Routes>
-        {routablePages.map((page) => (
-          <Route key={page} path={pagePathMap[page]} element={renderContent(page)} />
-        ))}
-        <Route path={pagePathMap.contacts} element={<ContactModalRoute />} />
-        <Route path="*" element={<Navigate to={pagePathMap.home} replace />} />
-      </Routes>
+      <React.Suspense fallback={<div className="min-h-[60vh] px-6 py-32 text-center text-cyan-300">Načítám stránku...</div>}>
+        <Routes>
+          {routablePages.map((page) => (
+            <Route key={page} path={pagePathMap[page]} element={renderContent(page)} />
+          ))}
+          <Route path={pagePathMap.contacts} element={<ContactModalRoute />} />
+          <Route path="*" element={<Navigate to={pagePathMap.home} replace />} />
+        </Routes>
+      </React.Suspense>
 
       <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
       <AdminLoginDialog
