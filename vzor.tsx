@@ -368,7 +368,7 @@ const App = () => {
                   <div className="bg-cyan-500/10 p-6 rounded-2xl text-cyan-400 group-hover:rotate-12 transition-transform"><Mail size={32} /></div>
                   <div>
                     <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1 font-black">E-mailová adresa</p>
-                    <p className="text-2xl md:text-3xl font-black text-white">kozak@d-international.eu</p>
+                    <p className="text-2xl md:text-3xl font-black text-white">restart@dk-i.cz</p>
                   </div>
                 </div>
                 <a href="https://international.david-kozak.com" target="_blank" className="glass-panel p-10 rounded-3xl flex items-center gap-8 hover:bg-cyan-500/5 transition-all group">

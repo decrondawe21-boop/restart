@@ -19,7 +19,7 @@ export const publicContact: PublicContactInfo = {
   addressLine: 'Drážďanská 517/52',
   cityLine: '400 07 Ústí nad Labem',
   phone: '+420 778 564 279',
-  email: 'kozak.david@dk-i.cz',
+  email: 'restart@dk-i.cz',
   primaryWebsite: 'www.restartintegrace.david-kozak.com',
   primaryWebsiteUrl: 'https://restartintegrace.david-kozak.com',
   secondaryWebsite: 'www.international.david-kozak.com',

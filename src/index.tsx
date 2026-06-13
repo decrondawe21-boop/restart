@@ -76,9 +76,10 @@ const PieChartCard = React.lazy(() => import('./components/PieChartCard'));
 interface Project {
   name: string;
   url: string;
-  desc: string;
+  description: string;
   category: string;
-  previewSrc: string;
+  preview?: string;
+  ogImage?: string;
   previewAlt: string;
   icon: React.ReactElement;
 }
@@ -158,13 +159,14 @@ const pagePathMap: Record<PageKey, string> = {
 
 const siteOrigin = 'https://restartintegrace.david-kozak.com';
 const defaultSeoImage = `${siteOrigin}/brand/og-restart-integrace-v2.png`;
+const previewVersion = '20260525';
 const siteTitle = 'REST||ART Integrace';
 const siteDescription =
-  'REST||ART Integrace propojuje postpenitenciární podporu, práci, bydlení, mentoring a dlouhodobou stabilizaci pro lidi, kteří potřebují skutečný návrat do života.';
+  'REST||ART Integrace je projekt druhé šance v praxi: propojuje práci, mentoring, bydlení a stabilizaci pro návrat lidí z krize, výkonu trestu nebo sociálního vyloučení.';
 
 const pageSeoContent: Record<PageKey, { title: string; description: string; image?: string }> = {
   home: {
-    title: 'REST||ART Integrace | Druhá šance, která se mění v plán',
+    title: 'REST||ART Integrace | Druhá šance v praxi',
     description: siteDescription
   },
   about: {
@@ -1125,25 +1127,27 @@ const App = () => {
     { id: 'stabilizace', title: 'STABILIZACE', description: 'Dlouhodobé udržení změny, follow-up, pracovní a komunitní opora, zdraví, bydlení a zodpovědnost za další krok.', icon: <ShieldCheck />, color: 'teal', imageSrc: brandAssets.programIcons.stabilizace }
   ];
 
-  const projectPreviewPath = (slug: string) => `/images/project-previews/${slug}.png`;
+  const projectFallbackPreview = `${siteOrigin}/images/project-previews/dki-app.png`;
+  const withPreviewVersion = (url: string) => `${url}${url.includes('?') ? '&' : '?'}v=${previewVersion}`;
+  const resolveProjectPreview = (project: Project) => withPreviewVersion(project.ogImage ?? project.preview ?? projectFallbackPreview);
 
   const kozakProjects: Project[] = [
-    { name: "David Kozák International", url: "https://international.david-kozak.com", category: "Hlavní web", desc: "Firemní web pro služby, mezinárodní aktivity, kvalifikované řemeslníky, A1 dokumentaci a provozní podporu.", icon: <Globe />, previewSrc: projectPreviewPath('david-kozak-international'), previewAlt: "Náhled webu David Kozák International" },
-    { name: "F-STUDIO", url: "https://studio.david-kozak.com", category: "Kreativa a systémy", desc: "Kreativní a firemní systém pro řízení procesů, financí, HR, skladu, reportingu a komunikace.", icon: <Rocket />, previewSrc: projectPreviewPath('f-studio'), previewAlt: "Náhled webu F-STUDIO" },
-    { name: "Imaginator", url: "https://imaginator.david-kozak.com", category: "Kreativa a systémy", desc: "Generativní vizuální projekt a AI experimenty.", icon: <Paintbrush />, previewSrc: projectPreviewPath('imaginator'), previewAlt: "Náhled webu Imaginator" },
-    { name: "DKI Lab", url: "https://new.david-kozak.com/", category: "Kreativa a systémy", desc: "Experimentální větev s novými koncepty a produktovými nápady.", icon: <Lightbulb />, previewSrc: projectPreviewPath('dki-lab'), previewAlt: "Náhled webu DKI Lab" },
-    { name: "Silver projekt", url: "https://silver.david-kozak.com/", category: "Kreativa a systémy", desc: "Specializovaný projekt s vlastním brand stylem.", icon: <Award />, previewSrc: projectPreviewPath('silver-projekt'), previewAlt: "Náhled webu Silver projekt" },
-    { name: "Osobní profil", url: "https://osobni.david-kozak.com/", category: "Osobní a profilové weby", desc: "Osobní profil a veřejná prezentace.", icon: <Users />, previewSrc: projectPreviewPath('osobni-profil'), previewAlt: "Náhled webu Osobní profil" },
-    { name: "Profesní CV", url: "https://zivotopis.david-kozak.com/", category: "Osobní a profilové weby", desc: "Profesní CV web s referencemi.", icon: <FileText />, previewSrc: projectPreviewPath('profesni-cv'), previewAlt: "Náhled webu Profesní CV" },
-    { name: "DKI App", url: "https://appka.david-kozak.com/", category: "Aplikace a technické projekty", desc: "Produktový web zaměřený na aplikaci.", icon: <Smartphone />, previewSrc: projectPreviewPath('dki-app'), previewAlt: "Náhled webu DKI App" },
-    { name: "RepasMobile", url: "https://repasmobile.david-kozak.com", category: "Aplikace a technické projekty", desc: "Produktová prezentace zaměřená na mobilní servis a opravy.", icon: <RefreshCw />, previewSrc: projectPreviewPath('repasmobile'), previewAlt: "Náhled webu RepasMobile" },
-    { name: "Dev / DK", url: "https://dk.david-kozak.com", category: "Aplikace a technické projekty", desc: "Technický hub s vývojářskými projekty.", icon: <Monitor />, previewSrc: projectPreviewPath('dev-dk'), previewAlt: "Náhled webu Dev / DK" },
-    { name: "DKI Invent", url: "https://invent.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Evidence inventáře a majetku pro projekty DKI.", icon: <LayoutGrid />, previewSrc: projectPreviewPath('dki-invent'), previewAlt: "Náhled webu DKI Invent" },
-    { name: "Kozák / DK-I", url: "https://kozak.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Osobní projektový hub pod infrastrukturou DK-I.", icon: <Link />, previewSrc: projectPreviewPath('kozak-dk-i'), previewAlt: "Náhled webu Kozák / DK-I" },
-    { name: "Roadmaps / DK-I", url: "https://roadmaps.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Veřejný přehled roadmap pro plánování a směr produktů.", icon: <Workflow />, previewSrc: projectPreviewPath('roadmaps-dk-i'), previewAlt: "Náhled webu Roadmaps / DK-I" },
-    { name: "PROTOKOL: AEGIS", url: "https://aegis.d-international.eu", category: "AI / bezpečnost", desc: "AI obranná vrstva proti manipulačním webovým patternům.", icon: <ShieldAlert />, previewSrc: projectPreviewPath('protokol-aegis'), previewAlt: "Náhled webu PROTOKOL: AEGIS" },
-    { name: "Vyvoj - BEZA f | David Kozák International, s.r.o.", url: "https://firemni.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Interní firemní a ekonomický systém pro zakázky, nákladové položky, billing, dokumentaci, týmové schvalování a AI konzultanta.", icon: <Building2 />, previewSrc: "https://firemni.dk-i.cz/banners/open-graph.png", previewAlt: "Náhled interního systému Vyvoj - BEZA f" },
-    { name: "Fakturuj / DK-I", url: "https://fakturuj.dk-i.cz/", category: "Aplikace a technické projekty", desc: "Fakturační nástroj pro tvorbu, správu, odesílání a export faktur v projektové infrastruktuře DK-I.", icon: <FileText />, previewSrc: projectPreviewPath('fakturuj-dk-i'), previewAlt: "Náhled webu Fakturuj / DK-I" }
+    { name: "David Kozák International", url: "https://international.david-kozak.com", category: "Hlavní web", description: "Firemní web pro služby, mezinárodní aktivity, kvalifikované řemeslníky, A1 dokumentaci a provozní podporu.", icon: <Globe />, ogImage: "https://international.david-kozak.com/og-image.jpg", previewAlt: "Náhled webu David Kozák International" },
+    { name: "F-STUDIO", url: "https://studio.david-kozak.com", category: "Kreativa a systémy", description: "Kreativní a firemní systém pro řízení procesů, financí, HR, skladu, reportingu a komunikace.", icon: <Rocket />, ogImage: "https://studio.david-kozak.com/banners/open-graph.png", previewAlt: "Náhled webu F-STUDIO" },
+    { name: "Imaginator", url: "https://imaginator.david-kozak.com", category: "Kreativa a systémy", description: "Generativní vizuální projekt a AI experimenty.", icon: <Paintbrush />, ogImage: "https://imaginator.david-kozak.com/api/og", previewAlt: "Náhled webu Imaginator" },
+    { name: "DKI Lab", url: "https://new.david-kozak.com/", category: "Kreativa a systémy", description: "Experimentální větev s novými koncepty a produktovými nápady.", icon: <Lightbulb />, ogImage: "https://i.postimg.cc/1zw6d2j1/DK.png", previewAlt: "Náhled webu DKI Lab" },
+    { name: "Silver projekt", url: "https://silver.david-kozak.com/", category: "Kreativa a systémy", description: "Specializovaný projekt s vlastním brand stylem.", icon: <Award />, ogImage: "https://silver.david-kozak.com/opengraph-image", previewAlt: "Náhled webu Silver projekt" },
+    { name: "Osobní profil", url: "https://osobni.david-kozak.com/", category: "Osobní a profilové weby", description: "Osobní profil a veřejná prezentace.", icon: <Users />, ogImage: "https://osobni.david-kozak.com/opengraph-image?0ae605c390fa60b4", previewAlt: "Náhled webu Osobní profil" },
+    { name: "Profesní CV", url: "https://zivotopis.david-kozak.com/", category: "Osobní a profilové weby", description: "Profesní CV web s referencemi.", icon: <FileText />, ogImage: "https://zivotopis.david-kozak.com/og-image.png", previewAlt: "Náhled webu Profesní CV" },
+    { name: "DKI App", url: "https://appka.david-kozak.com/", category: "Aplikace a technické projekty", description: "Produktový web zaměřený na aplikaci.", icon: <Smartphone />, preview: projectFallbackPreview, previewAlt: "Náhled webu DKI App" },
+    { name: "RepasMobile", url: "https://repasmobile.david-kozak.com", category: "Aplikace a technické projekty", description: "Produktová prezentace zaměřená na mobilní servis a opravy.", icon: <RefreshCw />, ogImage: "https://repasmobile-main.vercel.app/opengraph-image", previewAlt: "Náhled webu RepasMobile" },
+    { name: "REST||ART Integrace", url: "https://restartintegrace.david-kozak.com", category: "Aplikace a technické projekty", description: "Integrační projekt propojující práci, mentoring, bydlení a stabilizaci pro návrat lidí z krize, výkonu trestu nebo sociálního vyloučení.", icon: <HeartHandshake />, preview: "https://restartintegrace.david-kozak.com/brand/og-restart-integrace-v2.png", previewAlt: "Náhled webu REST||ART Integrace" },
+    { name: "Dev / DK", url: "https://dk.david-kozak.com", category: "Aplikace a technické projekty", description: "Technický hub s vývojářskými projekty.", icon: <Monitor />, ogImage: "https://dk.david-kozak.com/api/og", previewAlt: "Náhled webu Dev / DK" },
+    { name: "DKI Invent", url: "https://invent.dk-i.cz/", category: "Aplikace a technické projekty", description: "Evidence inventáře a majetku pro projekty DKI.", icon: <LayoutGrid />, preview: "https://invent.dk-i.cz/banners/open-graph.jpg", previewAlt: "Náhled webu DKI Invent" },
+    { name: "Kozák / DK-I", url: "https://kozak.dk-i.cz/", category: "Aplikace a technické projekty", description: "Osobní projektový hub pod infrastrukturou DK-I.", icon: <Link />, preview: "https://kozak.dk-i.cz/og-banner.png", previewAlt: "Náhled webu Kozák / DK-I" },
+    { name: "Roadmaps / DK-I", url: "https://roadmaps.dk-i.cz/", category: "Aplikace a technické projekty", description: "Veřejný přehled roadmap pro plánování a směr produktů.", icon: <Workflow />, ogImage: "https://roadmaps.dk-i.cz/og-image.png", previewAlt: "Náhled webu Roadmaps / DK-I" },
+    { name: "PROTOKOL: AEGIS", url: "https://aegis.d-international.eu", category: "AI / bezpečnost", description: "AI obranná vrstva proti manipulačním webovým patternům.", icon: <ShieldAlert />, ogImage: "https://aegis.d-international.eu/og/aegis-ultimate.png", previewAlt: "Náhled webu PROTOKOL: AEGIS" },
+    { name: "DKI Office", url: "https://firemni.dk-i.cz/", category: "Aplikace a technické projekty", description: "Interní firemní a ekonomický systém pro zakázky, nákladové položky, billing, dokumentaci, týmové schvalování a AI konzultanta.", icon: <Building2 />, preview: "https://firemni.dk-i.cz/banners/open-graph.png", previewAlt: "Náhled webu DKI Office" }
   ];
 
   const projectCategories = Array.from(new Set(kozakProjects.map((project) => project.category)));
@@ -1158,9 +1162,9 @@ const App = () => {
     >
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-emerald-500/[0.03] opacity-0 transition-opacity group-hover:opacity-100" />
 
-      <div className={`relative z-10 mb-6 overflow-hidden rounded-[1.35rem] border border-cyan-400/10 bg-black/25 ${compact ? 'aspect-[16/9]' : 'aspect-video'}`}>
+      <div className={`relative z-10 overflow-hidden rounded-2xl border border-cyan-400/10 bg-black/25 ${compact ? 'mb-4 aspect-[16/6]' : 'mb-6 aspect-[16/7]'}`}>
         <img
-          src={project.previewSrc}
+          src={resolveProjectPreview(project)}
           alt={project.previewAlt}
           className="h-full w-full object-cover opacity-75 saturate-[0.9] transition-all duration-700 group-hover:scale-105 group-hover:opacity-95"
           loading="lazy"
@@ -1172,21 +1176,21 @@ const App = () => {
         </div>
       </div>
 
-      <div className="relative z-10 mb-5 flex items-start justify-between gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-300 transition-all duration-500 group-hover:scale-105 group-hover:bg-cyan-500/20">
+      <div className={`relative z-10 flex items-start justify-between gap-4 ${compact ? 'mb-4' : 'mb-5'}`}>
+        <div className={`${compact ? 'h-11 w-11 rounded-xl' : 'h-14 w-14 rounded-2xl'} flex items-center justify-center bg-cyan-500/10 text-cyan-300 transition-all duration-500 group-hover:scale-105 group-hover:bg-cyan-500/20`}>
           {React.cloneElement(project.icon as React.ReactElement<{ size?: number }>, { size: compact ? 22 : 26 })}
         </div>
         <span className="text-[10px] font-black uppercase tracking-widest text-white/12">Project {(index + 1).toString().padStart(2, '0')}</span>
       </div>
 
-      <h3 className={`${compact ? 'text-xl' : 'text-2xl'} relative z-10 mb-4 font-black leading-tight text-white transition-colors group-hover:text-cyan-300`}>
+      <h3 className={`${compact ? 'mb-3 text-lg' : 'mb-4 text-2xl'} relative z-10 font-black leading-tight text-white transition-colors group-hover:text-cyan-300`}>
         {project.name}
       </h3>
-      <p className={`relative z-10 flex-grow font-light leading-relaxed text-white/45 transition-colors group-hover:text-white/65 ${compact ? 'text-sm' : 'text-sm md:text-base'}`}>
-        {project.desc}
+      <p className={`relative z-10 line-clamp-2 flex-grow font-light leading-relaxed text-white/45 transition-colors group-hover:text-white/65 ${compact ? 'text-sm' : 'text-sm md:text-base'}`}>
+        {project.description}
       </p>
 
-      <div className="relative z-10 mt-7 flex items-center justify-between border-t border-white/5 pt-5">
+      <div className={`relative z-10 flex items-center justify-between border-t border-white/5 ${compact ? 'mt-5 pt-4' : 'mt-7 pt-5'}`}>
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400/60 transition-colors group-hover:text-cyan-300">Otevřít projekt</span>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-cyan-400 group-hover:text-black">
           <ArrowRight size={14} />
@@ -2362,6 +2366,25 @@ const App = () => {
                       Nejsme projekt, který mluví o změně. <br className="md:hidden" />
                       Jsme systém, který ji vytváří.
                     </p>
+                  </div>
+                  <div className="max-w-3xl rounded-[2rem] border border-cyan-300/35 bg-[#071717]/85 p-5 md:p-7 shadow-[0_0_45px_rgba(34,211,238,0.2)] backdrop-blur">
+                    <p className="mb-4 text-[10px] font-black uppercase tracking-[0.32em] text-cyan-200">
+                      Web je v přestavbě
+                    </p>
+                    <a
+                      href="https://remastered-restart.vercel.app/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group inline-flex w-full items-center justify-between gap-4 rounded-[1.4rem] bg-cyan-300 px-5 py-5 text-left font-black text-black shadow-xl shadow-cyan-400/20 transition-all hover:bg-white hover:shadow-cyan-200/30 md:px-7"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-sm uppercase tracking-[0.22em] text-black/55">Dočasná doména</span>
+                        <span className="mt-1 block break-words text-2xl leading-tight md:text-4xl">
+                          remastered-restart.vercel.app
+                        </span>
+                      </span>
+                      <ExternalLink className="shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" size={30} />
+                    </a>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-4 pt-2 max-w-full sm:max-w-none">
                     <button
@@ -4686,7 +4709,7 @@ const App = () => {
                 </p>
               </div>
               
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                 {kozakProjects.map((project, index) => renderProjectCard(project, index))}
               </div>
             </div>

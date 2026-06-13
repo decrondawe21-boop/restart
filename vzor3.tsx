@@ -342,7 +342,7 @@ const App = () => {
              <div className="space-y-6">
                 {[
                   { icon: <Phone size={24} />, label: "Telefon", val: "705 217 251" },
-                  { icon: <Mail size={24} />, label: "E-mail", val: "kozak@d-international.eu" },
+                  { icon: <Mail size={24} />, label: "E-mail", val: "restart@dk-i.cz" },
                   { icon: <Globe size={24} />, label: "Web", val: "international.david-kozak.com" }
                 ].map(c => (
                   <div key={c.label} className="glass-panel p-10 rounded-3xl flex items-center gap-8 group">

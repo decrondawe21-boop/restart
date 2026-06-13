@@ -625,7 +625,7 @@ const ContactsPage = () => (
         <div className="space-y-3">
           {[
             { icon: <Phone size={20}/>,  label: 'Telefon', value: '705 217 251',                href: 'tel:705217251' },
-            { icon: <Mail size={20}/>,   label: 'Email',   value: 'kozak@d-international.eu',  href: 'mailto:kozak@d-international.eu' },
+            { icon: <Mail size={20}/>,   label: 'Email',   value: 'restart@dk-i.cz',  href: 'mailto:restart@dk-i.cz' },
             { icon: <Globe size={20}/>,  label: 'Web',     value: 'international.david-kozak.com', href: 'https://international.david-kozak.com' },
             { icon: <MapPin size={20}/>, label: 'Sídlo',   value: 'Praha, Česká republika',    href: null },
           ].map(item => (

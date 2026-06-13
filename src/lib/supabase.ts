@@ -7,7 +7,7 @@ export const SUPABASE_PUBLISHABLE_KEY =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_uMD9fyYbkGEUTRwY42P95Q_0EKAIz1Z';
 
 export const DEFAULT_ADMIN_EMAIL =
-  import.meta.env.VITE_DEFAULT_ADMIN_EMAIL ?? 'info@david-kozak.com';
+  import.meta.env.VITE_DEFAULT_ADMIN_EMAIL ?? 'restart@dk-i.cz';
 
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
 

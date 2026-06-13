@@ -1215,8 +1215,14 @@ export const normalizePublicContactInfo = (value: unknown): PublicContactInfo =>
     ['+420705224435', '+420775189574'].includes(compactPhone)
       ? defaultPublicContactInfo.phone
       : normalizedPhone;
+  const legacyContactEmails = [
+    `kozak${'@'}d-international.eu`,
+    `info${'@'}david-kozak.com`,
+    `kozak.david${'@'}dk-i.cz`,
+    `restartintegrace${'@'}david-kozak.com`
+  ];
   const email =
-    ['kozak@d-international.eu', 'info@david-kozak.com'].includes(normalizedEmail.trim().toLowerCase())
+    legacyContactEmails.includes(normalizedEmail.trim().toLowerCase())
       ? defaultPublicContactInfo.email
       : normalizedEmail;
 

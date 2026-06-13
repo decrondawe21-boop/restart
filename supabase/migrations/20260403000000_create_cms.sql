@@ -175,8 +175,7 @@ using (
 
 insert into public.admin_users (email)
 values
-  ('info@david-kozak.com'),
-  ('restartintegrace@david-kozak.com')
+  ('restart@dk-i.cz')
 on conflict (email) do nothing;
 
 insert into public.cms_entries (
