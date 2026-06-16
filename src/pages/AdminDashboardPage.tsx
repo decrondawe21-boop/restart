@@ -50,6 +50,8 @@ import {
 import type { HomepageMediaSlotId, HomepageWidgetId, PageIntroKey } from '../lib/siteSettings';
 import { supabase } from '../lib/supabase';
 
+const ProgramQuestionnairesPanel = React.lazy(() => import('../components/admin/ProgramQuestionnairesPanel'));
+
 interface AdminDashboardPageProps {
   session: Session | null;
   authReady: boolean;
@@ -62,7 +64,15 @@ interface EditableEntry extends CmsEntryInput {
   id?: string;
 }
 
-type AdminView = 'content' | 'homepage' | 'site' | 'gallery' | 'downloads' | 'client-id' | 'investment';
+type AdminView =
+  | 'content'
+  | 'homepage'
+  | 'site'
+  | 'gallery'
+  | 'downloads'
+  | 'client-id'
+  | 'program-questionnaires'
+  | 'investment';
 type SidebarGroupId =
   | 'homepage'
   | 'about'
@@ -184,7 +194,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     if (adminView === 'homepage') return 'homepage';
     if (adminView === 'gallery') return 'gallery';
     if (adminView === 'downloads') return 'downloads';
-    if (adminView === 'client-id') return 'client-tools';
+    if (adminView === 'client-id' || adminView === 'program-questionnaires') return 'client-tools';
     if (adminView === 'investment') return 'investment';
     if (adminView === 'content') return 'about';
 
@@ -389,6 +399,13 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     setError('');
   };
 
+  const openProgramQuestionnaires = () => {
+    setAdminView('program-questionnaires');
+    setSelectedId(null);
+    setNotice('');
+    setError('');
+  };
+
   const openInvestmentEditor = () => {
     setAdminView('investment');
     setNotice('');
@@ -511,6 +528,12 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           summary: 'Klientské ID, QR kód a čárový kód pro formuláře.',
           active: adminView === 'client-id',
           action: () => openClientIdGenerator()
+        },
+        {
+          label: 'Programové dotazníky',
+          summary: 'Výběr klienta a předvyplnění programových PDF.',
+          active: adminView === 'program-questionnaires',
+          action: () => openProgramQuestionnaires()
         }
       ]
     },
@@ -645,6 +668,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         ? 'Ke stažení'
       : adminView === 'client-id'
         ? 'Klientské ID'
+      : adminView === 'program-questionnaires'
+        ? 'Programové dotazníky'
       : adminView === 'site'
           ? siteFocus.panel === 'pages'
             ? `Header: ${pageIntroLabels[siteFocus.pageIntro]}`
@@ -672,6 +697,8 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           ? 'Veřejné dokumenty a programové podklady ke stažení.'
         : adminView === 'client-id'
           ? 'Generátor klientských identifikátorů, QR kódů a čárových kódů.'
+        : adminView === 'program-questionnaires'
+          ? 'Výběr klienta a předvyplnění programových fillable PDF formulářů.'
         : adminView === 'site'
           ? siteFocus.panel === 'pages'
             ? `Právě řešíš header a popis stránky „${pageIntroLabels[siteFocus.pageIntro]}“.`
@@ -1061,6 +1088,16 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           <DownloadsManagerPanel />
         ) : adminView === 'client-id' ? (
           <ClientIdGeneratorPanel />
+        ) : adminView === 'program-questionnaires' ? (
+          <React.Suspense
+            fallback={
+              <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-400/[0.06] p-8 text-sm font-semibold text-cyan-100">
+                Načítám programové dotazníky...
+              </div>
+            }
+          >
+            <ProgramQuestionnairesPanel />
+          </React.Suspense>
         ) : adminView === 'site' ? (
           <GlobalSettingsPanel
             isDark={isDark}
