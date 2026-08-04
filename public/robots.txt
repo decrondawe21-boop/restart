@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://restartintegrace.david-kozak.com/sitemap.xml
+Sitemap: https://restartintegrace.dk-i.cz/sitemap.xml

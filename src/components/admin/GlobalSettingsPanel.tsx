@@ -1471,7 +1471,7 @@ const GlobalSettingsPanel: React.FC<GlobalSettingsPanelProps> = ({
     blog: '/blog',
     gallery: '/galerie',
     projects: '/projekty',
-    donate: '/donate',
+    donate: '/darovat',
     contacts: '/kontakty'
   };
 

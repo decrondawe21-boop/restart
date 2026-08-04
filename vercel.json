@@ -1,4 +1,86 @@
 {
+  "redirects": [
+    {
+      "source": "/donate",
+      "destination": "/darovat",
+      "permanent": true
+    },
+    {
+      "source": "/zapojeni/darovat-obleceni",
+      "destination": "/darovat",
+      "permanent": true
+    },
+    {
+      "source": "/zapojeni/sbirka-knih",
+      "destination": "/darovat",
+      "permanent": true
+    },
+    {
+      "source": "/zapojeni/vybaveni-centra",
+      "destination": "/darovat",
+      "permanent": true
+    },
+    {
+      "source": "/videa/logo-reveal",
+      "destination": "/galerie",
+      "permanent": true
+    },
+    {
+      "source": "/videa/predstaveni-projektu",
+      "destination": "/o-nas",
+      "permanent": true
+    },
+    {
+      "source": "/metodika",
+      "destination": "/investicni-zamer/uvod",
+      "permanent": true
+    },
+    {
+      "source": "/metodika/slovnik-pojmu",
+      "destination": "/investicni-zamer/programy",
+      "permanent": true
+    },
+    {
+      "source": "/metodika/koncepcni-podklady",
+      "destination": "/ke-stazeni/dokumenty",
+      "permanent": true
+    },
+    {
+      "source": "/aktuality/aktuality",
+      "destination": "/novinky",
+      "permanent": true
+    },
+    {
+      "source": "/aktuality/aktuality/:slug*",
+      "destination": "/novinky",
+      "permanent": true
+    },
+    {
+      "source": "/aktuality/aktuality-projektu",
+      "destination": "/novinky",
+      "permanent": true
+    },
+    {
+      "source": "/aktuality/aktuality-projektu/:slug*",
+      "destination": "/novinky",
+      "permanent": true
+    },
+    {
+      "source": "/aktuality/dokumentace",
+      "destination": "/ke-stazeni/dokumenty",
+      "permanent": true
+    },
+    {
+      "source": "/aktuality/dokumentace/:slug*",
+      "destination": "/ke-stazeni/dokumenty",
+      "permanent": true
+    },
+    {
+      "source": "/aktuality/jailbreak",
+      "destination": "/pilire/jailbreak",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/((?!api|brand|docs|images|videos|assets|site.webmanifest|robots.txt|sitemap.xml|browserconfig.xml).*)",

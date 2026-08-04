@@ -1058,14 +1058,16 @@ export const defaultLegalPageContent: LegalPageContentSettings = {
     eyebrow: 'Cookies',
     title: 'Zásady cookies',
     description:
-      'Web používá jen technicky přiměřené prvky nutné pro fungování rozhraní, přihlášení do administrace a zachování základního uživatelského nastavení.',
+      'Web používá technicky nezbytné prvky pro fungování rozhraní a volitelně analytiku Google podle souhlasu návštěvníka.',
     sections: [
       {
         heading: 'Co se ukládá',
         bullets: [
           'volba světlého nebo tmavého režimu v localStorage',
+          'volba souhlasu s cookies a analytikou v localStorage',
           'autentizační session pro administraci spravovaná Supabase Auth',
-          'technické údaje potřebné pro bezpečnost a provoz připojených služeb'
+          'technické údaje potřebné pro bezpečnost a provoz připojených služeb',
+          'volitelná analytická data Google Analytics po udělení souhlasu'
         ]
       },
       {
@@ -1073,14 +1075,14 @@ export const defaultLegalPageContent: LegalPageContentSettings = {
         bullets: [
           'neprodáváme data třetím stranám',
           'nepoužíváme je pro agresivní reklamní targeting',
-          'bez dalšího rozšíření webu nepoužíváme rozsáhlé behaviorální trackování'
+          'bez souhlasu nespouštíme analytické ukládání cookies'
         ]
       },
       {
         heading: 'Jak můžeš nastavení ovlivnit',
         paragraphs: [
           'Cookies a lokální data můžeš odstranit v nastavení prohlížeče. Tím se ale můžeš odhlásit z administrace nebo přijít o uložené preference webu.',
-          'Pokud později nasadíme analytické nebo marketingové skripty, bude potřeba tuhle sekci rozšířit o podrobnější správu souhlasů.'
+          'Analytiku můžeš odmítnout v cookie liště. Google tag je nastavený přes Consent Mode v2, takže výchozí stav je bez souhlasu.'
         ]
       }
     ]

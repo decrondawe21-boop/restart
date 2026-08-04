@@ -67,6 +67,13 @@ import {
   Fingerprint, HeartHandshake, Scale, Eye, HelpCircle, Sun, Moon, Download
 } from 'lucide-react';
 
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 const apiKey = ""; // Klíč poskytne prostředí
 const BlogPage = React.lazy(() => import('./pages/BlogPage'));
 const AdminDashboardPage = React.lazy(() => import('./pages/AdminDashboardPage'));
@@ -142,7 +149,7 @@ const pagePathMap: Record<PageKey, string> = {
   news: '/novinky',
   gallery: '/galerie',
   projects: '/projekty',
-  donate: '/donate',
+  donate: '/darovat',
   blog: '/blog',
   contacts: '/kontakty',
   'downloads-documents': '/ke-stazeni/dokumenty',
@@ -158,12 +165,32 @@ const pagePathMap: Record<PageKey, string> = {
   'legal-cookies': '/legal/cookies'
 };
 
-const siteOrigin = 'https://restartintegrace.david-kozak.com';
+const siteOrigin = 'https://restartintegrace.dk-i.cz';
 const defaultSeoImage = `${siteOrigin}/brand/og-restart-integrace-v2.png`;
 const previewVersion = '20260525';
 const siteTitle = 'REST||ART Integrace';
 const siteDescription =
   'REST||ART Integrace je projekt druhé šance v praxi: propojuje práci, mentoring, bydlení a stabilizaci pro návrat lidí z krize, výkonu trestu nebo sociálního vyloučení.';
+const consentStorageKey = 'restart-cookie-consent';
+type CookieConsentValue = 'granted' | 'denied';
+
+const updateGoogleConsent = (value: CookieConsentValue) => {
+  if (typeof window === 'undefined') return;
+  const status = value === 'granted' ? 'granted' : 'denied';
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag =
+    window.gtag ||
+    function gtagFallback() {
+      window.dataLayer?.push(arguments);
+    };
+  window.gtag('consent', 'update', {
+    ad_storage: status,
+    ad_user_data: status,
+    ad_personalization: status,
+    analytics_storage: status
+  });
+};
 
 const pageSeoContent: Record<PageKey, { title: string; description: string; image?: string }> = {
   home: {
@@ -280,7 +307,7 @@ const pageSeoContent: Record<PageKey, { title: string; description: string; imag
   },
   'legal-cookies': {
     title: 'Zásady cookies | REST||ART',
-    description: 'Informace o technických cookies, lokálních preferencích a provozních datech webu.'
+    description: 'Informace o technických cookies, analytice, lokálních preferencích a provozních datech webu.'
   }
 };
 
@@ -583,14 +610,16 @@ const legalPageContent: Record<
     eyebrow: 'Cookies',
     title: 'Zásady cookies',
     description:
-      'Web používá jen technicky přiměřené prvky nutné pro fungování rozhraní, přihlášení do administrace a zachování základního uživatelského nastavení.',
+      'Web používá technicky nezbytné prvky pro fungování rozhraní a volitelně analytiku Google podle souhlasu návštěvníka.',
     sections: [
       {
         heading: 'Co se ukládá',
         bullets: [
           'volba světlého nebo tmavého režimu v localStorage',
+          'volba souhlasu s cookies a analytikou v localStorage',
           'autentizační session pro administraci spravovaná Supabase Auth',
-          'technické údaje potřebné pro bezpečnost a provoz připojených služeb'
+          'technické údaje potřebné pro bezpečnost a provoz připojených služeb',
+          'volitelná analytická data Google Analytics po udělení souhlasu'
         ]
       },
       {
@@ -598,14 +627,14 @@ const legalPageContent: Record<
         bullets: [
           'neprodáváme data třetím stranám',
           'nepoužíváme je pro agresivní reklamní targeting',
-          'bez dalšího rozšíření webu nepoužíváme rozsáhlé behaviorální trackování'
+          'bez souhlasu nespouštíme analytické ukládání cookies'
         ]
       },
       {
         heading: 'Jak můžeš nastavení ovlivnit',
         paragraphs: [
           'Cookies a lokální data můžeš odstranit v nastavení prohlížeče. Tím se ale můžeš odhlásit z administrace nebo přijít o uložené preference webu.',
-          'Pokud později nasadíme analytické nebo marketingové skripty, bude potřeba tuhle sekci rozšířit o podrobnější správu souhlasů.'
+          'Analytiku můžeš odmítnout v cookie liště. Google tag je nastavený přes Consent Mode v2, takže výchozí stav je bez souhlasu.'
         ]
       }
     ]
@@ -619,6 +648,11 @@ const App = () => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isAdminLoginDialogOpen, setIsAdminLoginDialogOpen] = useState(false);
   const [openLegalPage, setOpenLegalPage] = useState<LegalPageKey | null>(null);
+  const [cookieConsent, setCookieConsent] = useState<CookieConsentValue | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const savedConsent = window.localStorage.getItem(consentStorageKey);
+    return savedConsent === 'granted' || savedConsent === 'denied' ? savedConsent : null;
+  });
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
     const savedTheme = window.localStorage.getItem('restart-theme');
@@ -715,6 +749,12 @@ const App = () => {
     window.localStorage.setItem('restart-theme', isDark ? 'dark' : 'light');
     document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
   }, [isDark]);
+
+  useEffect(() => {
+    if (!cookieConsent || typeof window === 'undefined') return;
+    window.localStorage.setItem(consentStorageKey, cookieConsent);
+    updateGoogleConsent(cookieConsent);
+  }, [cookieConsent]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -1142,7 +1182,7 @@ const App = () => {
     { name: "Profesní CV", url: "https://zivotopis.david-kozak.com/", category: "Osobní a profilové weby", description: "Profesní CV web s referencemi.", icon: <FileText />, ogImage: "https://zivotopis.david-kozak.com/og-image.png", previewAlt: "Náhled webu Profesní CV" },
     { name: "DKI App", url: "https://appka.david-kozak.com/", category: "Aplikace a technické projekty", description: "Produktový web zaměřený na aplikaci.", icon: <Smartphone />, preview: projectFallbackPreview, previewAlt: "Náhled webu DKI App" },
     { name: "RepasMobile", url: "https://repasmobile.david-kozak.com", category: "Aplikace a technické projekty", description: "Produktová prezentace zaměřená na mobilní servis a opravy.", icon: <RefreshCw />, ogImage: "https://repasmobile-main.vercel.app/opengraph-image", previewAlt: "Náhled webu RepasMobile" },
-    { name: "REST||ART Integrace", url: "https://restartintegrace.david-kozak.com", category: "Aplikace a technické projekty", description: "Integrační projekt propojující práci, mentoring, bydlení a stabilizaci pro návrat lidí z krize, výkonu trestu nebo sociálního vyloučení.", icon: <HeartHandshake />, preview: "https://restartintegrace.david-kozak.com/brand/og-restart-integrace-v2.png", previewAlt: "Náhled webu REST||ART Integrace" },
+    { name: "REST||ART Integrace", url: "https://restartintegrace.dk-i.cz", category: "Aplikace a technické projekty", description: "Integrační projekt propojující práci, mentoring, bydlení a stabilizaci pro návrat lidí z krize, výkonu trestu nebo sociálního vyloučení.", icon: <HeartHandshake />, preview: "https://restartintegrace.dk-i.cz/brand/og-restart-integrace-v2.png", previewAlt: "Náhled webu REST||ART Integrace" },
     { name: "Dev / DK", url: "https://dk.david-kozak.com", category: "Aplikace a technické projekty", description: "Technický hub s vývojářskými projekty.", icon: <Monitor />, ogImage: "https://dk.david-kozak.com/api/og", previewAlt: "Náhled webu Dev / DK" },
     { name: "DKI Invent", url: "https://invent.dk-i.cz/", category: "Aplikace a technické projekty", description: "Evidence inventáře a majetku pro projekty DKI.", icon: <LayoutGrid />, preview: "https://invent.dk-i.cz/banners/open-graph.jpg", previewAlt: "Náhled webu DKI Invent" },
     { name: "Kozák / DK-I", url: "https://kozak.dk-i.cz/", category: "Aplikace a technické projekty", description: "Osobní projektový hub pod infrastrukturou DK-I.", icon: <Link />, preview: "https://kozak.dk-i.cz/og-banner.png", previewAlt: "Náhled webu Kozák / DK-I" },
@@ -7390,6 +7430,41 @@ const App = () => {
           </div>
         </div>
       </footer>
+
+      {!cookieConsent && (
+        <div className="fixed inset-x-0 bottom-0 z-[145] px-4 pb-4 md:px-6 md:pb-6">
+          <section className="mx-auto max-w-5xl rounded-[1.5rem] border border-cyan-300/20 bg-[#061516]/95 p-4 shadow-[0_22px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl md:flex md:items-center md:justify-between md:gap-6 md:p-5">
+            <div className="flex gap-4">
+              <div className="mt-1 hidden h-10 w-10 flex-none items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300 sm:flex">
+                <ShieldCheck size={20} />
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-200">Souhlas s analytikou</p>
+                <p className="max-w-3xl text-sm font-light leading-relaxed text-white/65">
+                  Používáme nezbytné lokální nastavení a volitelnou analytiku Google. Bez souhlasu zůstává Google tag v
+                  režimu Consent Mode bez analytických cookies.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-0 md:flex md:flex-none">
+              <button
+                type="button"
+                onClick={() => setCookieConsent('denied')}
+                className="rounded-2xl border border-white/10 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/65 transition hover:border-cyan-300/30 hover:text-cyan-100"
+              >
+                Jen nezbytné
+              </button>
+              <button
+                type="button"
+                onClick={() => setCookieConsent('granted')}
+                className="rounded-2xl bg-cyan-300 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-[#041111] shadow-[0_12px_30px_rgba(103,232,249,0.20)] transition hover:bg-white"
+              >
+                Povolit
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {showScrollTop && (
         <button
